@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'JetBrains';
+  src: url('/fonts/JetBrains_Mono/JetBrainsMono-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;  
+  font-style: normal;
+  font-display: swap;
+}
+
+:root { 
+  --color-red: #e7000b;
+  --color-black: #2e2e2e;
+  --color-white: #fdfdfd; 
+}
+
+@theme   {  
+  --color-red: var(--color-red);
+  --color-black: var(--color-black);
+  --color-white: var(--color-white);
+  --font-jetbrains: 'JetBrains', sans-serif;
+}
+
+*{
+  font-family: sans-serif;
+}
