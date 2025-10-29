@@ -1,12 +1,11 @@
 -- CreateTable
 CREATE TABLE `users` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `id` VARCHAR(36) NOT NULL,
     `email` VARCHAR(255) NOT NULL,
     `password` VARCHAR(255) NOT NULL,
     `firstName` VARCHAR(100) NOT NULL,
     `lastName` VARCHAR(100) NOT NULL,
     `role` ENUM('ADMIN', 'USER') NOT NULL DEFAULT 'USER',
-    `active` BOOLEAN NOT NULL DEFAULT true,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -22,15 +21,15 @@ CREATE TABLE `companies` (
     `active` BOOLEAN NOT NULL DEFAULT true,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
-    `ownerId` INTEGER NOT NULL,
+    `ownerId` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `user_companies` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `userId` INTEGER NOT NULL,
+    `id` VARCHAR(36) NOT NULL,
+    `userId` VARCHAR(191) NOT NULL,
     `companyId` VARCHAR(36) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
@@ -46,7 +45,7 @@ CREATE TABLE `plans` (
     `name` VARCHAR(255) NOT NULL,
     `description` TEXT NULL,
     `companyId` VARCHAR(36) NOT NULL,
-    `createdById` INTEGER NOT NULL,
+    `createdById` VARCHAR(191) NOT NULL,
     `active` BOOLEAN NOT NULL DEFAULT true,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
@@ -71,7 +70,7 @@ CREATE TABLE `quotations` (
     `id` VARCHAR(36) NOT NULL,
     `planVersionId` VARCHAR(36) NOT NULL,
     `companyId` VARCHAR(36) NOT NULL,
-    `userId` INTEGER NOT NULL,
+    `userId` VARCHAR(191) NOT NULL,
     `clientName` VARCHAR(255) NOT NULL,
     `clientDni` VARCHAR(20) NOT NULL,
     `vehicleData` VARCHAR(255) NULL,
