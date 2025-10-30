@@ -9,8 +9,7 @@ export const errorHandler = (
 ) => {
   // Si es un error conocido (AppError)
   if (err instanceof AppError) {
-    return res.status(err.statusCode).json({
-      success: false,
+    return res.status(err.statusCode).json({ 
       message: err.message,
     });
   }
