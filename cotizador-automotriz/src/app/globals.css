@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: 'JetBrains';
-  src: url('/fonts/JetBrains_Mono/JetBrainsMono-VariableFont_wght.ttf') format('truetype');
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins/Poppins-Regular.ttf') format('truetype');
   font-weight: 100 900;  
   font-style: normal;
   font-display: swap;
@@ -11,16 +11,27 @@
 :root { 
   --color-red: #e7000b;
   --color-black: #2e2e2e;
-  --color-white: #fdfdfd; 
+  --color-white: #f9fafc; 
+  --color-gray: #7d8385;
+  --color-blue: #377dff;
+  --color-blue-light: #82e4d5;
 }
 
 @theme   {  
   --color-red: var(--color-red);
   --color-black: var(--color-black);
-  --color-white: var(--color-white);
-  --font-jetbrains: 'JetBrains', sans-serif;
+  --color-white: var(--color-white); 
+  --color-gray: var(--color-gray);
+  --color-blue: var(--color-blue);
+  --color-blue-light: var(--color-blue-light);
 }
 
+* { 
+  font-family: 'Poppins', sans-serif;
+}
+body { 
+  background-color: var(--color-white); 
+}
 .container{
   max-width: 1440px;
   width: 100%;

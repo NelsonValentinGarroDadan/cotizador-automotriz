@@ -1,15 +1,15 @@
-import { useEffect, useRef, useState } from "react";
-import Employe from "../types/employe";
+import { useEffect, useRef, useState } from "react"; 
 import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
+import { User } from "../types/user";
 
 export default function FooterEmployees({
     employes,
     activeSheet,
     setActiveSheet
 }:{
-    employes: Employe[];
-    activeSheet: Employe;
-    setActiveSheet: (employe: Employe) => void;
+    employes: User[];
+    activeSheet: User;
+    setActiveSheet: (employe: User) => void;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -17,19 +17,19 @@ export default function FooterEmployees({
 
   const filteredEmployes = employes.filter(emp => {
     const search = searchTerm.toLowerCase().trim();
-    const fullName = `${emp.name} ${emp.lastName}`.toLowerCase();
-    const reverseName = `${emp.lastName} ${emp.name}`.toLowerCase();
-    const initialFormat = `${emp.name.charAt(0)}. ${emp.lastName}`.toLowerCase();
+    const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
+    const reverseName = `${emp.lastName} ${emp.firstName}`.toLowerCase();
+    const initialFormat = `${emp.firstName.charAt(0)}. ${emp.lastName}`.toLowerCase();
     
     return fullName.includes(search) || 
            reverseName.includes(search) || 
            initialFormat.includes(search) ||
-           emp.name.toLowerCase().includes(search) ||
+           emp.firstName.toLowerCase().includes(search) ||
            emp.lastName.toLowerCase().includes(search);
   });
 
-  const formatName = (employe: Employe) => {
-    return `${employe.name.charAt(0)}. ${employe.lastName}`;
+  const formatName = (employe: User) => {
+    return `${employe.firstName.charAt(0)}. ${employe.lastName}`;
   };
 
   const scrollLeft = () => {
