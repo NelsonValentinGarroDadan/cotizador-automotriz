@@ -46,8 +46,8 @@ export default function Home() {
     }
   };
   useEffect(() => {
-  if (isAuthenticated) router.push("/dashboard");
-}, [isAuthenticated, router]);
+    if (isAuthenticated) router.push("/dashboard");
+  }, [isAuthenticated, router]);
 
   return (
     <section className="min-h-[70vh] flex-row! container">

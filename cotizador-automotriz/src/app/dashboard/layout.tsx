@@ -1,6 +1,7 @@
 import type { Metadata } from "next"; 
-import "./globals.css";  
-import { ReduxProvider } from "./store/provider";
+import "../globals.css"; 
+import Header from "../components/header";  
+import { ReduxProvider } from "../store/provider";
 
 export const metadata: Metadata = {
   title: "Simulador de Créditos Automotrices", 
@@ -14,7 +15,8 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className="pt-34">
-      <ReduxProvider> 
+      <ReduxProvider>
+        <Header />
         {children} 
       </ReduxProvider>
       </body>
