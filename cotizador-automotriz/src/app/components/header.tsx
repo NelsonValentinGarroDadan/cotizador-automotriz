@@ -33,7 +33,7 @@ export default function Header(){
     });
 
     return (
-        <header className="bg-white fixed top-0 py-3 md:py-3 gap-3 flex flex-col xl:flex-row items-center justify-between w-full shadow-[2px_0_5px_rgba(0,0,0,1)] px-5">
+        <header className="bg-white py-3 h-auto md:h-[10vh] md:py-3 gap-3 flex flex-col xl:flex-row items-center justify-between w-full shadow-[2px_0_5px_rgba(0,0,0,1)] px-5">
             
             <Link href={home} className="flex items-center justify-center gap-4">
                 <Image
@@ -43,16 +43,16 @@ export default function Header(){
                     height={1000}
                     className="w-30 h-10 object-contain"
                 />
-                <span className="text-xl text-black font-bold">
+                <span className="text-2xl text-black font-bold">
                     Simulador de Créditos Automotrices
                 </span>
             </Link>
 
             <div className="flex flex-col md:flex-row items-center justify-end gap-4">
-                <span className="text-sm text-gray-600">{formattedDate}</span>
-                <span className="text-sm text-gray-600 font-mono w-[100px] text-center">{formattedTime}</span>
+                <span className="text-lg text-gray-600">{formattedDate}</span>
+                <span className="text-lg text-gray-600 font-mono w-[100px] text-center">{formattedTime}</span>
                 {isAuthenticated && user && (
-                    <span className="text-lg font-semibold text-gray-800">{user.firstName}</span>
+                    <span className="text-2xl font-semibold text-gray-800">{user.firstName}</span>
                 )}
             </div>
         </header>

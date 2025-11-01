@@ -13,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className="pt-34">
+      <body>
       <ReduxProvider> 
         {children} 
       </ReduxProvider>

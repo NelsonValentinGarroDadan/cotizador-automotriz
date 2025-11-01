@@ -15,6 +15,7 @@
   --color-gray: #7d8385;
   --color-blue: #377dff;
   --color-blue-light: #82e4d5;
+  --color-blue-light-ligth:#cfdde9;
 }
 
 @theme   {  
@@ -24,6 +25,7 @@
   --color-gray: var(--color-gray);
   --color-blue: var(--color-blue);
   --color-blue-light: var(--color-blue-light);
+  --color-blue-light-ligth: var(--color-blue-light-ligth)
 }
 
 * { 
