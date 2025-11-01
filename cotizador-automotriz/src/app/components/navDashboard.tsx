@@ -9,12 +9,11 @@ type NavItem = {
 };
 
 export default function NavDashboard({ navsLinks }: { navsLinks: NavItem[] }) {
-  const pathname = usePathname(); // hook de Next.js 13+ para obtener ruta actual
-    console.log(pathname)
+  const pathname = usePathname(); 
   return (
     <section className="h-full  border-r border-gray flex flex-col items-start justify-start py-5 ">
       {navsLinks.map((link) => {
-        const isActive = pathname.startsWith(link.href); // activa incluso si hay sub-rutas
+      const isActive = pathname === link.href;
         return (
           <Link
             key={link.label}
