@@ -1,10 +1,18 @@
 import { Request, Response } from "express";
 import * as service from "./service";
+import { getPaginationParams } from "../../utils/pagination";
 
-export const getAllUsers = async (req:Request, res:Response) => {
-    const users = await service.getAllUsers();
-    res.json(users);
-}
+export const getAllUsers = async (req: Request, res: Response) => {
+    const ALLOWED_SORT_FIELDS = ['firstName', 'lastName', 'email'];
+    const { page, limit, sortBy, sortOrder } = getPaginationParams(
+        req.query,
+        ALLOWED_SORT_FIELDS,
+        'firstName'  
+    );
+    
+    const result = await service.getAllUsers(page, limit, sortBy, sortOrder);
+    res.json(result);
+};
 
 export const getUserById = async (req:Request, res:Response) => {
     const user = await service.getUserById(req.params.id);

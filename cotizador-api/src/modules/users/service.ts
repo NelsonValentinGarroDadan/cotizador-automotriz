@@ -1,11 +1,19 @@
 import { AppError } from "../../core/errors/appError";
+import { createPaginatedResponse, PaginatedResponse } from "../../utils/pagination";
 import * as repository from "./repository";
 import { CreateUser, UpdateUser } from "./schema";
 import bcrypt from "bcrypt";
 
 
-export const getAllUsers = async () => await repository.getAllUsers(); 
-
+export const getAllUsers = async (
+  page: number,
+  limit: number,
+  sortBy: string,
+  sortOrder: 'asc' | 'desc'
+): Promise<PaginatedResponse<any>> => {
+  const { users, total } = await repository.getAllUsers(page, limit, sortBy, sortOrder);
+  return createPaginatedResponse(users, total, page, limit);
+};
 export const getUserById = async (id: string) => {
     const user = await repository.getUserById(id);
     if(!user) throw new AppError("Usuario no encontrado", 404);

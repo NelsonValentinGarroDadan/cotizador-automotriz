@@ -8,7 +8,7 @@ const router = Router();
 
 router.use('/auth',routerLogin);
 
-router.use(authenticate);
+/* router.use(authenticate); */
 
 router.use('/users',routerUsers);
 
