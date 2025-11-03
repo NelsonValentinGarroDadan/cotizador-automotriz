@@ -17,8 +17,7 @@ CREATE TABLE `users` (
 CREATE TABLE `companies` (
     `id` VARCHAR(36) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
-    `logo` VARCHAR(255) NULL,
-    `active` BOOLEAN NOT NULL DEFAULT true,
+    `logo` VARCHAR(255) NULL, 
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `ownerId` VARCHAR(191) NOT NULL,
