@@ -40,6 +40,7 @@ export const empleadosColumns: TableColumn[] = [
     key: "actions",
     label: "Acciones",
     sortable:false,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     render: (_value, row) => (
       <div className="flex gap-2">
         <button className="text-blue-600 hover:underline">Ver</button>

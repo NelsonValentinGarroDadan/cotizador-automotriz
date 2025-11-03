@@ -2,35 +2,22 @@
 import Image from "next/image";
 import Link from "next/link";  
 import { useAuthStore } from "../store/useAuthStore"; 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { capitalizeWords } from "../lib/capitalizeWords";
 
 export default function Header(){ 
     const { isAuthenticated, user } = useAuthStore();
-    const home = isAuthenticated ? "/dashboard" : "/";
-
-    const [date, setDate] = useState(new Date());
-
-    useEffect(() => {
-        const interval = setInterval(() => setDate(new Date()), 1000);
-        return () => clearInterval(interval);
-    }, []);
-
+    const home = isAuthenticated ? "/dashboard" : "/"; 
+    const [date] = useState(new Date());  
     const options: Intl.DateTimeFormatOptions = {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-    };
+    }; 
 
     const formattedDate = date.toLocaleDateString('es-AR', options);
-
-    // Hora en 24h, con dos dígitos en horas, minutos y segundos
-    const formattedTime = date.toLocaleTimeString('es-AR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-    });
+    const formattedDateCapitalized = capitalizeWords(formattedDate);
 
     return (
         <header className="bg-white py-3 h-auto md:h-[10vh] md:py-3 gap-3 flex flex-col xl:flex-row items-center justify-between w-full shadow-[2px_0_5px_rgba(0,0,0,1)] px-5">
@@ -49,8 +36,7 @@ export default function Header(){
             </Link>
 
             <div className="flex flex-col md:flex-row items-center justify-end gap-4">
-                <span className="text-lg text-gray-600">{formattedDate}</span>
-                <span className="text-lg text-gray-600 font-mono w-[100px] text-center">{formattedTime}</span>
+                <span className="text-lg text-gray-600">{formattedDateCapitalized}</span> 
                 {isAuthenticated && user && (
                     <span className="text-2xl font-semibold text-gray-800">{user.firstName}</span>
                 )}
