@@ -11,6 +11,7 @@ export interface FilterConfig {
 export interface TableColumn {
   key: string;
   label: string;
+  sortable:boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render?: (value: any, row: any) => React.ReactNode;
 }
