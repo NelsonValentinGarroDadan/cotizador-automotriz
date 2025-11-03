@@ -6,6 +6,7 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  hydrated:boolean
 }
 
 interface AuthActions {
@@ -21,6 +22,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       user: null,
       token: null,
       isAuthenticated: false,
+      hydrated: false,
 
       // Acciones
       setAuth: (user, token) =>
@@ -44,6 +46,9 @@ export const useAuthStore = create<AuthState & AuthActions>()(
     }),
     {
       name: 'auth-storage',
+      onRehydrateStorage: () => (state) => { 
+        return { ...state, hydrated: true };
+      },
     }
   )
 );
