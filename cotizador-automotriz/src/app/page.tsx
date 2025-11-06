@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useLoginMutation } from "./api/authApi";
 import { useAuthStore } from "./store/useAuthStore"; 
 import { useRouter } from "next/navigation";
+import CustomButton from "./components/ui/customButton";
 
 export default function Home() {
   const { register, handleSubmit, formState: { errors } } = useForm<LoginDto>();
@@ -50,7 +51,7 @@ export default function Home() {
   }, [isAuthenticated, router]);
 
   return (
-    <section className="min-h-[70vh] flex-row! container">
+    <section className="min-h-[70vh] flex-row! container pt-20">
       <div className="w-full h-[70vh] flex-col items-center justify-start hidden md:flex">
         <Image
           src="/imgs/logo_dms.jpeg"
@@ -100,13 +101,13 @@ export default function Home() {
           <span className="text-red-500 text-sm w-[60%]">{error}</span>
         )}
 
-        <button 
+        <CustomButton
           type="submit"
           disabled={isLoading}
-          className="w-[60%] bg-blue text-center text-white rounded-md py-3 cursor-pointer disabled:opacity-50"
+          className="w-[60%]"
         >
           {isLoading ? "Ingresando..." : "Ingresar"}
-        </button>
+        </CustomButton>
       </form>
     </section>
   );

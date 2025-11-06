@@ -32,9 +32,7 @@ export default function Page() {
         currentPage: data?.page || 1,
         totalItems: data?.total || 0,
         totalPages: data?.totalPages || 1,
-      }}
-      onFilter={(filters) => console.log(filters)}
-      onPageChange={(page, limit) => console.log(page, limit)}
+      }} 
       loading={isLoading}
     />
   );

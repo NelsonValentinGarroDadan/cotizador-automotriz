@@ -2,13 +2,18 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { FilterConfig, PaginationData, TableColumn } from '@/app/types/table';
+import PageHeader from '@/app/components/ui/pageHeader';
+import CustomButton from './customButton';
 
 interface CustomTableProps {
   store: ReturnType<typeof import('@/app/store/useTableStore').createTableStore>;
   columns: TableColumn[];
   data: any[];
+  title?: string;
+  description?: string;
+  buttons?: React.ReactNode;
   filters?: FilterConfig[];
   pagination?: PaginationData;
   onFilter?: (filters: Record<string, any>) => void;
@@ -16,12 +21,35 @@ interface CustomTableProps {
   loading?: boolean;
 }
 
-export function CustomTable({ store, columns, data, filters = [], pagination, onFilter, onPageChange, loading = false }: CustomTableProps) {
+export function CustomTable({
+  store,
+  columns,
+  data,
+  title,
+  description,
+  buttons,
+  filters = [],
+  pagination,
+  onFilter,
+  onPageChange,
+  loading = false,
+}: CustomTableProps) {
   const { register, handleSubmit, reset } = useForm();
-  const { filters: savedFilters, pagination: savedPagination, sort: savedSort, setFilters, setPagination, setSort, resetFilters } = store();
+  const {
+    filters: savedFilters,
+    pagination: savedPagination,
+    sort: savedSort,
+    setFilters,
+    setPagination,
+    setSort,
+    resetFilters,
+  } = store();
+
+  const isManualReset = useRef(false);
 
   useEffect(() => {
-    reset(savedFilters);
+    if (!isManualReset.current) reset(savedFilters);
+    else isManualReset.current = false;
   }, [savedFilters, reset]);
 
   const handleFilterSubmit = (data: Record<string, any>) => {
@@ -30,8 +58,9 @@ export function CustomTable({ store, columns, data, filters = [], pagination, on
   };
 
   const handleResetFilters = () => {
+    const emptyValues = Object.fromEntries(filters.map(f => [f.name, '']));
+    reset(emptyValues);
     resetFilters();
-    reset({});
     onFilter?.({});
   };
 
@@ -57,91 +86,200 @@ export function CustomTable({ store, columns, data, filters = [], pagination, on
   const renderFilter = (filter: FilterConfig) => {
     switch (filter.type) {
       case 'text':
-        return <input {...register(filter.name)} placeholder={filter.placeholder} className="border px-3 py-2 rounded w-full" />;
+        return (
+          <input
+            {...register(filter.name)}
+            placeholder={filter.placeholder}
+            className="border border-gray/50 px-3 py-2 rounded w-full outline-none focus:ring-2 focus:ring-blue/60"
+          />
+        );
       case 'select':
         return (
-          <select {...register(filter.name)} className="border px-3 py-2 rounded w-full">
+          <select
+            {...register(filter.name)}
+            className="bg-yellow-light border border-gray/50 px-3 py-2 rounded w-full outline-none focus:ring-2 focus:ring-blue/60"
+          >
             {filter.options?.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
             ))}
           </select>
         );
       case 'date':
-        return <input type="date" {...register(filter.name)} className="border px-3 py-2 rounded w-full" />;
+        return (
+          <input
+            type="date"
+            {...register(filter.name)}
+            className="bg-yellow-light border border-gray/50 px-3 py-2 rounded w-full outline-none focus:ring-2 focus:ring-blue/60"
+          />
+        );
       case 'number':
-        return <input type="number" {...register(filter.name)} placeholder={filter.placeholder} className="border px-3 py-2 rounded w-full" />;
+        return (
+          <input
+            type="number"
+            {...register(filter.name)}
+            placeholder={filter.placeholder}
+            className="bg-yellow-light  border border-gray/50 px-3 py-2 rounded w-full outline-none focus:ring-2 focus:ring-blue/60"
+          />
+        );
       default:
         return null;
     }
   };
 
-  return (
-    <div className="w-full px-3">
-      {filters.length > 0 && (
-        <form onSubmit={handleSubmit(handleFilterSubmit)} className="mb-4 p-4   rounded">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
-            {filters.map((f) => (
-              <div key={f.name}>
-                <label className="block text-sm font-medium mb-1">{f.label}</label>
-                {renderFilter(f)}
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">Filtrar</button>
-            <button type="button" onClick={handleResetFilters} className="bg-gray-300 text-gray-700 px-4 py-2 rounded">Limpiar</button>
-          </div>
-        </form>
-      )}
+  const hasActiveFilters = Object.values(savedFilters).some(v => v !== '' && v !== undefined);
 
-      <div className="overflow-x-auto border rounded">
-        <table className="w-full">
-          <thead className="bg-blue  text-white">
-            <tr>
-              {columns.map((col) => (
-                <th key={col.key} className={`px-4 py-3 text-left text-sm font-medium ${col.sortable ? 'cursor-pointer' : ''}`} onClick={() => col.sortable && handleSort(col.key)}>
-                  {col.label} {col.sortable && savedSort.sortBy === col.key ? (savedSort.sortOrder === 'asc' ? ' ↑' : ' ↓') : null}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={columns.length} className="text-center py-8">Cargando...</td></tr>
-            ) : data.length === 0 ? (
-              <tr><td colSpan={columns.length} className="text-center py-8">No hay datos</td></tr>
-            ) : (
-              data.map((row, idx) => (
-                <tr key={idx} className="border-b hover:bg-gray-50">
-                  {columns.map((col) => (
-                    <td key={col.key} className="px-4 py-3 text-sm">{col.render ? col.render(row[col.key], row) : row[col.key]}</td>
-                  ))}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+  return (
+    <div className="w-full flex flex-col h-full py-1"> 
+      <div className="sticky top-0 z-50 bg-white shadow-sm">
+          {/* HEADER */}
+          {title && (
+            <PageHeader
+              title={title}
+              description={description}
+              buttons={buttons}
+            />
+          )}
+
+          {/* FILTROS */}
+          {filters.length > 0 && (
+            <form
+              onSubmit={handleSubmit(handleFilterSubmit)}
+              className="py-4 flex items-center justify-between gap-3"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {filters.map((f) => (
+                  <div key={f.name}>
+                    <label className="block text-sm font-medium text-gray mb-1">
+                      {f.label}
+                    </label>
+                    {renderFilter(f)}
+                  </div>
+                ))}
+              </div>
+              <div  className='flex gap-3'>
+                <CustomButton
+                  type="submit" 
+                >
+                  Filtrar
+                </CustomButton>
+                <CustomButton
+                  type="button"
+                  onClick={handleResetFilters}
+                  disabled={!hasActiveFilters} 
+                >
+                  Limpiar
+                </CustomButton>
+              </div>
+            </form>
+          )}
+
+          {/* PAGINADO */}
+          {pagination && (
+            <div className="flex items-center justify-between pb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray">Mostrar:</span>
+                <select
+                  value={savedPagination.limit}
+                  onChange={(e) => handleLimitChange(Number(e.target.value))}
+                  className="border border-gray/50 px-3 py-1.5 rounded text-sm outline-none focus:ring-2 focus:ring-blue/60"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <span className="text-sm text-gray">
+                  registros ({pagination.totalItems} total)
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CustomButton
+                  onClick={() => handlePageChange(savedPagination.page - 1)}
+                  disabled={savedPagination.page === 1} 
+                >
+                  Anterior
+                </CustomButton>
+                <span className="text-sm text-gray">
+                  Página {savedPagination.page} de {pagination.totalPages}
+                </span>
+                <CustomButton
+                  onClick={() => handlePageChange(savedPagination.page + 1)}
+                  disabled={savedPagination.page === pagination.totalPages} 
+                >
+                  Siguiente
+                </CustomButton>
+              </div>
+            </div>
+          )}
+
+          {/* HEADER DE TABLA */}
+          <table className="w-full table-fixed border-collapse">
+            <thead className="bg-blue text-white">
+              <tr>
+                {columns.map((col) => (
+                  <th
+                    key={col.key}
+                    className={`px-4 py-3 text-left text-sm font-medium border border-blue-light-ligth ${
+                      col.sortable ? 'cursor-pointer select-none' : ''
+                    }`}
+                    onClick={() => col.sortable && handleSort(col.key)}
+                  >
+                    {col.label}
+                    {col.sortable && savedSort.sortBy === col.key
+                      ? savedSort.sortOrder === 'asc'
+                        ? ' ↑'
+                        : ' ↓'
+                      : null}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+          </table>
       </div>
 
-      {pagination && (
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Mostrar:</span>
-            <select value={savedPagination.limit} onChange={(e) => handleLimitChange(Number(e.target.value))} className="border px-3 py-2 rounded text-sm">
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-            <span className="text-sm text-gray-600">registros ({pagination.totalItems} total)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => handlePageChange(savedPagination.page - 1)} disabled={savedPagination.page === 1} className="px-3 py-2 border rounded text-sm disabled:opacity-50 hover:bg-gray-100">Anterior</button>
-            <span className="text-sm text-gray-600">Página {savedPagination.page} de {pagination.totalPages}</span>
-            <button onClick={() => handlePageChange(savedPagination.page + 1)} disabled={savedPagination.page === pagination.totalPages} className="px-3 py-2 border rounded text-sm disabled:opacity-50 hover:bg-gray-100">Siguiente</button>
-          </div>
-        </div>
-      )}
+  
+      <table className="w-full table-fixed border-collapse">
+        <tbody>
+           {loading ? (
+            <tr>
+              <td
+                colSpan={columns.length}
+                className="text-center py-6 text-gray"
+              >
+                Cargando datos...
+              </td>
+            </tr>
+          ) : data.length === 0 ? (
+            <tr>
+              <td
+                colSpan={columns.length}
+                className="text-center py-6 text-gray"
+              >
+                No hay datos disponibles
+              </td>
+            </tr>
+          ) : (
+            data.map((row, idx) => (
+              <tr
+                key={idx}
+                className={`${idx % 2 !== 0 ? 'bg-gray/10' : 'bg-white'}`}
+              >
+                {columns.map((col) => (
+                  <td
+                    key={col.key}
+                    className="px-4 py-3 text-sm border-l border-gray/20"
+                  >
+                    {col.render ? col.render(row[col.key], row) : row[col.key]}
+                  </td>
+                ))}
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/useAuthStore';
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ 
-    baseUrl: process.env.BASE_API_URL || 'http://localhost:3000/api',
+    baseUrl: process.env.NEXT_PUBLIC_BASE_URL_API || 'http://localhost:3003/api',
     prepareHeaders: (headers) => {
       // Obtener token de Zustand
       const token = useAuthStore.getState().token;
@@ -16,6 +16,6 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ['User', 'Product', 'Cart'],
+  tagTypes: ['User', 'Company'],
   endpoints: () => ({}), // Vacío, se agregan por archivo
 });

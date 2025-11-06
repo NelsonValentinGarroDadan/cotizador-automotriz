@@ -1,26 +1,15 @@
 import { FilterConfig } from "@/app/types/table";
 
-export const empleadosFilters: FilterConfig[] = [
+export const companyFilters: FilterConfig[] = [
   {
     name: "search",
-    label: "Buscar por nombre o email",
+    label: "Buscar por nombre",
     type: "text",
-    placeholder: "Ej: Juan Pérez o juan@email.com",
-  },
+    placeholder: "Ej: AutoPlus",
+  },  
   {
-    name: "companyId",
-    label: "Compañía",
-    type: "select",
-    options: [
-      { label: "Todas", value: "" },
-      { label: "Seguros San Luis", value: "1" },
-      { label: "AutoPlus", value: "2" },
-      // estas las podrías cargar dinámicamente
-    ],
-  },
-  {
-    name: "fechaRegistro",
-    label: "Fecha de registro desde",
+    name: "fechaCreacion",
+    label: "Fecha de creación desde",
     type: "date",
   },
 ];

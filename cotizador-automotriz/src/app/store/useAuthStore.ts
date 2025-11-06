@@ -46,9 +46,16 @@ export const useAuthStore = create<AuthState & AuthActions>()(
     }),
     {
       name: 'auth-storage',
-      onRehydrateStorage: () => (state) => { 
-        return { ...state, hydrated: true };
-      },
+      onRehydrateStorage: () => (state, error) => {
+      if (error) {
+        console.error('Error rehydrating auth store:', error);
+      } else {
+        // ⚠️ Importante: usar set() dentro del callback
+        setTimeout(() => {
+          useAuthStore.setState({ hydrated: true });
+        }, 0);
+      }
+    },
     }
   )
 );

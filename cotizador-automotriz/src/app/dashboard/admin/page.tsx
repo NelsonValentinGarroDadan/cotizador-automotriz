@@ -1,41 +1,82 @@
 'use client';
-
-import { CustomTable } from '@/app/components/ui/customTable';
-import { empleadosColumns } from './components/tableConfig';
-import { empleadosFilters } from './components/filterConfig';
-import { useGetAllUsersQuery } from '@/app/api/userApi';
 import { useEffect, useMemo } from 'react';
+import { CustomTable } from '@/app/components/ui/customTable';
 import { createTableStore } from '@/app/store/useTableStore';
-import { Role } from '@/app/types';
+import companyColumns from './components/tableConfig'; 
+import { useGetAllCompaniesQuery } from '@/app/api/companyApi'; 
+import { companyFilters } from './components/filterConfig';
+import WindowFormButton from '@/app/components/windowFormButton';
+import { Plus } from 'lucide-react'; 
+import { useDispatch } from 'react-redux'; // 👈 Agregar
+import { companyApi } from '@/app/api/companyApi';
 
 export default function Page() {
-  const useTableStore = useMemo(() => createTableStore('empleados'), []);
+  const dispatch = useDispatch();
+  const useCompaniesTableStore = useMemo(() => createTableStore('companies'), []);
+  const { filters, pagination, sort  } = useCompaniesTableStore();
 
-  const { filters, pagination, sort } = useTableStore();
+  const { data, refetch, isLoading, isFetching } = useGetAllCompaniesQuery({
+    ...pagination,
+    ...sort, 
+    ...filters, 
+    },{
+      refetchOnMountOrArgChange: true,  
+    }
+  );
 
-  const { data, isLoading } = useGetAllUsersQuery({
-    page: pagination.page,
-    limit: pagination.limit,
-    sortBy: sort.sortBy,
-    sortOrder: sort.sortOrder,
-    role:Role.USER,
-    ...filters,
-  });
-  useEffect(()=>{console.log(data)},[data])
+ useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin === window.location.origin) {
+        if (event.data?.created || event.data?.updated || event.data?.deleted) { 
+          dispatch(
+            companyApi.util.invalidateTags([
+              { type: 'Company', id: 'LIST' }
+            ])
+          );
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [dispatch]);
+
+ const handleFilter = () => {
+    refetch();
+  };
+
+ 
+  const handlePageChange = () => {
+    refetch();
+  };
+  const columns = companyColumns({
+    onCreated: refetch
+  })
   return (
-    <CustomTable
-      store={useTableStore} // pasamos la instancia al componente
-      columns={empleadosColumns}
-      data={data?.data || []}
-      filters={empleadosFilters}
-      pagination={{
-        currentPage: data?.page || 1,
-        totalItems: data?.total || 0,
-        totalPages: data?.totalPages || 1,
-      }}
-      onFilter={(filters) => console.log(filters)}
-      onPageChange={(page, limit) => console.log(page, limit)}
-      loading={isLoading}
-    />
+    <section className='w-full border-l border-gray  px-5 min-h-screen'> 
+      <CustomTable
+        store={useCompaniesTableStore}
+        columns={columns}
+        data={data?.data || []}
+        filters={companyFilters}
+        pagination={{
+          currentPage: data?.page || 1,
+          totalItems: data?.total || 0,
+          totalPages: data?.totalPages || 1,
+        }} 
+        loading={isLoading || isFetching}
+        onFilter={handleFilter} 
+        onPageChange={handlePageChange} 
+        title='Gestion de compañias'
+        description='Podras ver y editar las diferentes compañoas a tu cargo.'
+        buttons={
+          <WindowFormButton
+            formUrl="/companies/create"
+            buttonText={<p className='flex gap-3'><Plus className='text-white h-6 w-6' />Crear Compañía</p>}
+            onCreated={refetch} 
+          />
+        }
+      />
+    </section>
   );
 }

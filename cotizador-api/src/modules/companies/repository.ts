@@ -1,6 +1,4 @@
-import { Company } from "@prisma/client";
 import prisma from "../../config/prisma";
-import { calculatePagination } from "../../utils/pagination";
 import { CreateCompany, UpdateCompany } from "./schema";
 
 export const getAllCompanies = async (
@@ -9,13 +7,15 @@ export const getAllCompanies = async (
   limit: number,
   sortBy: string,
   sortOrder: "asc" | "desc",
-  filters?: { name?: string; active?: boolean }
+  filters?: { name?: string; createdAtFrom?: Date } 
 ) => {
   const skip = (page - 1) * limit;
 
   const where: any = { ownerId: userId };
-  if (filters?.name) where.name = { contains: filters.name, mode: "insensitive" };
-  if (filters?.active !== undefined) where.active = filters.active;
+  if (filters?.name) where.name = { contains: filters.name  };
+  if (filters?.createdAtFrom) {
+    where.createdAt = { gte: new Date(filters.createdAtFrom) };
+  }
 
   const [companies, total] = await Promise.all([
     prisma.company.findMany({

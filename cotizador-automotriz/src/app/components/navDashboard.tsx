@@ -11,7 +11,7 @@ type NavItem = {
 export default function NavDashboard({ navsLinks }: { navsLinks: NavItem[] }) {
   const pathname = usePathname(); 
   return (
-    <section className="h-full  border-r border-gray flex flex-col items-start justify-start py-5 ">
+    <section className="h-full flex flex-col items-start justify-start py-5 sticky top-0 left-0">
       {navsLinks.map((link) => {
       const isActive = pathname === link.href;
         return (

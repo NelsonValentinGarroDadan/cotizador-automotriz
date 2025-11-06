@@ -1,4 +1,3 @@
-import { User } from "@prisma/client";
 import { AppError } from "../../core/errors/appError";
 import { createPaginatedResponse, PaginatedResponse } from "../../utils/pagination";
 import * as repository from "./repository";
@@ -11,7 +10,7 @@ export const getAllCompanies = async (
   limit: number,
   sortBy: string,
   sortOrder: "asc" | "desc",
-  filters?: { name?: string; active?: boolean }
+  filters?: { name?: string; createdAtFrom?: Date } 
 ): Promise<PaginatedResponse<any> & { roleStats: { ADMIN: number; USER: number } }> => {
   const { companies, total, roleStats } = await repository.getAllCompanies(
     userId,

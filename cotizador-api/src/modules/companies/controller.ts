@@ -10,20 +10,23 @@ const uploadDir = path.join(__dirname, "../../../uploads/companies");
 export const getAllCompanies = async (req: Request, res: Response) => {
   if (!req.user) throw new Error("Usuario no autenticado");
 
-  const ALLOWED_SORT_FIELDS = ["name", "createdAt", "updatedAt"];
+  const ALLOWED_SORT_FIELDS = ["name", "createdAt"];
   const { page, limit, sortBy, sortOrder } = getPaginationParams(
     req.query,
     ALLOWED_SORT_FIELDS,
     "name"
   );
 
-  const filters: { name?: string; active?: boolean } = {};
-  if (req.query.name) filters.name = String(req.query.name); 
+  const filters: { name?: string; createdAtFrom?: Date } = {};
+  if (req.query.search) filters.name = String(req.query.search);
+  if (req.query.fechaCreacion) { 
+    const dateStr = String(req.query.fechaCreacion);
+    filters.createdAtFrom = new Date(String(req.query.fechaCreacion));
+  }
 
   const result = await service.getAllCompanies(req.user.id, page, limit, sortBy, sortOrder, filters);
   res.json(result);
 };
-
 export const getCompanyById = async (req: Request, res: Response) => {  
   const company = await service.getCompanyById(req.params.id,req.user); 
 
@@ -32,7 +35,9 @@ export const getCompanyById = async (req: Request, res: Response) => {
 
 
 export const createCompany = async (req: Request, res: Response) => {
-  const { name, ownerId } = req.body;
+  const { name } = req.body;
+  const ownerId = req.user?.id;
+  if(!ownerId) throw new AppError("Usuario no autenticado",403)
   let logo: string | undefined;
 
   if (req.file) {
@@ -40,7 +45,7 @@ export const createCompany = async (req: Request, res: Response) => {
     const outputPath = path.join(uploadDir, fileName);
 
     await sharp(req.file.buffer)
-      .resize(512, 512, { fit: "cover" })
+      .resize(512, 512, { fit:  "inside" })
       .webp({ quality: 80 })
       .toFile(outputPath);
 
@@ -53,7 +58,7 @@ export const createCompany = async (req: Request, res: Response) => {
 
 export const updateCompany = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, active } = req.body;
+  const { name } = req.body;
   let logo: string | undefined;
 
   if (req.file) {
@@ -61,14 +66,14 @@ export const updateCompany = async (req: Request, res: Response) => {
     const outputPath = path.join(uploadDir, fileName);
 
     await sharp(req.file.buffer)
-      .resize(512, 512, { fit: "cover" })
+      .resize(512, 512, { fit:  "inside" })
       .webp({ quality: 80 })
       .toFile(outputPath);
 
     logo = `/uploads/companies/${fileName}`;
   }
 
-  const updated = await service.updateCompany(id, { name, active, logo }, req.user);
+  const updated = await service.updateCompany(id, { name, logo }, req.user);
   res.json(updated);
 };
 

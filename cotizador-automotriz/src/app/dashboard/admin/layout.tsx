@@ -1,5 +1,7 @@
+"use client"
 import Header from "@/app/components/header";
 import NavDashboard from "../../components/navDashboard";
+import { useAuthRedirect } from "@/app/hooks/useAuthRedirect";
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,10 +30,11 @@ export default function RootLayout({
         }, 
         
     ]; 
+    useAuthRedirect(['ADMIN']);
   return ( 
     <>
       <Header />
-      <section className="flex w-full h-auto md:h-[90vh] items-start justify-start md:overflow-hidden ">
+      <section className="flex w-full h-auto items-start justify-start  ">
         <NavDashboard navsLinks={navsLinks} />
         {children}
       </section>
