@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useGetCompanyByIdQuery } from '@/app/api/companyApi';
 import { CrudPageFactory } from '@/app/components/crudPageFactory';
-import CompanyForm from '@/app/dashboard/admin/components/companyForm';
+import CompanyForm from '@/app/companies/components/companyForm';
 import { Company } from '@/app/types/compay';
 
 export default function EditCompanyPage() {

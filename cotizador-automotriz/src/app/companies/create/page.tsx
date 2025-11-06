@@ -1,7 +1,7 @@
 'use client';
  
 import { CrudPageFactory } from '@/app/components/crudPageFactory';
-import CompanyForm from '@/app/dashboard/admin/components/companyForm';
+import CompanyForm from '@/app/companies/components/companyForm';
 
 export default function CreateCompanyPage() {
   return (
