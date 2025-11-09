@@ -3,14 +3,33 @@ import * as service from "./service";
 import { getPaginationParams } from "../../utils/pagination";
 
 export const getAllUsers = async (req: Request, res: Response) => {
-    const ALLOWED_SORT_FIELDS = ['firstName', 'lastName', 'email'];
+    const ALLOWED_SORT_FIELDS = ['firstName', 'lastName', 'email', 'createdAt'];
     const { page, limit, sortBy, sortOrder } = getPaginationParams(
         req.query,
         ALLOWED_SORT_FIELDS,
         'firstName'  
     );
     
-    const result = await service.getAllUsers(page, limit, sortBy, sortOrder);
+    // ✅ Extraer filtros adicionales
+    const search = req.query.search as string | undefined;
+    const role = req.query.role as string | undefined;
+    const companies = req.query.companies as string | undefined;
+    const fechaCreacion = req.query.fechaCreacion as string | undefined;
+    
+    // ✅ Parsear companyIds si vienen como array o string separado por comas
+    let companyIds: string[] | undefined;
+    if (companies) {
+        companyIds = companies.split(',').filter(Boolean);
+    }
+    
+    const result = await service.getAllUsers(
+        page, 
+        limit, 
+        sortBy, 
+        sortOrder,
+        { search, role, companyIds, fechaCreacion }
+    );
+    
     res.json(result);
 };
 

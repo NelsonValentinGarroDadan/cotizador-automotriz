@@ -1,4 +1,4 @@
-export type FilterType = 'text' | 'select' | 'date' | 'number';
+export type FilterType = 'text' | 'select' | 'date' | 'number' | 'multiselect';;
 
 export interface FilterConfig {
   name: string;
@@ -6,6 +6,7 @@ export interface FilterConfig {
   label: string;
   placeholder?: string;
   options?: { value: string; label: string }[];
+  multiple?: boolean;
 }
 
 export interface TableColumn {

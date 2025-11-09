@@ -57,8 +57,9 @@ export const useAuthRedirect = (allowedRoles?: Array<'ADMIN' | 'USER'>) => {
 
       // Si intenta acceder al dashboard equivocado
       const allowedExternalPaths = [
-        '/companies', // cualquier ruta que empiece con /companies
-        '/users',     // por ejemplo, si en el futuro agregás /users/create, /users/edit...
+        '/companies', 
+        '/users',    
+        '/administradores', 
       ];
 
       const isAllowedExternalPath = allowedExternalPaths.some((allowed) =>

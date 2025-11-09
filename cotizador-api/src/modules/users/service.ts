@@ -4,14 +4,27 @@ import * as repository from "./repository";
 import { CreateUser, UpdateUser } from "./schema";
 import bcrypt from "bcrypt";
 
+interface UserFilters {
+  search?: string;
+  role?: string;
+  companyIds?: string[];
+  fechaCreacion?: string;
+}
 
 export const getAllUsers = async (
   page: number,
   limit: number,
   sortBy: string,
-  sortOrder: 'asc' | 'desc'
+  sortOrder: 'asc' | 'desc',
+  filters?: UserFilters
 ): Promise<PaginatedResponse<any>> => {
-  const { users, total } = await repository.getAllUsers(page, limit, sortBy, sortOrder);
+  const { users, total } = await repository.getAllUsers(
+    page, 
+    limit, 
+    sortBy, 
+    sortOrder,
+    filters
+  );
   return createPaginatedResponse(users, total, page, limit);
 };
 export const getUserById = async (id: string) => {

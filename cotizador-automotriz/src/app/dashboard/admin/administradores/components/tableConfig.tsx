@@ -1,0 +1,71 @@
+// administradores/components/tableConfig.tsx
+import TableActions from "@/app/components/ui/tableAction";
+import { TableColumn } from "@/app/types/table";
+import { UserWithCompanies } from "@/app/types/user";
+
+export default function adminsColumns({
+  onCreated
+}: {
+  onCreated: () => void
+}): TableColumn[] {
+  return [
+    {
+      key: "firstName",
+      label: "Nombre",
+      sortable: true,
+      render: (value: string, row: UserWithCompanies) => 
+        `${row.firstName} ${row.lastName}`,
+    },
+    {
+      key: "email",
+      label: "Email",
+      sortable: true,
+    },
+    {
+      key: "ownedCompanies",
+      label: "Compañías",
+      sortable: false,
+      render: (value: UserWithCompanies['ownedCompanies'], row: UserWithCompanies) => {
+        const companies = row.ownedCompanies || [];
+        
+        if (companies.length === 0) {
+          return (
+            <span className="text-gray-400 italic">
+              Sin compañías asignadas
+            </span>
+          );
+        }
+        
+        if (companies.length === 1) {
+          return (
+            <span className="font-medium">
+              {companies[0].name}
+            </span>
+          );
+        }
+        
+        return (
+          <div className="flex flex-col gap-1">
+            <span className="font-medium">{companies[0].name}</span>
+            <span className="text-sm text-gray-500">
+              +{companies.length - 1} más
+            </span>
+          </div>
+        );
+      },
+    }, 
+    {
+      key: "id",
+      label: "Acciones",
+      sortable: false,
+      render: (value: string,row: UserWithCompanies) => (
+        <TableActions 
+          baseUrl="/administradores"
+          id={value}
+          showDelete={row.companies  ? row.companies.length<0 : true}
+          onActionComplete={onCreated}
+        />
+      ),
+    },
+  ];
+}

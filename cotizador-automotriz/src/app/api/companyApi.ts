@@ -1,4 +1,3 @@
-// src/app/api/companyApi.ts
 import { api } from './api';  
 import { PaginatedResponse } from '../types';
 import { Company  } from '../types/compay';

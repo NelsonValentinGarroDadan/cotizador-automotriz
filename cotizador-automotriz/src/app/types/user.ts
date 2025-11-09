@@ -1,5 +1,7 @@
-import { Role  } from ".";
-import { Company } from "./compay";
+// app/types/user.ts
+import { z } from 'zod';
+import { Role } from "."; 
+import { Company } from './compay';
 
 export interface User {
   id: string;
@@ -11,38 +13,57 @@ export interface User {
   updatedAt: string;
 }
 
-// Usuario con relaciones (cuando lo necesites)
 export interface UserWithCompanies extends User {
   ownedCompanies?: Company[];
   companies?: UserCompany[];
 }
 
-// UserCompany (relación muchos a muchos) 
 export interface UserCompany {
   id: string;
   userId: string;
   companyId: string;
   createdAt: string;
+  company?: Company;
 }
 
-export interface UserCompanyWithDetails extends UserCompany {
-  user: User;
-  company: Company;
-}
+// ✅ Schema de validación para crear admin
+export const createAdminSchema = z.object({
+  email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+  firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  lastName: z.string().min(2, 'El apellido debe tener al menos 2 caracteres'),
+  companyIds: z.array(z.string()).optional(), // IDs de compañías a asignar
+});
 
+// ✅ Schema para editar (sin password obligatorio)
+export const updateAdminSchema = z.object({
+  email: z.string().email('Email inválido').optional(),
+  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').optional().or(z.literal('')),
+  firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres').optional(),
+  lastName: z.string().min(2, 'El apellido debe tener al menos 2 caracteres').optional(),
+  companyIds: z.array(z.string()).optional(),
+});
+
+export type CreateAdminInput = z.infer<typeof createAdminSchema>;
+export type UpdateAdminInput = z.infer<typeof updateAdminSchema>;
+
+// Tipos existentes...
 export interface CreateUserDto {
   email: string;
   password: string;
   firstName: string;
   lastName: string;
   role?: Role;
+  companyIds?: string[]; // ✅ Agregar
 }
 
 export interface UpdateUserDto {
   email?: string;
+  password?: string; // ✅ Agregar
   firstName?: string;
   lastName?: string;
   role?: Role;
+  companyIds?: string[]; // ✅ Agregar
 }
 
 export interface AuthResponse {

@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useEffect, useRef } from 'react';
 import { FilterConfig, PaginationData, TableColumn } from '@/app/types/table';
 import PageHeader from '@/app/components/ui/pageHeader';
 import CustomButton from './customButton';
+import MultiSelectFilter from './multiSelectFilter';
 
 interface CustomTableProps {
   store: ReturnType<typeof import('@/app/store/useTableStore').createTableStore>;
@@ -34,7 +35,7 @@ export function CustomTable({
   onPageChange,
   loading = false,
 }: CustomTableProps) {
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, control } = useForm();
   const {
     filters: savedFilters,
     pagination: savedPagination,
@@ -90,7 +91,7 @@ export function CustomTable({
           <input
             {...register(filter.name)}
             placeholder={filter.placeholder}
-            className="border border-gray/50 px-3 py-2 rounded w-full outline-none focus:ring-2 focus:ring-blue/60"
+            className="bg-yellow-light border border-gray/50 px-3 py-2 rounded w-full outline-none focus:ring-2 focus:ring-blue/60"
           />
         );
       case 'select':
@@ -105,6 +106,22 @@ export function CustomTable({
               </option>
             ))}
           </select>
+        );
+      case 'multiselect':
+        return (
+          <Controller
+            name={filter.name}
+            control={control}
+            defaultValue={[]}
+            render={({ field }) => (
+              <MultiSelectFilter
+                options={filter.options || []}
+                value={field.value || []}
+                onChange={field.onChange}
+                placeholder={filter.placeholder || 'Seleccionar...'}
+              />
+            )}
+          />
         );
       case 'date':
         return (
