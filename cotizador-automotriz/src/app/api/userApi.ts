@@ -8,7 +8,7 @@ interface GetUserParams {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   search?: string; 
-  companies?:string[];
+  companyIds?:string[];
   role:Role;
 }
 
@@ -22,7 +22,7 @@ export const userApi = api.injectEndpoints({
         if (params?.sortBy) searchParams.append('sortBy', params.sortBy);
         if (params?.sortOrder) searchParams.append('sortOrder', params.sortOrder);
         if (params?.search) searchParams.append('search', params.search); 
-        if (params?.companies) searchParams.append('companies', params.companies.join(','));
+        if (params?.companyIds) searchParams.append('companyIds', params.companyIds.join(',')); 
         searchParams.append('role',params.role);
         return { url: `/users?${searchParams.toString()}`, method: 'GET' };
       },

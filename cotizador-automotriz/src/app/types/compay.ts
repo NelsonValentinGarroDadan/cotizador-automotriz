@@ -1,5 +1,5 @@
-import { Plan } from "./plan";
-import { User } from "./user";
+import { Plan } from "./plan"; 
+import { UserCompany } from "./user";
  
 import { z } from 'zod';
 
@@ -21,16 +21,14 @@ export type UpdateCompanyInput = z.infer<typeof updateCompanySchema>;
 export interface Company {
   id: string;
   name: string;
-  logo: string | null;
-  active: boolean;
-  ownerId: string;
+  logo: string | null;  
   createdAt: string;
   updatedAt: string;
 }
 
 // Compañía con relaciones
 export interface CompanyWithOwner extends Company {
-  owner: User;
+ userCompanies?: UserCompany[]
 }
 
 export interface CompanyWithPlans extends Company {

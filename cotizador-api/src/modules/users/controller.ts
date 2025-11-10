@@ -13,7 +13,8 @@ export const getAllUsers = async (req: Request, res: Response) => {
     // ✅ Extraer filtros adicionales
     const search = req.query.search as string | undefined;
     const role = req.query.role as string | undefined;
-    const companies = req.query.companies as string | undefined;
+    const companies = req.query.companyIds as string | undefined;
+    console.log(companies)
     const fechaCreacion = req.query.fechaCreacion as string | undefined;
     
     // ✅ Parsear companyIds si vienen como array o string separado por comas
@@ -21,7 +22,8 @@ export const getAllUsers = async (req: Request, res: Response) => {
     if (companies) {
         companyIds = companies.split(',').filter(Boolean);
     }
-    
+    console.log('companyIds filtradas:', companyIds);
+
     const result = await service.getAllUsers(
         page, 
         limit, 
@@ -45,6 +47,7 @@ export const createUser = async (req:Request, res:Response) => {
 
 export const updateUser = async (req:Request, res:Response) => {
     await service.updateUser(req.params.id, req.body);
+    console.log(req.body)
     res.status(200).send();
 }
 

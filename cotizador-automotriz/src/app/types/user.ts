@@ -14,9 +14,9 @@ export interface User {
 }
 
 export interface UserWithCompanies extends User {
-  ownedCompanies?: Company[];
-  companies?: UserCompany[];
+  companies?: UserCompany[];  
 }
+
 
 export interface UserCompany {
   id: string;
@@ -24,7 +24,9 @@ export interface UserCompany {
   companyId: string;
   createdAt: string;
   company?: Company;
+  user?: User;  
 }
+
 
 // ✅ Schema de validación para crear admin
 export const createAdminSchema = z.object({

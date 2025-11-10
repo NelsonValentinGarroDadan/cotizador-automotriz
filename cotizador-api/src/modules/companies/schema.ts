@@ -11,9 +11,7 @@ export const createCompanySchema = z.object({
   name: z
     .string({ error: "El nombre de la compañía es obligatorio" })
     .min(2, "El nombre debe tener al menos 2 caracteres")
-    .max(255, "El nombre no puede superar los 255 caracteres"),
-  ownerId: z
-    .uuid("El ID del propietario debe ser un UUID válido"),
+    .max(255, "El nombre no puede superar los 255 caracteres"), 
 });
 
 export const updateCompanySchema = z

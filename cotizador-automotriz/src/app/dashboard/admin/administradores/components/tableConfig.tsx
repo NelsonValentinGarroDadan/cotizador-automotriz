@@ -22,12 +22,11 @@ export default function adminsColumns({
       sortable: true,
     },
     {
-      key: "ownedCompanies",
+      key: "companies",
       label: "Compañías",
       sortable: false,
-      render: (value: UserWithCompanies['ownedCompanies'], row: UserWithCompanies) => {
-        const companies = row.ownedCompanies || [];
-        
+      render: (value: UserWithCompanies['companies'], row: UserWithCompanies) => {
+        const companies = row.companies || []; 
         if (companies.length === 0) {
           return (
             <span className="text-gray-400 italic">
@@ -39,14 +38,14 @@ export default function adminsColumns({
         if (companies.length === 1) {
           return (
             <span className="font-medium">
-              {companies[0].name}
+              {companies[0].company?.name}
             </span>
           );
         }
         
         return (
           <div className="flex flex-col gap-1">
-            <span className="font-medium">{companies[0].name}</span>
+            <span className="font-medium">{companies[0].company?.name}</span>
             <span className="text-sm text-gray-500">
               +{companies.length - 1} más
             </span>

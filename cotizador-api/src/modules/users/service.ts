@@ -33,21 +33,25 @@ export const getUserById = async (id: string) => {
     return user;
 }
 
-export const createUser = async (data: CreateUser) => {
-    const existingUser =  await repository.getUserByEmail(data.email);
-    if(existingUser) throw new AppError("Este email ya esta en uso", 400);
-    const hashedPassword = await bcrypt.hash(data.password, 10);  
-    data.password = hashedPassword; 
+export const createUser = async (data: CreateUser & { companyIds?: string[] }) => {
+  const existingUser = await repository.getUserByEmail(data.email);
+  if (existingUser) throw new AppError("Este email ya está en uso", 400);
 
-    return await repository.createUser(data); 
-}
+  const hashedPassword = await bcrypt.hash(data.password, 10);
+  data.password = hashedPassword;
 
-export const updateUser = async (id: string, data:UpdateUser) => {
-    const existingUser =  await repository.getUserById(id);
-    if(!existingUser) throw new AppError("Usuario no encontrado", 404); 
-    if(data.password) data.password = await bcrypt.hash(data.password, 10); 
-    await repository.updateUser(id, data);
-}
+  return await repository.createUser(data);
+};
+
+export const updateUser = async (id: string, data: UpdateUser & { companyIds?: string[] }) => {
+  const existingUser = await repository.getUserById(id);
+  if (!existingUser) throw new AppError("Usuario no encontrado", 404);
+
+  if (data.password) data.password = await bcrypt.hash(data.password, 10);
+
+  return await repository.updateUser(id, data);
+};
+
 
 export const deleteUser = async (id: string) => {
     const existingUser =  await repository.getUserById(id);

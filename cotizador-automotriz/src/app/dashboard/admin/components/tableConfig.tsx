@@ -1,5 +1,5 @@
 
-import TableActions from "@/app/components/ui/tableAction";
+import TableActions from "@/app/components/ui/tableAction"; 
 import { TableColumn } from "@/app/types/table"; 
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL_IMG;  
@@ -32,15 +32,16 @@ export  default function  companyColumns({onCreated}:{onCreated:()=>void}) : Tab
     key: "id",
     label: "Acciones",
     sortable: false,
-    render: (value) => (
-      <TableActions
+    render: (value ) =>{ 
+      return(<TableActions
         showView={false}
         baseUrl="/companies"
         id={value}
+        showDelete={false}
         onActionComplete={onCreated}
-      />
-
-    ),
+      /> )
+    }  
+      
   },
 ]; 
 

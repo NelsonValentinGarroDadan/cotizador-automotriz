@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/administradores/create/components/AdminForm.tsx
 'use client';
 import { useForm, Controller } from 'react-hook-form';  
@@ -19,16 +20,14 @@ import {
 } from '@/app/types/user';
 import CustomButton from '@/app/components/ui/customButton';
 import { Role } from '@/app/types'; 
-import { MultiSelect } from '@/app/components/ui/multiSelect';
-import { Company } from '@/app/types/compay';
+import { MultiSelect } from '@/app/components/ui/multiSelect'; 
 
 interface AdminFormProps {
   entity?: UserWithCompanies; // ✅ Cambiar de adminId a entity
-  readOnly?: boolean;
-  companies: Company[]
+  readOnly?: boolean; 
 }
 
-export default function AdminForm({ entity, readOnly = false,companies }: AdminFormProps) {
+export default function AdminForm({ entity, readOnly = false }: AdminFormProps) {
   const isEdit = Boolean(entity) && !readOnly;
   const isView = Boolean(entity) && readOnly;
    
@@ -36,9 +35,9 @@ export default function AdminForm({ entity, readOnly = false,companies }: AdminF
   const { data: fetchedAdmin } = useGetUserByIdQuery(
     // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     { id: entity?.id! }, 
-    { skip: !entity?.id || Boolean(entity.ownedCompanies) } // Skip si ya tenemos los datos completos
+    { skip: !entity?.id || Boolean(entity.companies) } // Skip si ya tenemos los datos completos
   ); 
-  const adminData = entity?.ownedCompanies ? entity : fetchedAdmin;
+  const adminData = entity?.companies ? entity : fetchedAdmin;
   
   // Obtener todas las compañías para el selector
   const { data: companiesData } = useGetAllCompaniesQuery({
@@ -64,24 +63,30 @@ export default function AdminForm({ entity, readOnly = false,companies }: AdminF
   const [error, setError] = useState<string | null>(null);
 
   // ✅ Cargar datos del admin al editar o ver
-  useEffect(() => {
-    if (adminData) {
-      reset({
-        email: adminData.email,
-        firstName: adminData.firstName,
-        lastName: adminData.lastName,
-        companyIds: adminData.ownedCompanies?.map(c => c.id) || [],
-        password: '', // ✅ Reset password to empty
-      });
-    }
-  }, [adminData, reset]);
+ useEffect(() => {
+  if (adminData && companiesData?.data) {
+    const assignedCompanies = adminData.companies?.map(({company:c}) => c?.id) || [];
+
+    reset({
+      email: adminData.email,
+      firstName: adminData.firstName,
+      lastName: adminData.lastName,
+      companyIds: assignedCompanies,
+      password: '',
+    });
+  }
+}, [adminData, companiesData, reset]);
+
 
   const onSubmit = async (data: CreateAdminInput | UpdateAdminInput) => {
     try {
       const payload = {
         ...data,
         role: Role.ADMIN, 
-        // ✅ Si password está vacío en edición, no enviarlo
+        companyIds: Array.isArray(data.companyIds)
+        ? data.companyIds.map((c: any) => (typeof c === "string" ? c : c.value))
+        : [], // aseguramos que sea array de strings
+      ...(isEdit && !data.password && { password: undefined }),
         ...(isEdit && !data.password && { password: undefined }),
       };
 
@@ -93,7 +98,7 @@ export default function AdminForm({ entity, readOnly = false,companies }: AdminF
       } else { 
         await createUser(payload as CreateAdminInput).unwrap();
       }
-
+      console.log(payload)
       // Notificar a la ventana padre y cerrar
       if (window.opener) {
         window.opener.postMessage(
@@ -101,8 +106,7 @@ export default function AdminForm({ entity, readOnly = false,companies }: AdminF
           window.location.origin
         );
         window.close();
-      }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } 
     } catch (err: any) {
       console.error(err);
       setError(err?.data?.message || "Error al guardar el administrador");
@@ -116,7 +120,7 @@ export default function AdminForm({ entity, readOnly = false,companies }: AdminF
   })) || [];
 
   // Obtener nombres de compañías seleccionadas para vista
-  const selectedCompanyNames = adminData?.ownedCompanies?.map(c => c.name) || [];
+  const selectedCompanyNames = adminData?.companies?.map(c => c.company?.name) || [];
 
   // ✅ Mostrar loading solo si estamos esperando datos
   if (!adminData && entity?.id) {

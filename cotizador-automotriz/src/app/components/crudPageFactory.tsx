@@ -4,7 +4,6 @@ import { ReduxProvider } from '@/app/store/provider';
 import { useAuthRedirect } from '@/app/hooks/useAuthRedirect';
 import CustomButton from '@/app/components/ui/customButton';
 import { Role } from '../types';
-import { Company } from '../types/compay';
 
 interface Column<T> {
   key: keyof T;
@@ -13,7 +12,7 @@ interface Column<T> {
 
 interface CrudPageFactoryProps<T> {
   action: 'create' | 'edit' | 'view' | 'delete';
-  formComponent?: React.ComponentType<{ entity?: T; readOnly?: boolean; companies?: Company[] }>;
+  formComponent?: React.ComponentType<{ entity?: T; readOnly?: boolean;}>;
   entity?: T;
   isLoading?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,8 +20,7 @@ interface CrudPageFactoryProps<T> {
   deleteMutation?: () => Promise<void>;
   columns?: Column<T>[];
   allowedRoles?: Role[];
-  entityName: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any 
+  entityName: string; 
 }
 
 export function CrudPageFactory<T>({
@@ -118,7 +116,7 @@ export function CrudPageFactory<T>({
   return (
     <ReduxProvider>
       <section className="h-screen w-screen flex items-center justify-center">
-        {Form ? <Form entity={entity} readOnly={action === 'view'}  /> : null}
+        {Form ? <Form entity={entity} readOnly={action === 'view'} /> : null}
       </section>
     </ReduxProvider>
   );

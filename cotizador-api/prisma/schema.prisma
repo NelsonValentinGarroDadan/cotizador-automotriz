@@ -22,16 +22,12 @@ model User {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
-  // Relación con compañías que el admin creó
-  ownedCompanies Company[]       @relation("OwnedCompanies")
-
-  // Relación con compañías donde trabaja (si es empleado)
+  // Relación con compañías (como admin o empleado)
   companies      UserCompany[]
 
-  // Planes creados por el usuario (normalmente admin)
-  createdPlans   Plan[]          @relation("CreatedPlans")
+  // Planes creados
+  createdPlans   Plan[]        @relation("CreatedPlans")
 
-  // Cotizaciones realizadas por el usuario
   quotations     Quotation[]
 
   @@map("users")
@@ -44,28 +40,24 @@ model Company {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  // Admin dueño de la compañía
-  ownerId     String
-  owner       User          @relation("OwnedCompanies", fields: [ownerId], references: [id])
-
-  // Usuarios asociados (empleados)
+  // Relación con usuarios (admins o empleados)
   userCompanies UserCompany[]
 
-  // Planes de la compañía
   plans         Plan[]
   quotations    Quotation[]
+  
   @@map("companies")
 }
 
-// Relación muchos a muchos entre usuarios y compañías (empleados asignados)
+// Relación muchos a muchos entre usuarios y compañías
 model UserCompany {
   id        String        @id @default(uuid()) @db.VarChar(36)
   userId    String
   companyId String   @db.VarChar(36)
   createdAt DateTime @default(now())
 
-  user    User    @relation(fields: [userId], references: [id])
-  company Company @relation(fields: [companyId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  company     Company   @relation(fields: [companyId], references: [id])
 
   @@unique([userId, companyId])
   @@index([userId])

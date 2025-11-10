@@ -19,8 +19,7 @@ export const getAllCompanies = async (req: Request, res: Response) => {
 
   const filters: { name?: string; createdAtFrom?: Date } = {};
   if (req.query.search) filters.name = String(req.query.search);
-  if (req.query.fechaCreacion) { 
-    const dateStr = String(req.query.fechaCreacion);
+  if (req.query.fechaCreacion) {  
     filters.createdAtFrom = new Date(String(req.query.fechaCreacion));
   }
 
@@ -35,9 +34,9 @@ export const getCompanyById = async (req: Request, res: Response) => {
 
 
 export const createCompany = async (req: Request, res: Response) => {
+  if (!req.user) throw new AppError("Usuario no autenticado", 403);
+
   const { name } = req.body;
-  const ownerId = req.user?.id;
-  if(!ownerId) throw new AppError("Usuario no autenticado",403)
   let logo: string | undefined;
 
   if (req.file) {
@@ -45,18 +44,20 @@ export const createCompany = async (req: Request, res: Response) => {
     const outputPath = path.join(uploadDir, fileName);
 
     await sharp(req.file.buffer)
-      .resize(512, 512, { fit:  "inside" })
+      .resize(512, 512, { fit: "inside" })
       .webp({ quality: 80 })
       .toFile(outputPath);
 
     logo = `/uploads/companies/${fileName}`;
   }
 
-  const company = await service.createCompany({ name, ownerId, logo, });
+  const company = await service.createCompany({ name, logo }, req.user);
   res.status(201).json(company);
 };
 
+
 export const updateCompany = async (req: Request, res: Response) => {
+  if (!req.user) throw new AppError("Usuario no autenticado", 403);
   const { id } = req.params;
   const { name } = req.body;
   let logo: string | undefined;
@@ -78,6 +79,7 @@ export const updateCompany = async (req: Request, res: Response) => {
 };
 
 export const deleteCompany = async (req: Request, res: Response) => {
+  if (!req.user) throw new AppError("Usuario no autenticado", 403);
   await service.deleteCompany(req.params.id,req.user);
   res.status(204).send();
 };
