@@ -101,6 +101,12 @@ model PlanVersion {
   isLatest     Boolean   @default(true)
   createdAt    DateTime  @default(now())
   createdById  String
+  
+  // Restricciones de uso del plan
+  desdeMonto   Decimal?  @db.Decimal(12,2)
+  hastaMonto   Decimal?  @db.Decimal(12,2)
+  desdeCuota   Int?
+  hastaCuota   Int?
 
   // Relaciones
   plan         Plan      @relation(fields: [planId], references: [id])
@@ -118,17 +124,25 @@ model PlanVersion {
 // ===============================
 
 model PlanCoefficient {
-  id             String   @id @default(uuid()) @db.VarChar(36)
+  id             String   @id @default(uuid())
   planVersionId  String   @db.VarChar(36)
-  type           String   @db.VarChar(100)  // Ej: "base", "edad", "zona", "tipoVehiculo"
-  key            String   @db.VarChar(100)  // Ej: "auto", "camioneta", "sur", "norte"
-  value          Decimal  @db.Decimal(10, 4) // Valor del coeficiente
-  createdAt      DateTime @default(now())
+  
+  // Estructura estándar
+  plazo                  Int
+  tna                    Decimal @db.Decimal(5,3)
+  coeficiente             Decimal @db.Decimal(10,4)
+  quebrantoFinanciero     Decimal @db.Decimal(10,4)
+  cuotaBalon6M            Decimal? @db.Decimal(10,2)
+  cuotaBalon12M           Decimal? @db.Decimal(10,2)
+  cuotaBalon18M           Decimal? @db.Decimal(10,2)
+  cuotaBalon24M           Decimal? @db.Decimal(10,2)
+  cuotaBalon30M           Decimal? @db.Decimal(10,2)
+  cuotaBalon36M           Decimal? @db.Decimal(10,2)
+  cuotaBalon42M           Decimal? @db.Decimal(10,2)
+  cuotaBalon48M           Decimal? @db.Decimal(10,2)
+  cuotaPromedio           Decimal? @db.Decimal(10,2)
 
   planVersion PlanVersion @relation(fields: [planVersionId], references: [id])
-
-  @@index([planVersionId])
-  @@map("plan_coefficients")
 }
 
 // ===============================
