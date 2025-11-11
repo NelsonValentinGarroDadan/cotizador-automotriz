@@ -98,4 +98,4 @@ export const deletePlan = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
   await service.deletePlan(req.params.id, req.user);
   res.status(204).send();
-};
+}; 

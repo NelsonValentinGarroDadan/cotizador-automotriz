@@ -174,3 +174,41 @@ export const updatePlan = async (
 export const deletePlan = async (id: string) => {
   return prisma.plan.delete({ where: { id } });
 };
+
+export const createPlanVersion = async (data: {
+  planId: string;
+  createdById: string;
+  version: number;
+  coefficients: any[];
+}) => {
+  await prisma.planVersion.updateMany({
+      where: { planId: data.planId},
+      data: { isLatest: false },
+    });
+  const result = await prisma.planVersion.create({
+    data: {
+      planId: data.planId,
+      createdById: data.createdById,
+      version: data.version,
+      coefficients: {
+        create: data.coefficients.map((c) => ({
+          plazo: c.plazo,
+          tna: c.tna,
+          coeficiente: c.coeficiente,
+          quebrantoFinanciero: c.quebrantoFinanciero ?? 0,
+          cuotaBalon6M: c.cuotaBalon6M,
+          cuotaBalon12M: c.cuotaBalon12M,
+          cuotaBalon18M: c.cuotaBalon18M,
+          cuotaBalon24M: c.cuotaBalon24M,
+          cuotaBalon30M: c.cuotaBalon30M,
+          cuotaBalon36M: c.cuotaBalon36M,
+          cuotaBalon42M: c.cuotaBalon42M,
+          cuotaBalon48M: c.cuotaBalon48M,
+          cuotaPromedio: c.cuotaPromedio,
+        })),
+      },
+    },
+  });
+  
+  return result;
+};

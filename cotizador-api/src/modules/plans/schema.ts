@@ -31,5 +31,30 @@ export const updatePlanSchema = z.object({
     .optional(),
 });
 
+export const createPlanVersionSchema = z.object({
+  planId: z.string().uuid(),
+  version: z.number().optional(),
+  coefficients: z
+    .array(
+      z.object({
+        plazo: z.number(),
+        tna: z.number(),
+        coeficiente: z.number(),
+        quebrantoFinanciero: z.number().optional(),
+        cuotaBalon6M: z.number().optional(),
+        cuotaBalon12M: z.number().optional(),
+        cuotaBalon18M: z.number().optional(),
+        cuotaBalon24M: z.number().optional(),
+        cuotaBalon30M: z.number().optional(),
+        cuotaBalon36M: z.number().optional(),
+        cuotaBalon42M: z.number().optional(),
+        cuotaBalon48M: z.number().optional(),
+        cuotaPromedio: z.number().optional(),
+      })
+    )
+    .optional(),
+});
+
+export type CreatePlanVersion = z.infer<typeof createPlanVersionSchema>;
 export type CreatePlan = z.infer<typeof createPlanSchema>;
 export type UpdatePlan = z.infer<typeof updatePlanSchema>;
