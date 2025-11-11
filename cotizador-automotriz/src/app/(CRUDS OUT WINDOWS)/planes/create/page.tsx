@@ -1,15 +1,14 @@
+// app/planes/create/page.tsx
 'use client';
-  
-import { CrudPageFactory } from '@/app/components/crudPageFactory';
-import UserForm from '../components/adminForm'; 
-import { User } from '@/app/types/user';
+import { CrudPageFactory } from '@/app/components/crudPageFactory';  
+import PlanForm from '../components/plansForm';
 
-export default function CreateCompanyPage() {
+export default function CreatePlanPage() {
   return (
-    <CrudPageFactory<User>
+    <CrudPageFactory
       action="create"
-      formComponent={UserForm}
-      entityName="Administrador"
+      formComponent={PlanForm}
+      entityName="Plan"
     />
   );
 }

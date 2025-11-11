@@ -1,31 +1,34 @@
+// app/planes/delete/[id]/page.tsx
 'use client';
-
-import { useParams } from 'next/navigation';  
+import { use } from 'react';
 import { CrudPageFactory } from '@/app/components/crudPageFactory'; 
-import { User } from '@/app/types/user';
-import { useDeleteUserMutation, useGetUserByIdQuery } from '@/app/api/userApi';
+import { PlanWithDetails } from '@/app/types/plan';
+import { useGetPlanByIdQuery, useDeletePlanMutation } from '@/app/api/planApi';
 
-export default function DeleteCompanyPage() {
-  const { id } = useParams();
-  const { data: user, isLoading, error } = useGetUserByIdQuery({ id: id as string });
-  const [deleteCompany] = useDeleteUserMutation();
-
+export default function DeletePlanPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const { data: plan, isLoading, error } = useGetPlanByIdQuery({ id });
+  const [deletePlan] = useDeletePlanMutation();
+  console.log(plan)
   return (
-    <CrudPageFactory<User>
+    <CrudPageFactory<PlanWithDetails>
       action="delete"
-      entity={user}
+      entity={plan}
       isLoading={isLoading}
       error={error}
       deleteMutation={async () => {
-        if (!user?.id) return;
-        await deleteCompany({ id: user.id }).unwrap();
+        if (!plan?.id) return;
+        await deletePlan({ id: plan.id }).unwrap();
       }}
       columns={[
-        { key: 'firstName', label: 'Nombre' },
-        { key: 'lastName', label: 'Apellido' },
-        { key: 'email', label: 'Email' },
+        { key: 'name', label: 'Nombre' },
+        { key: 'description', label: 'Descripción' },
+        { 
+          key: `company`, 
+          label: 'Compañía',
+        },
       ]}
-      entityName="Administrador"
+      entityName="Plan"
     />
   );
 }

@@ -12,52 +12,56 @@ enum Role {
   USER
 }
 
+// ===============================
+// USERS & COMPANIES
+// ===============================
+
 model User {
   id             String        @id @default(uuid()) @db.VarChar(36)
-  email          String          @unique @db.VarChar(255)
-  password       String          @db.VarChar(255)
-  firstName      String          @db.VarChar(100)
-  lastName       String          @db.VarChar(100)
-  role           Role            @default(USER) 
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  email          String        @unique @db.VarChar(255)
+  password       String        @db.VarChar(255)
+  firstName      String        @db.VarChar(100)
+  lastName       String        @db.VarChar(100)
+  role           Role          @default(USER)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
-  // Relación con compañías (como admin o empleado)
+  // Relación con compañías
   companies      UserCompany[]
 
   // Planes creados
   createdPlans   Plan[]        @relation("CreatedPlans")
 
   quotations     Quotation[]
-
-  @@map("users")
+ 
+  createdPlanVersions PlanVersion[] @relation("CreatedPlanVersions")
+  @@map("users") 
 }
 
 model Company {
   id          String        @id @default(uuid()) @db.VarChar(36)
   name        String        @db.VarChar(255)
-  logo        String?       @db.VarChar(255) 
+  logo        String?       @db.VarChar(255)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  // Relación con usuarios (admins o empleados)
+  // Relación con usuarios
   userCompanies UserCompany[]
 
   plans         Plan[]
   quotations    Quotation[]
-  
+
   @@map("companies")
 }
 
-// Relación muchos a muchos entre usuarios y compañías
 model UserCompany {
   id        String        @id @default(uuid()) @db.VarChar(36)
   userId    String
-  companyId String   @db.VarChar(36)
-  createdAt DateTime @default(now())
+  companyId String        @db.VarChar(36)
+  createdAt DateTime      @default(now())
 
   user      User      @relation(fields: [userId], references: [id])
-  company     Company   @relation(fields: [companyId], references: [id])
+  company   Company   @relation(fields: [companyId], references: [id])
 
   @@unique([userId, companyId])
   @@index([userId])
@@ -65,14 +69,17 @@ model UserCompany {
   @@map("user_companies")
 }
 
-// PLANES creados por el admin de la compañía
+// ===============================
+// PLANS & VERSIONING
+// ===============================
+
 model Plan {
   id          String        @id @default(uuid()) @db.VarChar(36)
   name        String        @db.VarChar(255)
   description String?       @db.Text
+  logo        String?       @db.VarChar(255) // ✅ agregado
   companyId   String        @db.VarChar(36)
   createdById String
-  active      Boolean       @default(true)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -83,23 +90,51 @@ model Plan {
   @@map("plans")
 }
 
-// HISTORIAL de versiones de un plan
+// ===============================
+// PLAN VERSION (VERSIONADO DE PLANES)
+// ===============================
+
 model PlanVersion {
   id           String    @id @default(uuid()) @db.VarChar(36)
   planId       String    @db.VarChar(36)
   version      Int       @default(1)
-  coefficients Json      // Coeficientes o parámetros del plan
+  isLatest     Boolean   @default(true)
   createdAt    DateTime  @default(now())
+  createdById  String
 
+  // Relaciones
   plan         Plan      @relation(fields: [planId], references: [id])
+   
   quotations   Quotation[]
+  coefficients PlanCoefficient[]
+  createdBy    User      @relation("CreatedPlanVersions", fields: [createdById], references: [id])
 
   @@map("plan_versions")
   @@unique([planId, version])
-
 }
 
-// COTIZACIONES generadas por empleados
+// ===============================
+// COEFICIENTES VERSIONADOS
+// ===============================
+
+model PlanCoefficient {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  planVersionId  String   @db.VarChar(36)
+  type           String   @db.VarChar(100)  // Ej: "base", "edad", "zona", "tipoVehiculo"
+  key            String   @db.VarChar(100)  // Ej: "auto", "camioneta", "sur", "norte"
+  value          Decimal  @db.Decimal(10, 4) // Valor del coeficiente
+  createdAt      DateTime @default(now())
+
+  planVersion PlanVersion @relation(fields: [planVersionId], references: [id])
+
+  @@index([planVersionId])
+  @@map("plan_coefficients")
+}
+
+// ===============================
+// COTIZACIONES
+// ===============================
+
 model Quotation {
   id              String    @id @default(uuid()) @db.VarChar(36)
   planVersionId   String    @db.VarChar(36)

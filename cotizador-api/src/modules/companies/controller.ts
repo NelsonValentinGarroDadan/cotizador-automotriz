@@ -8,7 +8,7 @@ import { AppError } from "../../core/errors/appError";
 const uploadDir = path.join(__dirname, "../../../uploads/companies");
 
 export const getAllCompanies = async (req: Request, res: Response) => {
-  if (!req.user) throw new Error("Usuario no autenticado");
+  if (!req.user) throw new AppError("Usuario no autenticado", 403);
 
   const ALLOWED_SORT_FIELDS = ["name", "createdAt"];
   const { page, limit, sortBy, sortOrder } = getPaginationParams(

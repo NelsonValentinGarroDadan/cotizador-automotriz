@@ -21,9 +21,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
     let companyIds: string[] | undefined;
     if (companies) {
         companyIds = companies.split(',').filter(Boolean);
-    }
-    console.log('companyIds filtradas:', companyIds);
-
+    } 
     const result = await service.getAllUsers(
         page, 
         limit, 

@@ -1,55 +1,49 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { Company } from "./compay";
-import { User } from "./user";
+// app/types/plan.ts
+import { z } from 'zod'; 
+import { User } from './user';
+import { Company } from './compay';
 
 export interface Plan {
   id: string;
   name: string;
-  description: string | null;
+  description?: string | null;
+  logo?: string | null;
   companyId: string;
   createdById: string;
-  active: boolean;
   createdAt: string;
   updatedAt: string;
+  company?: Company;
+  createdBy?: User;
+  _count?: {
+    versions: number;
+  };
 }
 
-export interface PlanWithVersions extends Plan {
-  versions: PlanVersion[];
+export interface PlanWithDetails extends Plan { 
+  createdBy:User;
+  versions?: {
+    id: string;
+    version: number;
+    isLatest: boolean;
+    createdAt: string;
+    createdBy: {
+      firstName: string;
+      lastName: string;
+    };
+  }[];
 }
 
-export interface PlanWithCompany extends Plan {
-  company: Company;
-  createdBy: User;
-}
+export const createPlanSchema = z.object({
+  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  description: z.string().max(1000).optional(),
+  companyId: z.string().min(1, 'Debe seleccionar una compañía'),
+});
 
-export interface PlanVersion {
-  id: string;
-  planId: string;
-  version: number;
-  coefficients: Record<string, any>; 
-  createdAt: string;
-}
+export const updatePlanSchema = z.object({
+  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres').optional(),
+  description: z.string().max(1000).optional(),
+  companyId: z.string().optional(),
+});
 
-export interface PlanVersionWithPlan extends PlanVersion {
-  plan: Plan;
-}
-
-export interface CreatePlanDto {
-  name: string;
-  description?: string;
-  companyId: string;
-}
-
-export interface CreatePlanVersionDto {
-  planId: string;
-  coefficients: Record<string, any>;
-}
-
-export interface CreateQuotationDto {
-  planVersionId: string;
-  companyId: string;
-  clientName: string;
-  clientDni: string;
-  vehicleData?: string;
-  totalValue?: number;
-}
+export type CreatePlanInput = z.infer<typeof createPlanSchema>;
+export type UpdatePlanInput = z.infer<typeof updatePlanSchema>;

@@ -1,23 +1,23 @@
+// app/planes/edit/[id]/page.tsx
 'use client';
-
-import { useParams } from 'next/navigation'; 
+import { use } from 'react';
 import { CrudPageFactory } from '@/app/components/crudPageFactory'; 
-import { User } from '@/app/types/user';
-import { useGetUserByIdQuery } from '@/app/api/userApi';
-import UserForm from '../../components/adminForm';
+import { PlanWithDetails } from '@/app/types/plan';
+import { useGetPlanByIdQuery } from '@/app/api/planApi'; 
+import PlanForm from '../../components/plansForm';
 
-export default function EditCompanyPage() {
-  const { id } = useParams();
-  const { data: user, isLoading, error } = useGetUserByIdQuery({ id: id as string });
+export default function EditPlanPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const { data: plan, isLoading, error } = useGetPlanByIdQuery({ id });
 
   return (
-    <CrudPageFactory<User>
+    <CrudPageFactory<PlanWithDetails>
       action="edit"
-      formComponent={UserForm}
-      entity={user}
+      formComponent={PlanForm}
+      entity={plan}
       isLoading={isLoading}
       error={error}
-      entityName="Compañía"
+      entityName="Plan"
     />
   );
 }

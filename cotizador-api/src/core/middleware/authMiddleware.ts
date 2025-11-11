@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { AppError } from "../../core/errors/appError";
+import { UserToken } from "../types/userToken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
@@ -11,9 +12,14 @@ export default function authenticate (req: Request, res: Response, next: NextFun
   const token = authHeader.split(" ")[1];
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    req.user = payload; // Necesitarás extender Request con user
-    next();
+    if (typeof payload === "string") {
+      throw new AppError("Token inválido", 401);
+    }
+    req.user = payload as UserToken; // Necesitarás extender Request con user
+    
   } catch {
     throw new AppError("Token inválido", 401);
+  }finally{
+    next();
   }
 };
