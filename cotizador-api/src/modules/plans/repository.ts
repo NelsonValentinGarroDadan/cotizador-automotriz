@@ -1,13 +1,5 @@
-// backend/src/modules/plan/repository.ts
 import prisma from "../../config/prisma";
 import { CreatePlan, UpdatePlan } from "./schema";
-import { Prisma } from "@prisma/client";
-
-interface PlanFilters {
-  name?: string;
-  companyId?: string;
-  createdAtFrom?: Date;
-}
 
 export const getAllPlans = async (
   userId: string,
@@ -15,30 +7,19 @@ export const getAllPlans = async (
   limit: number,
   sortBy: string,
   sortOrder: "asc" | "desc",
-  filters?: PlanFilters
+  filters?: { name?: string }
 ) => {
   const skip = (page - 1) * limit;
 
-  // Usuario solo ve planes de sus compañías
-  const where: Prisma.PlanWhereInput = {
-    company: {
-      userCompanies: {
-        some: { userId },
+  const where: any = {
+    companies: {
+      some: {
+        userCompanies: { some: { userId } },
       },
     },
   };
 
-  if (filters?.name) {
-    where.name = { contains: filters.name  };
-  }
-  
-  if (filters?.companyId) {
-    where.companyId = filters.companyId;
-  }
-  
-  if (filters?.createdAtFrom) {
-    where.createdAt = { gte: new Date(filters.createdAtFrom) };
-  }
+  if (filters?.name) where.name = { contains: filters.name };
 
   const [plans, total] = await Promise.all([
     prisma.plan.findMany({
@@ -47,26 +28,9 @@ export const getAllPlans = async (
       take: limit,
       orderBy: { [sortBy]: sortOrder },
       include: {
-        company: {
-          select: {
-            id: true,
-            name: true,
-            logo: true,
-          },
-        },
-        createdBy: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-        _count: {
-          select: {
-            versions: true,
-          },
-        },
+        companies: { select: { id: true, name: true, logo: true } },
+        createdBy: { select: { id: true, firstName: true, lastName: true } },
+        _count: { select: { versions: true } },
       },
     }),
     prisma.plan.count({ where }),
@@ -75,98 +39,68 @@ export const getAllPlans = async (
   return { plans, total };
 };
 
-export const getPlanById = async (id: string) => {
+export const getPlanById = async (id: string, userId: string) => {
   return prisma.plan.findUnique({
     where: { id },
     include: {
-      company: {
-        select: {
-          id: true,
-          name: true,
-          logo: true,
-          userCompanies: {
-            include: {
-              user: { select: { id: true, role: true } },
-            },
-          },
+      companies: {
+        include: {
+          userCompanies: { where: { userId } },
         },
       },
-      createdBy: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-        },
-      },
+      createdBy: { select: { id: true, firstName: true, lastName: true } },
       versions: {
-        orderBy: { version: 'desc' },
-        take: 5, // Últimas 5 versiones
+        orderBy: { version: "desc" },
+        take: 5,
         select: {
           id: true,
           version: true,
           isLatest: true,
           createdAt: true,
-          createdBy: {
-            select: {
-              firstName: true,
-              lastName: true,
-            },
-          },
+          createdBy: { select: { firstName: true, lastName: true } },
         },
       },
-      _count: {
-        select: {
-          versions: true,
-        },
-      },
+      _count: { select: { versions: true } },
     },
   });
 };
 
 export const createPlan = async (
-  data: CreatePlan & { logo?: string; userId: string }
+  data: CreatePlan & { logo?: string; userId: string; companyIds: string[] }
 ) => {
   return prisma.plan.create({
     data: {
       name: data.name,
       description: data.description,
       logo: data.logo,
-      companyId: data.companyId,
       createdById: data.userId,
+      companies: { connect: data.companyIds.map((id) => ({ id })) },
     },
     include: {
-      company: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      createdBy: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-        },
-      },
+      companies: { select: { id: true, name: true } },
+      createdBy: { select: { id: true, firstName: true, lastName: true } },
     },
   });
 };
 
 export const updatePlan = async (
   id: string,
-  data: Omit<UpdatePlan, "id"> & { logo?: string }
+  data: Omit<UpdatePlan, "id"> & { logo?: string; companyIds?: string[] }
 ) => {
   return prisma.plan.update({
     where: { id },
-    data,
-    include: {
-      company: {
-        select: {
-          id: true,
-          name: true,
+    data: {
+      name: data.name,
+      description: data.description,
+      logo: data.logo,
+      ...(data.companyIds && {
+        companies: {
+          set: data.companyIds.map((id) => ({ id })),
         },
-      },
+      }),
+    },
+    include: {
+      companies: { select: { id: true, name: true } },
     },
   });
 };
@@ -182,10 +116,11 @@ export const createPlanVersion = async (data: {
   coefficients: any[];
 }) => {
   await prisma.planVersion.updateMany({
-      where: { planId: data.planId},
-      data: { isLatest: false },
-    });
-  const result = await prisma.planVersion.create({
+    where: { planId: data.planId },
+    data: { isLatest: false },
+  });
+
+  return prisma.planVersion.create({
     data: {
       planId: data.planId,
       createdById: data.createdById,
@@ -209,6 +144,4 @@ export const createPlanVersion = async (data: {
       },
     },
   });
-  
-  return result;
 };

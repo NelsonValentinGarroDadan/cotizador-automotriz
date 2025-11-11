@@ -1,10 +1,9 @@
-// backend/src/modules/plan/controller.ts
-import { Request, Response } from "express"; 
+import { Request, Response } from "express";
 import * as service from "./service";
-import { getPaginationParams } from "../../utils/pagination";
 import { AppError } from "../../core/errors/appError";
 import path from "path";
 import sharp from "sharp";
+import { getPaginationParams } from "../../utils/pagination";
 
 const uploadDir = path.join(__dirname, "../../../uploads/plans");
 
@@ -18,13 +17,8 @@ export const getAllPlans = async (req: Request, res: Response) => {
     "name"
   );
 
-  const filters: { name?: string; companyId?: string; createdAtFrom?: Date } =
-    {};
+  const filters: { name?: string } = {};
   if (req.query.search) filters.name = String(req.query.search);
-  if (req.query.companyId) filters.companyId = String(req.query.companyId);
-  if (req.query.fechaCreacion) {
-    filters.createdAtFrom = new Date(String(req.query.fechaCreacion));
-  }
 
   const result = await service.getAllPlans(
     req.user.id,
@@ -34,6 +28,7 @@ export const getAllPlans = async (req: Request, res: Response) => {
     sortOrder,
     filters
   );
+
   res.json(result);
 };
 
@@ -45,8 +40,12 @@ export const getPlanById = async (req: Request, res: Response) => {
 export const createPlan = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
 
-  const { name, description, companyId } = req.body;
+  const { name, description, companyIds, coefficients } = req.body;
   let logo: string | undefined;
+
+  const parsedCompanyIds = Array.isArray(companyIds)
+    ? companyIds
+    : JSON.parse(companyIds || "[]");
 
   if (req.file) {
     const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`;
@@ -61,9 +60,12 @@ export const createPlan = async (req: Request, res: Response) => {
   }
 
   const plan = await service.createPlan(
-    { name, description, companyId, logo },
+    {
+      name, description, companyIds: parsedCompanyIds, logo,coefficients 
+    },
     req.user
   );
+
   res.status(201).json(plan);
 };
 
@@ -71,9 +73,13 @@ export const updatePlan = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
 
   const { id } = req.params;
-  const { name, description, companyId } = req.body;
-  let logo: string | undefined;
+  const { name, description, companyIds } = req.body;
 
+  const parsedCompanyIds = Array.isArray(companyIds)
+    ? companyIds
+    : JSON.parse(companyIds || "[]");
+
+  let logo: string | undefined;
   if (req.file) {
     const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`;
     const outputPath = path.join(uploadDir, fileName);
@@ -88,9 +94,10 @@ export const updatePlan = async (req: Request, res: Response) => {
 
   const updated = await service.updatePlan(
     id,
-    { name, description, companyId, logo },
+    { name, description, companyIds: parsedCompanyIds, logo },
     req.user
   );
+
   res.json(updated);
 };
 
@@ -98,4 +105,4 @@ export const deletePlan = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
   await service.deletePlan(req.params.id, req.user);
   res.status(204).send();
-}; 
+};

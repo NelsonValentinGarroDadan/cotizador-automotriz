@@ -1,19 +1,9 @@
 import { AppError } from "../../core/errors/appError";
-import {
-  createPaginatedResponse,
-  PaginatedResponse,
-} from "../../utils/pagination";
 import * as repository from "./repository";
 import * as companyService from "../companies/service";
-import { CreatePlan, UpdatePlan } from "./schema";
 import { UserToken } from "../../core/types/userToken";
-import prisma from "../../config/prisma";
-
-interface PlanFilters {
-  name?: string;
-  companyId?: string;
-  createdAtFrom?: Date;
-}
+import { CreatePlan, UpdatePlan } from "./schema";
+import { createPaginatedResponse, PaginatedResponse } from "../../utils/pagination";
 
 export const getAllPlans = async (
   userId: string,
@@ -21,7 +11,7 @@ export const getAllPlans = async (
   limit: number,
   sortBy: string,
   sortOrder: "asc" | "desc",
-  filters?: PlanFilters
+  filters?: { name?: string }
 ): Promise<PaginatedResponse<any>> => {
   const { plans, total } = await repository.getAllPlans(
     userId,
@@ -36,32 +26,31 @@ export const getAllPlans = async (
 
 export const getPlanById = async (id: string, user: UserToken | undefined) => {
   if (!user) throw new AppError("Usuario no autenticado", 403);
-
-  const plan = await repository.getPlanById(id);
-  if (!plan) throw new AppError("Plan no encontrado", 404);
-
-  const isMember = plan.company.userCompanies.some(
-    (uc) => uc.userId === user.id
-  );
-  if (!isMember) throw new AppError("No tienes acceso a este plan", 403);
-
-  return plan;
+  return repository.getPlanById(id, user.id);
 };
 
 export const createPlan = async (
-  data: CreatePlan & { logo?: string },
+  data: CreatePlan & { logo?: string; companyIds: string[] },
   user: UserToken
 ) => {
-  await companyService.getCompanyById(data.companyId, user);
+  if (!data.companyIds?.length)
+    throw new AppError("Debe asignar al menos una compañía", 400);
 
-  const plan = await repository.createPlan({ ...data, userId: user.id });
+  // Verificar acceso del usuario a todas las compañías
+  for (const companyId of data.companyIds) {
+    await companyService.getCompanyById(companyId, user);
+  }
 
-  // ✅ Crear versión inicial automáticamente (v1)
+  const plan = await repository.createPlan({
+    ...data,
+    userId: user.id,
+  });
+
   await repository.createPlanVersion({
     planId: plan.id,
     createdById: user.id,
     version: 1,
-    coefficients: [], // vacío por defecto
+    coefficients: [],
   });
 
   return plan;
@@ -69,46 +58,17 @@ export const createPlan = async (
 
 export const updatePlan = async (
   id: string,
-  data: Omit<UpdatePlan, "id"> & { logo?: string },
+  data: Omit<UpdatePlan, "id"> & { logo?: string; companyIds?: string[] },
   user: UserToken
 ) => {
-  const plan = await repository.getPlanById(id);
+  const plan = await repository.getPlanById(id, user.id);
   if (!plan) throw new AppError("Plan no encontrado", 404);
 
-  const isAdmin = plan.company.userCompanies.some(
-    (uc) => uc.userId === user.id && uc.user.role === "ADMIN"
-  );
-  if (!isAdmin)
-    throw new AppError("No tienes permisos para editar este plan", 403);
-
-  if (data.companyId && data.companyId !== plan.companyId) {
-    await companyService.getCompanyById(data.companyId, user);
-  }
-
-  // ✅ Si el update incluye una bandera `newVersion`, crear una nueva versión
-  if ((data as any).newVersion && (data as any).coefficients) {
-    const nextVersion = (plan._count.versions || 0) + 1;
-    await repository.createPlanVersion({
-      planId: id,
-      createdById: user.id,
-      version: nextVersion,
-      coefficients: (data as any).coefficients,
-    });
-    
-  }
-
-  return await repository.updatePlan(id, data);
+  return repository.updatePlan(id, data);
 };
 
 export const deletePlan = async (id: string, user: UserToken) => {
-  const plan = await repository.getPlanById(id);
+  const plan = await repository.getPlanById(id, user.id);
   if (!plan) throw new AppError("Plan no encontrado", 404);
-
-  const isAdmin = plan.company.userCompanies.some(
-    (uc) => uc.userId === user.id && uc.user.role === "ADMIN"
-  );
-  if (!isAdmin)
-    throw new AppError("No tienes permisos para eliminar este plan", 403);
-
   await repository.deletePlan(id);
 };
