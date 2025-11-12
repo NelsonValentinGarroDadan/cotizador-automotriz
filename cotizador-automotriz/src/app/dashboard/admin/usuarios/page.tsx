@@ -13,9 +13,9 @@ import { usersFilters } from './components/filterConfig';
 
 export default function Page() {
   const dispatch = useDispatch();
-  const useAdminsTableStore = useMemo(() => createTableStore('users'), []);
+  const useUsersTableStore = useMemo(() => createTableStore('users'), []);
   const { data:companies } = useGetAllCompaniesQuery({ limit: 50 })
-  const { filters, pagination, sort  } = useAdminsTableStore();
+  const { filters, pagination, sort  } = useUsersTableStore();
 
   const { data, refetch, isLoading, isFetching } = useGetAllUsersQuery({
     ...pagination,
@@ -60,7 +60,7 @@ export default function Page() {
   return (
     <section className='w-full border-l border-gray  px-5 min-h-screen'> 
       <CustomTable
-        store={useAdminsTableStore}
+        store={useUsersTableStore}
         columns={columns}
         data={data?.data || []}
         filters={filtersConfig}
