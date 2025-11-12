@@ -8,7 +8,7 @@ import { useDeleteUserMutation, useGetUserByIdQuery } from '@/app/api/userApi';
 export default function DeleteCompanyPage() {
   const { id } = useParams();
   const { data: user, isLoading, error } = useGetUserByIdQuery({ id: id as string });
-  const [deleteCompany] = useDeleteUserMutation();
+  const [deleteAdmin] = useDeleteUserMutation();
 
   return (
     <CrudPageFactory<User>
@@ -18,7 +18,7 @@ export default function DeleteCompanyPage() {
       error={error}
       deleteMutation={async () => {
         if (!user?.id) return;
-        await deleteCompany({ id: user.id }).unwrap();
+        await deleteAdmin({ id: user.id }).unwrap();
       }}
       columns={[
         { key: 'firstName', label: 'Nombre' },
