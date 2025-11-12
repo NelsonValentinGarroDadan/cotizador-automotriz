@@ -9,11 +9,13 @@ interface WindowFormButtonProps {
   buttonText: React.ReactElement;
   className?: string;
   title?: string;
+  width?:number;
+  height?:number;
 }
 
-export default function WindowFormButton ({ formUrl, onCreated, buttonText, className,title }:WindowFormButtonProps) {
+export default function WindowFormButton ({ formUrl, onCreated, buttonText, className,title, height=700, width=600 }:WindowFormButtonProps) {
   const handleClick = () => {
-    const newWindow = window.open(formUrl, 'Form', 'width=600,height=700');
+    const newWindow = window.open(formUrl, 'Form', `width=${width},height=${height}`);
     if (!newWindow) return;
 
     const handleMessage = (event: MessageEvent) => {
