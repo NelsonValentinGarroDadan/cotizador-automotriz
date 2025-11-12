@@ -13,7 +13,7 @@ import { usersFilters } from './components/filterConfig';
 
 export default function Page() {
   const dispatch = useDispatch();
-  const useAdminsTableStore = useMemo(() => createTableStore('admins'), []);
+  const useAdminsTableStore = useMemo(() => createTableStore('users'), []);
   const { data:companies } = useGetAllCompaniesQuery({ limit: 50 })
   const { filters, pagination, sort  } = useAdminsTableStore();
 
