@@ -1,5 +1,13 @@
+// backend/src/modules/plan/repository.ts
 import prisma from "../../config/prisma";
 import { CreatePlan, UpdatePlan } from "./schema";
+import { Prisma } from "@prisma/client";
+
+interface PlanFilters {
+  name?: string;
+  includeInactive?: boolean;
+  companyIds?: string[]; // ✅ Cambiar de companyId a companyIds
+}
 
 export const getAllPlans = async (
   userId: string,
@@ -7,11 +15,11 @@ export const getAllPlans = async (
   limit: number,
   sortBy: string,
   sortOrder: "asc" | "desc",
-  filters?: { name?: string }
+  filters?: PlanFilters
 ) => {
   const skip = (page - 1) * limit;
 
-  const where: any = {
+  const where: Prisma.PlanWhereInput = {
     companies: {
       some: {
         userCompanies: { some: { userId } },
@@ -19,7 +27,20 @@ export const getAllPlans = async (
     },
   };
 
-  if (filters?.name) where.name = { contains: filters.name };
+  if (!filters?.includeInactive) where.active = true;
+
+  if (filters?.name) {
+    where.name = { contains: filters.name };
+  }
+
+  // ✅ Filtrar por múltiples compañías
+  if (filters?.companyIds && filters.companyIds.length > 0) {
+    where.companies = {
+      some: {
+        id: { in: filters.companyIds },
+      },
+    };
+  }
 
   const [plans, total] = await Promise.all([
     prisma.plan.findMany({
@@ -29,7 +50,7 @@ export const getAllPlans = async (
       orderBy: { [sortBy]: sortOrder },
       include: {
         companies: { select: { id: true, name: true, logo: true } },
-        createdBy: { select: { id: true, firstName: true, lastName: true } },
+        createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
         _count: { select: { versions: true } },
       },
     }),
@@ -48,16 +69,32 @@ export const getPlanById = async (id: string, userId: string) => {
           userCompanies: { where: { userId } },
         },
       },
-      createdBy: { select: { id: true, firstName: true, lastName: true } },
+      createdBy: { 
+        select: { 
+          id: true, 
+          firstName: true, 
+          lastName: true, 
+          email: true 
+        } 
+      },
       versions: {
         orderBy: { version: "desc" },
         take: 5,
-        select: {
-          id: true,
-          version: true,
-          isLatest: true,
-          createdAt: true,
-          createdBy: { select: { firstName: true, lastName: true } },
+        include: {
+          coefficients: {
+            include: {
+              cuotaBalonMonths: {
+                orderBy: { month: 'asc' }
+              },
+            },
+            orderBy: { plazo: 'asc' }
+          },
+          createdBy: { 
+            select: { 
+              firstName: true, 
+              lastName: true 
+            } 
+          },
         },
       },
       _count: { select: { versions: true } },
@@ -90,14 +127,15 @@ export const updatePlan = async (
   return prisma.plan.update({
     where: { id },
     data: {
-      name: data.name,
-      description: data.description,
-      logo: data.logo,
+      ...(data.name && { name: data.name }),
+      ...(data.description !== undefined && { description: data.description }),
+      ...(data.logo && { logo: data.logo }),
       ...(data.companyIds && {
         companies: {
           set: data.companyIds.map((id) => ({ id })),
         },
       }),
+      ...(data.active !== undefined && { active: data.active }),
     },
     include: {
       companies: { select: { id: true, name: true } },
@@ -106,15 +144,23 @@ export const updatePlan = async (
 };
 
 export const deletePlan = async (id: string) => {
-  return prisma.plan.delete({ where: { id } });
+  return prisma.plan.update({
+    where: { id },
+    data: { active: false },
+  });
 };
 
 export const createPlanVersion = async (data: {
   planId: string;
   createdById: string;
   version: number;
+  desdeMonto?: number;
+  hastaMonto?: number;
+  desdeCuota?: number;
+  hastaCuota?: number;
   coefficients: any[];
 }) => {
+  // Marcar todas las versiones anteriores como no latest
   await prisma.planVersion.updateMany({
     where: { planId: data.planId },
     data: { isLatest: false },
@@ -125,23 +171,42 @@ export const createPlanVersion = async (data: {
       planId: data.planId,
       createdById: data.createdById,
       version: data.version,
+      isLatest: true,
+      desdeMonto: data.desdeMonto,
+      hastaMonto: data.hastaMonto,
+      desdeCuota: data.desdeCuota,
+      hastaCuota: data.hastaCuota,
       coefficients: {
         create: data.coefficients.map((c) => ({
           plazo: c.plazo,
           tna: c.tna,
           coeficiente: c.coeficiente,
           quebrantoFinanciero: c.quebrantoFinanciero ?? 0,
-          cuotaBalon6M: c.cuotaBalon6M,
-          cuotaBalon12M: c.cuotaBalon12M,
-          cuotaBalon18M: c.cuotaBalon18M,
-          cuotaBalon24M: c.cuotaBalon24M,
-          cuotaBalon30M: c.cuotaBalon30M,
-          cuotaBalon36M: c.cuotaBalon36M,
-          cuotaBalon42M: c.cuotaBalon42M,
-          cuotaBalon48M: c.cuotaBalon48M,
-          cuotaPromedio: c.cuotaPromedio,
+          cuotaBalon: c.cuotaBalon ?? null,
+          cuotaPromedio: c.cuotaPromedio ?? null,
+          cuotaBalonMonths: {
+            create: (c.cuotaBalonMonths ?? []).map((m: number) => ({
+              month: m,
+            })),
+          },
         })),
       },
     },
+    include: {
+      coefficients: {
+        include: {
+          cuotaBalonMonths: true,
+        },
+      },
+    },
   });
+};
+ 
+export const getLastVersionNumber = async (planId: string) => {
+  const last = await prisma.planVersion.findFirst({
+    where: { planId },
+    orderBy: { version: "desc" },
+    select: { version: true },
+  });
+  return last?.version || 0;
 };

@@ -9,7 +9,7 @@ export default function DeletePlanPage({ params }: { params: Promise<{ id: strin
   const { id } = use(params);
   const { data: plan, isLoading, error } = useGetPlanByIdQuery({ id });
   const [deletePlan] = useDeletePlanMutation();
-  console.log(plan)
+
   return (
     <CrudPageFactory<PlanWithDetails>
       action="delete"
@@ -22,10 +22,13 @@ export default function DeletePlanPage({ params }: { params: Promise<{ id: strin
       }}
       columns={[
         { key: 'name', label: 'Nombre' },
-        { key: 'description', label: 'Descripción' },
         { 
-          key: `company`, 
-          label: 'Compañía',
+          key: 'companies', 
+          label: 'Compañías',
+        },
+        { 
+          key: 'active', 
+          label: 'Estado',
         },
       ]}
       entityName="Plan"

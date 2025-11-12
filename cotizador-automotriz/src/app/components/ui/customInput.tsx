@@ -110,7 +110,7 @@ export const CustomInput = forwardRef<HTMLInputElement, CustomInputProps>(
              <input
               ref={ref}
               type={inputType}
-              className={`w-full border-2 focus:outline-none focus:border-2 border-blue-light rounded-md py-3 px-2 ${
+              className={`w-full border-2 focus:outline-none focus:border-2 border-blue-light bg-yellow-light rounded-md py-3 px-2 ${
                 error ? 'border-red-500' : ''
               } ${isPassword ? 'pr-10' : ''} ${inputClassName}`}
               {...props}

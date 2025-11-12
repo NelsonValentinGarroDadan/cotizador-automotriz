@@ -9,8 +9,8 @@ interface GetPlanParams {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   search?: string;
-  companyId?: string;
-  fechaCreacion?: string;
+  companyIds?: string[]; // ✅ Array de IDs
+  includeInactive?: boolean;
 }
 
 export const planApi = api.injectEndpoints({
@@ -23,8 +23,15 @@ export const planApi = api.injectEndpoints({
         if (params?.sortBy) searchParams.append('sortBy', params.sortBy);
         if (params?.sortOrder) searchParams.append('sortOrder', params.sortOrder);
         if (params?.search) searchParams.append('search', params.search);
-        if (params?.companyId) searchParams.append('companyId', params.companyId);
-        if (params?.fechaCreacion) searchParams.append('fechaCreacion', params.fechaCreacion);
+         
+        if (params?.companyIds && params.companyIds.length > 0) {
+          searchParams.append('companyIds', params.companyIds.join(','));
+        }
+        
+        if (params?.includeInactive) {
+          searchParams.append('includeInactive', 'true');
+        }
+        
         return { url: `/plans?${searchParams.toString()}`, method: 'GET' };
       },
       providesTags: (result) =>
@@ -45,18 +52,35 @@ export const planApi = api.injectEndpoints({
     }),
 
     createPlan: builder.mutation<Plan, FormData>({
-      query: (formData) => ({ url: '/plans', method: 'POST', body: formData }),
+      query: (formData) => ({ 
+        url: '/plans', 
+        method: 'POST', 
+        body: formData 
+      }),
       invalidatesTags: [{ type: 'Plan', id: 'LIST' }],
     }),
 
     updatePlan: builder.mutation<Plan, { id: string; data: FormData }>({
-      query: ({ id, data }) => ({ url: `/plans/${id}`, method: 'PUT', body: data }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Plan', id }, { type: 'Plan', id: 'LIST' }],
+      query: ({ id, data }) => ({ 
+        url: `/plans/${id}`, 
+        method: 'PUT', 
+        body: data 
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Plan', id }, 
+        { type: 'Plan', id: 'LIST' }
+      ],
     }),
 
     deletePlan: builder.mutation<void, { id: string }>({
-      query: ({ id }) => ({ url: `/plans/${id}`, method: 'DELETE' }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Plan', id }, { type: 'Plan', id: 'LIST' }],
+      query: ({ id }) => ({ 
+        url: `/plans/${id}`, 
+        method: 'DELETE' 
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Plan', id }, 
+        { type: 'Plan', id: 'LIST' }
+      ],
     }),
   }),
 });

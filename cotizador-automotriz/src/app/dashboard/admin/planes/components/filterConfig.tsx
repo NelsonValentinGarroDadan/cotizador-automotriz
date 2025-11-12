@@ -9,18 +9,10 @@ export const getPlanFilters = (companies: { id: string; name: string }[]): Filte
     placeholder: "Ej: Plan Premium",
   },
   {
-    name: "companyId",
-    label: "Filtrar por compañía",
-    type: "select",
+    name: "companyIds", // ✅ Cambiar a array
+    label: "Filtrar por compañías",
+    type: "multiselect", // ✅ Usar multiselect
     placeholder: "Todas las compañías",
-    options: [
-      { value: '', label: 'Todas las compañías' },
-      ...companies.map(c => ({ value: c.id, label: c.name })),
-    ],
-  },
-  {
-    name: "fechaCreacion",
-    label: "Fecha de creación desde",
-    type: "date",
+    options: companies.map(c => ({ value: c.id, label: c.name })),
   },
 ];

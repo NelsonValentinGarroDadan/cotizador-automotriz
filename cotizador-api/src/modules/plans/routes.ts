@@ -1,7 +1,7 @@
 // backend/src/modules/plan/routes.ts
 import { Router } from "express";
 import * as controller from "./controller"; 
-import { createPlanSchema, updatePlanSchema } from "./schema"; 
+import { createPlanSchema, updatePlanWithVersionSchema } from "./schema"; 
 import { authorizeRole } from "../../core/middleware/authorizeRole"; 
 import { Role } from "../../core/types/role";
 import { validateRequest } from "../../core/middleware/validateRequest";
@@ -23,7 +23,7 @@ routerPlans.put(
   "/:id",
   authorizeRole([Role.ADMIN]),
   uploadLogo.single("logo"),
-  validateRequest(updatePlanSchema),
+  validateRequest(updatePlanWithVersionSchema),
   controller.updatePlan
 );
 routerPlans.delete("/:id",authorizeRole([Role.ADMIN]), controller.deletePlan);

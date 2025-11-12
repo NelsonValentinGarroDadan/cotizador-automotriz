@@ -11,6 +11,7 @@ interface TableActionsProps {
   showEdit?: boolean;
   showDelete?: boolean;
   className?: string;
+  width?:number;
 }
 
 export default function TableActions({
@@ -20,7 +21,8 @@ export default function TableActions({
   showView = true,
   showEdit = true,
   showDelete = true,
-  className = '',
+  className = '', 
+  width=700
 }: TableActionsProps) {
   // construimos las rutas automáticas
   const viewUrl = `${baseUrl}/${id}/view`;
@@ -28,7 +30,7 @@ export default function TableActions({
   const deleteUrl = `${baseUrl}/${id}/delete`;
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`flex items-center  ${className}`}>
       {showView && (
         <WindowFormButton
           formUrl={viewUrl}
@@ -40,6 +42,7 @@ export default function TableActions({
             }
           title="Ver detalles"
           className="bg-transparent p-2 hover:bg-gray-100 rounded"
+          width={width}
         />
       )}
 
@@ -54,6 +57,7 @@ export default function TableActions({
             }
           title="Editar"
           className="bg-transparent p-2 hover:bg-gray-100 rounded"
+          width={width}
         />
       )}
 
@@ -68,6 +72,7 @@ export default function TableActions({
             }
           title="Eliminar"
           className="bg-transparent p-2 hover:bg-gray-100 rounded"
+          width={width}
         />
       )}
     </div>

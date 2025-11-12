@@ -81,7 +81,7 @@ model Plan {
   createdById String
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-
+  active      Boolean       @default(true)
   companies   Company[] @relation("PlanCompanies")
   createdBy   User    @relation("CreatedPlans", fields: [createdById], references: [id])
   versions    PlanVersion[]
@@ -131,17 +131,21 @@ model PlanCoefficient {
   tna                    Decimal @db.Decimal(5,3)
   coeficiente             Decimal @db.Decimal(10,4)
   quebrantoFinanciero     Decimal @db.Decimal(10,4)
-  cuotaBalon6M            Decimal? @db.Decimal(10,2)
-  cuotaBalon12M           Decimal? @db.Decimal(10,2)
-  cuotaBalon18M           Decimal? @db.Decimal(10,2)
-  cuotaBalon24M           Decimal? @db.Decimal(10,2)
-  cuotaBalon30M           Decimal? @db.Decimal(10,2)
-  cuotaBalon36M           Decimal? @db.Decimal(10,2)
-  cuotaBalon42M           Decimal? @db.Decimal(10,2)
-  cuotaBalon48M           Decimal? @db.Decimal(10,2)
-  cuotaPromedio           Decimal? @db.Decimal(10,2)
+  cuotaBalon          Decimal? @db.Decimal(10,2)
+  cuotaPromedio       Decimal? @db.Decimal(10,2) 
 
   planVersion PlanVersion @relation(fields: [planVersionId], references: [id])
+  cuotaBalonMonths CuotaBalonMonth[]
+}
+
+model CuotaBalonMonth {
+  id                 String @id @default(uuid())
+  planCoefficientId  String
+  month              Int
+
+  planCoefficient PlanCoefficient @relation(fields: [planCoefficientId], references: [id])
+
+  @@map("cuota_balon_months")
 }
 
 // ===============================

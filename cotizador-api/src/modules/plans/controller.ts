@@ -1,3 +1,4 @@
+// backend/src/modules/plan/controller.ts
 import { Request, Response } from "express";
 import * as service from "./service";
 import { AppError } from "../../core/errors/appError";
@@ -17,8 +18,21 @@ export const getAllPlans = async (req: Request, res: Response) => {
     "name"
   );
 
-  const filters: { name?: string } = {};
+  const filters: {
+    name?: string;
+    includeInactive?: boolean;
+    companyIds?: string[];
+  } = {};
+
   if (req.query.search) filters.name = String(req.query.search);
+  if (req.query.includeInactive)
+    filters.includeInactive = req.query.includeInactive === "true";
+
+  // ✅ Agregar filtro por compañías
+  if (req.query.companyIds) {
+    const companyIdsParam = String(req.query.companyIds);
+    filters.companyIds = companyIdsParam.split(",").filter(Boolean);
+  }
 
   const result = await service.getAllPlans(
     req.user.id,
@@ -40,13 +54,18 @@ export const getPlanById = async (req: Request, res: Response) => {
 export const createPlan = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
 
-  const { name, description, companyIds, coefficients } = req.body;
-  let logo: string | undefined;
+  const { name, description, companyIds, coefficients, desdeMonto, hastaMonto, desdeCuota, hastaCuota } = req.body;
 
+  // ✅ Parse de arrays JSON
   const parsedCompanyIds = Array.isArray(companyIds)
     ? companyIds
     : JSON.parse(companyIds || "[]");
 
+  const parsedCoefficients = Array.isArray(coefficients)
+    ? coefficients
+    : JSON.parse(coefficients || "[]");
+
+  let logo: string | undefined;
   if (req.file) {
     const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`;
     const outputPath = path.join(uploadDir, fileName);
@@ -61,7 +80,15 @@ export const createPlan = async (req: Request, res: Response) => {
 
   const plan = await service.createPlan(
     {
-      name, description, companyIds: parsedCompanyIds, logo,coefficients 
+      name,
+      description,
+      companyIds: parsedCompanyIds,
+      coefficients: parsedCoefficients,
+      desdeMonto: desdeMonto ? parseFloat(desdeMonto) : undefined,
+      hastaMonto: hastaMonto ? parseFloat(hastaMonto) : undefined,
+      desdeCuota: desdeCuota ? parseInt(desdeCuota) : undefined,
+      hastaCuota: hastaCuota ? parseInt(hastaCuota) : undefined,
+      logo,
     },
     req.user
   );
@@ -71,13 +98,15 @@ export const createPlan = async (req: Request, res: Response) => {
 
 export const updatePlan = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
-
   const { id } = req.params;
-  const { name, description, companyIds } = req.body;
+  const { name, description, companyIds, active, coefficients, desdeMonto, hastaMonto, desdeCuota, hastaCuota } = req.body;
 
-  const parsedCompanyIds = Array.isArray(companyIds)
-    ? companyIds
-    : JSON.parse(companyIds || "[]");
+
+  const parsedCompanyIds = companyIds
+    ? Array.isArray(companyIds)
+      ? companyIds
+      : JSON.parse(companyIds || "[]")
+    : undefined;
 
   let logo: string | undefined;
   if (req.file) {
@@ -94,9 +123,21 @@ export const updatePlan = async (req: Request, res: Response) => {
 
   const updated = await service.updatePlan(
     id,
-    { name, description, companyIds: parsedCompanyIds, logo },
+    {
+      name,
+      description,
+      companyIds: parsedCompanyIds,
+      active: active !== undefined ? active : undefined,
+      coefficients,
+      desdeMonto,
+      hastaMonto,
+      desdeCuota,
+      hastaCuota,
+      logo,
+    },
     req.user
   );
+
 
   res.json(updated);
 };

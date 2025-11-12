@@ -26,6 +26,7 @@ export default function Page() {
     ...pagination,
     ...sort, 
     ...filters, 
+    includeInactive:true,
   }, {
     refetchOnMountOrArgChange: true,  
   });
