@@ -3,8 +3,7 @@ import { ZodSchema } from "zod";
 import { AppError } from "../errors/appError";
 
 export const validateRequest = (schema: ZodSchema<any>) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    console.log(req.body)
+  return (req: Request, res: Response, next: NextFunction) => { 
     try {
       // ✅ Conversión de boolean
       if (typeof req.body.active === "string") {

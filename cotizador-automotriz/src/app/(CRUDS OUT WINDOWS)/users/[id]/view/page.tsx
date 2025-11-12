@@ -5,7 +5,7 @@ import { CrudPageFactory } from '@/app/components/crudPageFactory';
 import { User } from '@/app/types/user';
 import { useGetUserByIdQuery } from '@/app/api/userApi'; 
 import { useGetAllCompaniesQuery } from '@/app/api/companyApi';
-import AdminForm from '../../components/adminForm';
+import AdminForm from '../../components/userForm';
 import { Company } from '@/app/types/compay';
 
 export default function EditCompanyPage() {
@@ -24,7 +24,7 @@ const FormWrapper = (props: { entity?: User; readOnly?: boolean; companies?: Com
       entity={user}
       isLoading={isLoading}
       error={error}
-      entityName="Administrador" 
+      entityName="Usuario" 
     />
   );
 }

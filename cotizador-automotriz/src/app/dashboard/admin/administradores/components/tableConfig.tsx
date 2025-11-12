@@ -61,7 +61,7 @@ export default function adminsColumns({
         <TableActions 
           baseUrl="/administradores"
           id={value}
-          showDelete={row.companies  ? row.companies.length<0 : true}
+          showDelete={row.companies  ? row.companies.length == 0 : true}
           onActionComplete={onCreated}
         />
       ),
