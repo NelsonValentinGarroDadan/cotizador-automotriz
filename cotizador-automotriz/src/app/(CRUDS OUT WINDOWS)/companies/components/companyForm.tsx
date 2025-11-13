@@ -50,9 +50,16 @@ export default function CompanyForm({ entity }: CompanyFormProps) {
         window.opener.postMessage({ updated: true }, window.location.origin);
         window.close();
       }
-    } catch (err) {
-      console.error(err);
-      setError("Error al guardar la compañía");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.log(err);
+      const apiError = err  as { data:{ errors: string[]} }; 
+      if (apiError.data?.errors && Array.isArray(apiError.data.errors)) {
+        // Si viene un array de errores, unirlos
+        setError(apiError.data.errors.join(", "));
+      } else { 
+        setError(err?.data?.message || "Error al guardar el usuario");
+      }
     }
   };
 

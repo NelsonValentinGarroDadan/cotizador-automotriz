@@ -108,8 +108,14 @@ export default function AdminForm({ entity, readOnly = false }: AdminFormProps) 
         window.close();
       } 
     } catch (err: any) {
-      console.error(err);
-      setError(err?.data?.message || "Error al guardar el administrador");
+      console.log(err);
+      const apiError = err  as { data:{ errors: string[]} }; 
+      if (apiError.data?.errors && Array.isArray(apiError.data.errors)) {
+        // Si viene un array de errores, unirlos
+        setError(apiError.data.errors.join(", "));
+      } else { 
+        setError(err?.data?.message || "Error al guardar el administrador");
+      }
     }
   };
 

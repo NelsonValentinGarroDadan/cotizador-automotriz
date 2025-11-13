@@ -45,6 +45,12 @@ export const createTableStore = (tableId: string, defaultLimit: number = 50, def
           set({ sort: { sortBy, sortOrder } }),
 
         resetFilters: () => set({ filters: {} }),
+        resetAll: () => set({
+          filters: {},
+          pagination: { page: 1, limit: 50 },
+          sort: { sortBy: "createdAt", sortOrder: "desc" }
+        }),
+
       }),
       {
         name: `table-${tableId}`, // Storage único por tabla

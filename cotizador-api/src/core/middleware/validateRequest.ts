@@ -6,7 +6,7 @@ export const validateRequest = (schema: ZodSchema<any>) => {
   return (req: Request, res: Response, next: NextFunction) => { 
     try {
       // ✅ Conversión de boolean
-      if (typeof req.body.active === "string") {
+      if (req.body.active && typeof req.body.active === "string") {
         req.body.active = req.body.active === "true";
       }
 
@@ -23,11 +23,11 @@ export const validateRequest = (schema: ZodSchema<any>) => {
       };
 
       // ✅ Aplicar parse seguro a posibles campos JSON
-      req.body.companyIds = safeParseJSON(req.body.companyIds);
-      req.body.coefficients = safeParseJSON(req.body.coefficients);
+      req.body.companyIds = req.body.companyIds && safeParseJSON(req.body.companyIds);
+      req.body.coefficients = req.body.coefficients  && safeParseJSON(req.body.coefficients);
 
       // ✅ Si coefficients vino como string vacío, dejarlo como array vacío
-      if (req.body.coefficients === "") {
+      if (req.body.coefficients && req.body.coefficients === "") {
         req.body.coefficients = [];
       }
 
@@ -43,6 +43,7 @@ export const validateRequest = (schema: ZodSchema<any>) => {
       req.body = result.data;
       next();
     } catch (error) { 
+      console.log(error)
       throw new AppError( "Formato inválido de JSON en los campos enviados", 400); 
     }
   };

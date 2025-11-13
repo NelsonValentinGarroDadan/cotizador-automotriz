@@ -49,10 +49,20 @@ export const getAllPlans = async (
       take: limit,
       orderBy: { [sortBy]: sortOrder },
       include: {
-        companies: { select: { id: true, name: true, logo: true } },
-        createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
-        _count: { select: { versions: true } },
-      },
+          companies: { select: { id: true, name: true, logo: true } },
+          createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
+          versions: {
+            where: { isLatest: true },
+            include: {
+              coefficients: {
+                include: {
+                  cuotaBalonMonths: { orderBy: { month: 'asc' } },
+                },
+                orderBy: { plazo: 'asc' },
+              },
+            },
+          },
+      }, 
     }),
     prisma.plan.count({ where }),
   ]);

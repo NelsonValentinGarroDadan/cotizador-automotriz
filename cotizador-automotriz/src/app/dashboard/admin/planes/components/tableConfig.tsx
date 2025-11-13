@@ -64,12 +64,6 @@ export default function planColumns({ onCreated }: { onCreated: () => void }): T
         ),
     },
     {
-      key: "_count",
-      label: "Versiones",
-      sortable: false,
-      render: (value: any, row: Plan) => row._count?.versions || 0,
-    },
-    {
       key: "createdAt",
       label: "Fecha de creación",
       sortable: true,

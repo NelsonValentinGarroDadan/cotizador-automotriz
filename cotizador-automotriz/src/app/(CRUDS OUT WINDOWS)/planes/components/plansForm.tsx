@@ -138,8 +138,14 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
         window.close();
       }
     } catch (err: any) {
-      console.error(err);
-      setError(err?.data?.message || "Error al guardar el plan");
+      console.log(err);
+      const apiError = err  as { data:{ errors: string[]} }; 
+      if (apiError.data?.errors && Array.isArray(apiError.data.errors)) {
+        // Si viene un array de errores, unirlos
+        setError(apiError.data.errors.join(", "));
+      } else { 
+        setError(err?.data?.message || "Error al guardar el plan");
+      }
     }
   };
 

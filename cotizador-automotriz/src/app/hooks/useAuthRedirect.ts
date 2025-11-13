@@ -60,7 +60,8 @@ export const useAuthRedirect = (allowedRoles?: Array<'ADMIN' | 'USER'>) => {
         '/companies', 
         '/users',    
         '/administradores', 
-        '/planes'
+        '/planes',
+        '/HC'
       ];
 
       const isAllowedExternalPath = allowedExternalPaths.some((allowed) =>

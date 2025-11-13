@@ -8,6 +8,7 @@ import { Role } from '../types';
 interface Column<T> {
   key: keyof T;
   label: string;
+  value?: string | number;
 }
 
 interface CrudPageFactoryProps<T> {
@@ -90,7 +91,7 @@ export function CrudPageFactory<T>({
                       key={String(col.key)}
                       className="py-2 px-3 border-b border border-blue-light-ligth"
                     >
-                      {String(entity?.[col.key] ?? '—')}
+                      {col.value ? col.value  : String(entity?.[col.key] ?? '—')}
                     </td>
                   ))}
                 </tr>
