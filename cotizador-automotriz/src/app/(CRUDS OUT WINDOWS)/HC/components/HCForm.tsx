@@ -307,6 +307,8 @@ export default function QuotationForm({
                         {/* Celdas de plazo */}
                         {plazosUnicos.map((plazo) => {
                           const c = version.coefficients.find((x) => x.plazo === plazo);
+                          const esPlanCheques = plan.name.toUpperCase().includes("CHEQUES");
+                          const cantidadCheques = plazo + 1;
                           if (!c)
                             return (
                               <td
@@ -319,12 +321,14 @@ export default function QuotationForm({
 
                           const tnaMostrar = Math.ceil(Number(c.tna));
                           const coef = Number(c.coeficiente);
-                          const cuotaBase = monto * (coef / 10000);
-                          const quebranto = Number(c.quebrantoFinanciero || 0);
+                          const cuotaFinal =  monto * (coef / 10000);
+                          const quebrantoPorcentaje = Number(c.quebrantoFinanciero || 0) / 100; 
+                          const factorQuebranto = 1.21; 
+                          const quebranto = Math.ceil(monto * quebrantoPorcentaje * factorQuebranto);
+
                           const cuotaBalon = Number(c.cuotaBalon || 0);
                           const mesesBalon = c.cuotaBalonMonths?.map((m) => m.month) || [];
-
-                          const cuotaFinal = cuotaBase + quebranto;
+ 
 
                           return (
                             <td
@@ -337,7 +341,13 @@ export default function QuotationForm({
                                 {formatMoney(Math.ceil(cuotaFinal))}
                               </div>
 
-                              {quebranto > 0 && (
+                              {esPlanCheques && (
+                                <div className="text-xs text-blue-700 mt-1">
+                                  {cantidadCheques} cheques de {formatMoney(Math.ceil(cuotaFinal))}, (1ro Corriente)
+                                </div>
+                              )}
+
+                              {!esPlanCheques && quebranto > 0 && (
                                 <div className="bg-gray-100 text-xs text-gray-700 p-1 mt-1 rounded">
                                   Quebranto: {formatMoney(quebranto)}
                                 </div>
