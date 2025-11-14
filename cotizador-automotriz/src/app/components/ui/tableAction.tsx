@@ -1,6 +1,6 @@
 'use client';
 
-import { Eye, Pencil, Trash2 } from 'lucide-react'; 
+import { Eye, FileArchive, Pencil, Trash2 } from 'lucide-react'; 
 import WindowFormButton from '../windowFormButton';
 
 interface TableActionsProps {
@@ -10,6 +10,7 @@ interface TableActionsProps {
   showView?: boolean;
   showEdit?: boolean;
   showDelete?: boolean;
+  showPdf?:boolean;
   className?: string;
   width?:number;
 }
@@ -22,13 +23,15 @@ export default function TableActions({
   showEdit = true,
   showDelete = true,
   className = '', 
-  width=700
+  width=700,
+  showPdf = false
 }: TableActionsProps) {
   // construimos las rutas automáticas
   const viewUrl = `${baseUrl}/${id}/view`;
   const editUrl = `${baseUrl}/${id}/edit`;
   const deleteUrl = `${baseUrl}/${id}/delete`;
-
+  const pdfUrl = `${baseUrl}/${id}/pdf`;
+  const classNameWFB = "bg-transparent px-2! hover:bg-gray-100 rounded"
   return (
     <div className={`flex items-center  ${className}`}>
       {showView && (
@@ -41,7 +44,7 @@ export default function TableActions({
               />
             }
           title="Ver detalles"
-          className="bg-transparent p-2 hover:bg-gray-100 rounded"
+          className={classNameWFB}
           width={width}
         />
       )}
@@ -56,7 +59,7 @@ export default function TableActions({
               />
             }
           title="Editar"
-          className="bg-transparent p-2 hover:bg-gray-100 rounded"
+          className={classNameWFB}
           width={width}
         />
       )}
@@ -71,7 +74,21 @@ export default function TableActions({
               />
             }
           title="Eliminar"
-          className="bg-transparent p-2 hover:bg-gray-100 rounded"
+         className={classNameWFB}
+          width={width}
+        />
+      )}
+      {showPdf && (
+        <WindowFormButton
+          formUrl={pdfUrl}
+          onCreated={onActionComplete}
+          buttonText={
+            <FileArchive
+              className="w-5 h-5 text-gray cursor-pointer hover:scale-110 transition"
+              />
+            }
+          title="Ver pdf"
+          className={classNameWFB}
           width={width}
         />
       )}

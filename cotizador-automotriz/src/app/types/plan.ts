@@ -35,6 +35,7 @@ export interface PlanVersion {
     lastName: string;
   };
   coefficients: PlanCoefficient[];
+  plan:Plan;
 }
 
 export interface Plan {

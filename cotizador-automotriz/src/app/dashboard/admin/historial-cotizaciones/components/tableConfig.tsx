@@ -56,6 +56,7 @@ export default function quotationColumns({
           onActionComplete={onCreated}
           showDelete
           width={1100}
+          showPdf={true}
         />
       ),
     },
