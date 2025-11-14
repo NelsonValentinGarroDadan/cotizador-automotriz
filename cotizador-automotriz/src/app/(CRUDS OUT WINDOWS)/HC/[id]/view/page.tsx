@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { CrudPageFactory } from '@/app/components/crudPageFactory'; 
 import { useGetQuotationByIdQuery } from '@/app/api/quotationApi';
 import QuotationForm from '../../components/HCForm';
+import { Role } from '@/app/types';
 
 export default function ViewQuotationPage() {
   const { id } = useParams();
@@ -19,6 +20,7 @@ export default function ViewQuotationPage() {
       isLoading={isLoading}
       error={error}
       entityName="Cotización"
+      allowedRoles={[Role.ADMIN,Role.USER]}
     />
   );
 }

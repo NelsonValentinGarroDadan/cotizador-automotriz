@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { CrudPageFactory } from '@/app/components/crudPageFactory';
 import { useDeleteQuotationMutation, useGetQuotationByIdQuery } from '@/app/api/quotationApi'; 
+import { Role } from '@/app/types';
 
 export default function DeleteQuotationPage() {
   const { id } = useParams();
@@ -25,6 +26,7 @@ export default function DeleteQuotationPage() {
         { key: 'company', label: 'Compañía', value: data?.company.name },
       ]}
       entityName="Cotización"
+      allowedRoles={[Role.ADMIN,Role.USER]}
     />
   );
 }

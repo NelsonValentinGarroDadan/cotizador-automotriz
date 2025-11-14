@@ -2,6 +2,7 @@
 
 import { CrudPageFactory } from '@/app/components/crudPageFactory'; 
 import QuotationForm from '../components/HCForm'; 
+import { Role } from '@/app/types';
 
 export default function CreateQuotationPage() { 
 
@@ -10,6 +11,7 @@ export default function CreateQuotationPage() {
       action="create"
       formComponent={QuotationForm}
       entityName="Cotización"
+      allowedRoles={[Role.ADMIN, Role.USER]}
     />
   );
 }
