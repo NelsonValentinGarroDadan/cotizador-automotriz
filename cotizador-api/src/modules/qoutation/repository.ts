@@ -9,6 +9,7 @@ interface QuotationFilters {
   planVersionId?: string;
   createdAtFrom?: Date;
   createdAtTo?: Date;
+  isAdmin:boolean;
 }
 
 export const getAllQuotations = async (
@@ -22,13 +23,17 @@ export const getAllQuotations = async (
   const skip = (page - 1) * limit;
 
   // Usuario solo ve cotizaciones de sus compañías
-  const where: Prisma.QuotationWhereInput = {
-    company: {
+  const where: Prisma.QuotationWhereInput = {};
+  if (filters!.isAdmin) {
+    where.company = {
       userCompanies: {
         some: { userId },
       },
-    },
-  };
+    };
+  }else {
+    where.userId = userId;
+  }
+
 
   // Filtro por búsqueda (nombre o DNI del cliente)
   if (filters?.search) {

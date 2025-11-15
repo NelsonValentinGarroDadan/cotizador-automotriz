@@ -9,8 +9,10 @@ import { useGetAllCompaniesQuery } from '@/app/api/companyApi';
 import { quotationApi, useGetAllQuotationsQuery } from '@/app/api/quotationApi';
 import quotationColumns from './components/tableConfig';
 import { quotationFilters } from './components/filterConfig';
+import { useAuthStore } from '@/app/store/useAuthStore';
 
 export default function Page() {
+  const {user,hydrated} = useAuthStore();
   const dispatch = useDispatch();
   const useQuotationStore = useMemo(() => createTableStore('quotations'), []);
   const { filters, pagination, sort, resetFilters, setSort } = useQuotationStore();
@@ -36,9 +38,19 @@ export default function Page() {
     return () => window.removeEventListener('message', listener);
   }, [dispatch, resetFilters, setSort]);
 
-  const columns = quotationColumns({ onCreated: refetch });
+  if (!hydrated) {
+    return (
+      <section className="w-full px-5 min-h-screen flex items-center justify-center">
+        <p className="text-white">Cargando...</p>
+      </section>
+    );
+  }
+ 
+  if (!user) { 
+    return null;
+  }
+  const columns = quotationColumns({ onCreated: refetch , role: user.role});
   const filtersConfig = quotationFilters({ companies: companies?.data || [] });
-
   return (
     <section className="w-full border-l border-gray px-5 min-h-screen">
       <CustomTable

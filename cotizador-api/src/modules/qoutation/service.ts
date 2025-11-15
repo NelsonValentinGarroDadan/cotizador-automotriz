@@ -16,6 +16,7 @@ interface QuotationFilters {
   planVersionId?: string;
   createdAtFrom?: Date;
   createdAtTo?: Date;
+  isAdmin:boolean;
 }
 
 export const getAllQuotations = async (
@@ -24,7 +25,7 @@ export const getAllQuotations = async (
   limit: number,
   sortBy: string,
   sortOrder: "asc" | "desc",
-  filters?: QuotationFilters
+  filters?: QuotationFilters, 
 ): Promise<PaginatedResponse<any>> => {
   const { quotations, total } = await repository.getAllQuotations(
     userId,

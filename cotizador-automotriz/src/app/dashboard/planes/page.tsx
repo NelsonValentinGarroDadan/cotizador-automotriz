@@ -10,8 +10,10 @@ import { getPlanFilters } from './components/filterConfig';
 import WindowFormButton from '@/app/components/windowFormButton';
 import { Plus } from 'lucide-react'; 
 import { useDispatch } from 'react-redux';
+import { useAuthStore } from '@/app/store/useAuthStore';
 
 export default function Page() {
+  const {user, hydrated} = useAuthStore();
   const dispatch = useDispatch();
   const usePlansTableStore = useMemo(() => createTableStore('plans'), []);
   const { filters, pagination, sort } = usePlansTableStore();
@@ -56,15 +58,29 @@ export default function Page() {
     refetch();
   };
 
-  const columns = planColumns({
-    onCreated: refetch
-  });
-
-  // Crear filtros dinámicos con las compañías
+   // Crear filtros dinámicos con las compañías
   const planFiltersWithCompanies = useMemo(() => {
     const companies = companiesData?.data || [];
     return getPlanFilters(companies.map(c => ({ id: c.id, name: c.name })));
   }, [companiesData]);
+
+  if (!hydrated) {
+    return (
+      <section className="w-full px-5 min-h-screen flex items-center justify-center">
+        <p className="text-white">Cargando...</p>
+      </section>
+    );
+  }
+ 
+  if (!user) { 
+    return null;
+  }
+  const columns = planColumns({
+    onCreated: refetch,
+    role: user!.role
+  });
+
+ 
 
   return (
     <section className='w-full border-l border-gray px-5 min-h-screen'> 

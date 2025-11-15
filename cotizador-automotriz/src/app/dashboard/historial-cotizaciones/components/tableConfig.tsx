@@ -1,11 +1,14 @@
 import { TableColumn } from "@/app/types/table";
 import TableActions from "@/app/components/ui/tableAction";
 import { Quotation } from "@/app/types/quotition";
+import { Role } from "@/app/types";
 
 export default function quotationColumns({
   onCreated,
+  role
 }: {
   onCreated: () => void;
+  role:Role
 }): TableColumn[] {
   return [
     {
@@ -54,9 +57,10 @@ export default function quotationColumns({
           baseUrl="/HC"
           id={value}
           onActionComplete={onCreated}
-          showDelete
+          showDelete={role === Role.ADMIN}
           width={1100}
           showPdf={true}
+  
         />
       ),
     },

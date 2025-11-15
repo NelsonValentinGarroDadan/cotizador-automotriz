@@ -1,9 +1,18 @@
 
 import TableActions from "@/app/components/ui/tableAction"; 
+import { Role } from "@/app/types";
 import { TableColumn } from "@/app/types/table"; 
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL_IMG;  
-export  default function  companyColumns({onCreated}:{onCreated:()=>void}) : TableColumn[] {
+export  default function  companyColumns(
+  { 
+    onCreated,
+    role
+  }:
+  {
+    onCreated:()=>void,
+    role:Role
+  }) : TableColumn[] {
   return [
   {
     key: "name",
@@ -37,7 +46,8 @@ export  default function  companyColumns({onCreated}:{onCreated:()=>void}) : Tab
         showView={false}
         baseUrl="/companies"
         id={value}
-        showDelete={false}
+        showDelete={role == Role.ADMIN}
+        showEdit={role == Role.ADMIN}
         onActionComplete={onCreated}
       /> )
     }  

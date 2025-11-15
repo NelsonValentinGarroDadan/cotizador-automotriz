@@ -6,7 +6,7 @@ import { getPaginationParams } from "../../utils/pagination";
 
 export const getAllQuotations = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
-
+  const isAdmin = req.user.role === "ADMIN";
   const ALLOWED_SORT_FIELDS = ["createdAt", "clientName", "totalValue"];
   const { page, limit, sortBy, sortOrder } = getPaginationParams(
     req.query,
@@ -20,7 +20,10 @@ export const getAllQuotations = async (req: Request, res: Response) => {
     planVersionId?: string;
     createdAtFrom?: Date;
     createdAtTo?: Date;
-  } = {};
+    isAdmin:boolean;
+  } = {
+    isAdmin
+  };
 
   if (req.query.search) filters.search = String(req.query.search);
   
@@ -47,7 +50,8 @@ export const getAllQuotations = async (req: Request, res: Response) => {
     limit,
     sortBy,
     sortOrder,
-    filters
+    filters,
+    
   );
 
   res.json(result);

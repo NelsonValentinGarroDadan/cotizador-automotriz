@@ -10,8 +10,10 @@ import { useGetAllUsersQuery, userApi } from '@/app/api/userApi';
 import { useGetAllCompaniesQuery } from '@/app/api/companyApi';
 import usersColumns from './components/tableConfig';
 import { usersFilters } from './components/filterConfig';
+import { useAuthRedirect } from '@/app/hooks/useAuthRedirect';
 
 export default function Page() {
+  useAuthRedirect([Role.ADMIN]);
   const dispatch = useDispatch();
   const useUsersTableStore = useMemo(() => createTableStore('users'), []);
   const { data:companies } = useGetAllCompaniesQuery({ limit: 50 })

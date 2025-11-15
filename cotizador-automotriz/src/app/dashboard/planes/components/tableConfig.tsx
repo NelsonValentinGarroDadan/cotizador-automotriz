@@ -4,10 +4,17 @@ import TableActions from "@/app/components/ui/tableAction";
 import { TableColumn } from "@/app/types/table"; 
 import { Plan } from "@/app/types/plan";
 import { CheckCircle, XCircle } from "lucide-react";
+import { Role } from "@/app/types";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL_IMG;  
 
-export default function planColumns({ onCreated }: { onCreated: () => void }): TableColumn[] {
+export default function planColumns({ 
+  onCreated,
+  role
+}: { 
+  onCreated: () => void,
+  role:Role 
+}): TableColumn[] {
   return [
     {
       key: "name",
@@ -76,7 +83,8 @@ export default function planColumns({ onCreated }: { onCreated: () => void }): T
       render: (value: string, row: Plan) => (
         <TableActions
           showView={true}
-          showDelete={row.active}
+          showDelete={role == Role.ADMIN && row.active}
+          showEdit={role == Role.ADMIN}
           baseUrl="/planes"
           id={value}
           onActionComplete={onCreated}
