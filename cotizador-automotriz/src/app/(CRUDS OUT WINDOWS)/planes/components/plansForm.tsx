@@ -21,6 +21,7 @@ import {
 import CustomButton from '@/app/components/ui/customButton'; 
 import { MultiSelect } from '@/app/components/ui/multiSelect'; 
 import CoefficientsManager from './coefficientsManager';
+import { useGetUsersByCompanyQuery } from '@/app/api/userApi';
  
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL_IMG; 
 
@@ -58,8 +59,17 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
       desdeCuota: undefined,
       hastaCuota: undefined,
       coefficients: [],
+      allowedUserIds: [],
     }
   });
+  
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const companyIds = watch("companyIds"); 
+
+  const { data: usersData } = useGetUsersByCompanyQuery(
+    { companyIds },
+    { skip: !companyIds || companyIds.length === 0 }
+  );
 
   const [createPlan, { isLoading: isCreating }] = useCreatePlanMutation();
   const [updatePlan, { isLoading: isUpdating }] = useUpdatePlanMutation();
@@ -69,10 +79,10 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
 
   // Cargar estado activo al editar
   useEffect(() => {
-  if (plan) {
-    setIsActive(plan.active);
-  }
-}, [plan]);
+    if (plan) {
+      setIsActive(plan.active);
+    }
+  }, [plan]);
 
   // Cargar datos del plan al editar/ver
   useEffect(() => {
@@ -96,6 +106,7 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
           cuotaPromedio: c.cuotaPromedio || undefined,
           cuotaBalonMonths: c.cuotaBalonMonths.map(m => m.month),
         })) || [],
+        allowedUserIds: plan.allowedUsers?.map(u => u.id) || [], // ✅ Cargar usuarios permitidos
       });
     }
   }, [plan, reset]);
@@ -116,7 +127,14 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
       if (fullData.hastaMonto !== undefined) formData.append('hastaMonto', fullData.hastaMonto.toString());
       if (fullData.desdeCuota !== undefined) formData.append('desdeCuota', fullData.desdeCuota.toString());
       if (fullData.hastaCuota !== undefined) formData.append('hastaCuota', fullData.hastaCuota.toString());
-       
+      
+      // ✅ Agregar allowedUserIds (siempre)
+      if (data.allowedUserIds) {
+        formData.append("allowedUserIds", JSON.stringify(data.allowedUserIds));
+      } else {
+        formData.append("allowedUserIds", JSON.stringify([]));
+      }
+
       formData.append('coefficients', JSON.stringify(fullData.coefficients));
     
       
@@ -188,6 +206,16 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
     value: c.id,
     label: c.name
   }));
+  
+  const userOptions = (usersData?.data || []).map(u => ({
+    value: u.id,
+    label: `${u.firstName} ${u.lastName}`,
+  }));
+
+  // ✅ Obtener nombres de usuarios permitidos para modo vista
+  const selectedUserNames = plan?.allowedUsers?.map(u => 
+    `${u.firstName} ${u.lastName}`
+  ) || [];
 
   return (
     <div className="w-[90%] h-[90%] border rounded shadow bg-blue-light-ligth overflow-y-auto">
@@ -265,8 +293,7 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                 </div>
               ) : (
                 <MultiSelect
-                  options={companyOptions}
-                  // eslint-disable-next-line react-hooks/incompatible-library
+                  options={companyOptions} 
                   value={watch('companyIds') || []}
                   onChange={(value) => setValue('companyIds', value)}
                   placeholder="Seleccionar compañías..."
@@ -274,6 +301,66 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
               )}
               {errors.companyIds?.message && (
                 <span className="text-red-500 text-sm">{errors.companyIds.message}</span>
+              )}
+            </div>
+              
+            {/* Sección de Permisos de Usuarios */}
+            <div className="bg-white p-4 rounded border">
+              <h2 className="text-lg font-semibold mb-4 text-black">
+                Permisos de Usuarios
+              </h2>
+
+              {isView ? (
+                // ✅ Modo Vista: Mostrar lista de usuarios permitidos
+                <div>
+                  <label className="block text-sm font-medium text-black mb-1">
+                    Usuarios que pueden ver este plan
+                  </label>
+                  <div className="border border-gray/50 px-3 py-2 rounded bg-gray/5 min-h-[42px]">
+                    {selectedUserNames.length === 0 ? (
+                      <span className="text-gray/60">Sin usuarios asignados</span>
+                    ) : (
+                      <ul className="list-disc list-inside space-y-1">
+                        {selectedUserNames.map((name, idx) => (
+                          <li key={idx} className="text-sm">
+                            {name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                // ✅ Modo Edición/Creación: MultiSelect
+                <>
+                  <label className="block text-sm font-medium text-black mb-1">
+                    Usuarios que pueden ver este plan
+                  </label>
+
+                  <MultiSelect
+                    options={userOptions}
+                    value={watch("allowedUserIds") || []}
+                    onChange={(value) => setValue("allowedUserIds", value)}
+                    placeholder="Seleccionar usuarios..."
+                  />
+
+                  <div className="flex items-center gap-2 mt-3">
+                    <input
+                      type="checkbox"
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setValue(
+                            "allowedUserIds",
+                            userOptions.map((u:any) => u.value)
+                          );
+                        } else {
+                          setValue("allowedUserIds", []);
+                        }
+                      }}
+                    />
+                    <span>Lo ven todos</span>
+                  </div>
+                </>
               )}
             </div>
 
@@ -305,83 +392,83 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
         </div>
 
         {/* Restricciones (creación y edición) */}
-{!isView && (
-  <div className="bg-white p-4 rounded border">
-    <h2 className="text-lg font-semibold mb-4 text-black">
-      Restricciones (opcional)
-    </h2>
+        {!isView && (
+          <div className="bg-white p-4 rounded border">
+            <h2 className="text-lg font-semibold mb-4 text-black">
+              Restricciones (opcional)
+            </h2>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label className="block text-sm font-medium text-black mb-1">
-          Monto Desde
-        </label>
-        <input
-          type="number"
-          step="0.01"
-          {...register('desdeMonto')}
-          className="border border-yellow-light bg-yellow-light px-3 py-2 rounded w-full"
-          placeholder="Ej: 50000"
-          min="0"
-        />
-      </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-black mb-1">
+                  Monto Desde
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  {...register('desdeMonto')}
+                  className="border border-yellow-light bg-yellow-light px-3 py-2 rounded w-full"
+                  placeholder="Ej: 50000"
+                  min="0"
+                />
+              </div>
 
-      <div>
-        <label className="block text-sm font-medium text-black mb-1">
-          Monto Hasta
-        </label>
-        <input
-          type="number"
-          step="0.01"
-          {...register('hastaMonto')}
-          className="border border-yellow-light bg-yellow-light px-3 py-2 rounded w-full"
-          placeholder="Ej: 500000"
-          min="0"
-        />
-      </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-1">
+                  Monto Hasta
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  {...register('hastaMonto')}
+                  className="border border-yellow-light bg-yellow-light px-3 py-2 rounded w-full"
+                  placeholder="Ej: 500000"
+                  min="0"
+                />
+              </div>
 
-      <div>
-        <label className="block text-sm font-medium text-black mb-1">
-          Cuota Desde
-        </label>
-        <input
-          type="number"
-          {...register('desdeCuota')}
-          className="border border-yellow-light bg-yellow-light px-3 py-2 rounded w-full"
-          placeholder="Ej: 6"
-          min="1"
-        />
-      </div>
+              <div>
+                <label className="block text-sm font-medium text-black mb-1">
+                  Cuota Desde
+                </label>
+                <input
+                  type="number"
+                  {...register('desdeCuota')}
+                  className="border border-yellow-light bg-yellow-light px-3 py-2 rounded w-full"
+                  placeholder="Ej: 6"
+                  min="1"
+                />
+              </div>
 
-      <div>
-        <label className="block text-sm font-medium text-black mb-1">
-          Cuota Hasta
-        </label>
-        <input
-          type="number"
-          {...register('hastaCuota')}
-          className="border border-yellow-light bg-yellow-light px-3 py-2 rounded w-full"
-          placeholder="Ej: 84"
-          min="1"
-        />
-      </div>
-    </div>
-  </div>
-)}
+              <div>
+                <label className="block text-sm font-medium text-black mb-1">
+                  Cuota Hasta
+                </label>
+                <input
+                  type="number"
+                  {...register('hastaCuota')}
+                  className="border border-yellow-light bg-yellow-light px-3 py-2 rounded w-full"
+                  placeholder="Ej: 84"
+                  min="1"
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
-{/* Coeficientes (creación y edición) */}
-{!isView && (
-  <div className="bg-white p-4 rounded border">
-    <h2 className="text-lg font-semibold mb-4 text-black">
-      Coeficientes <span className="text-red-500">*</span>
-    </h2>
-    <CoefficientsManager 
-      setValue={setValue} 
-      watch={watch}
-      disabled={false}
-    />
-  </div>
-)}
+        {/* Coeficientes (creación y edición) */}
+        {!isView && (
+          <div className="bg-white p-4 rounded border">
+            <h2 className="text-lg font-semibold mb-4 text-black">
+              Coeficientes <span className="text-red-500">*</span>
+            </h2>
+            <CoefficientsManager 
+              setValue={setValue} 
+              watch={watch}
+              disabled={false}
+            />
+          </div>
+        )}
 
         {/* Información adicional en modo vista */}
         {isView && plan && (
@@ -540,8 +627,6 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                           })}
                         </div>
                       </div>
-
-
                     </div>
                   ))}
                 </div>

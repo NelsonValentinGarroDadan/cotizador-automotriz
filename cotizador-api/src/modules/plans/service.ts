@@ -8,6 +8,7 @@ import {
   createPaginatedResponse,
   PaginatedResponse,
 } from "../../utils/pagination";
+import { Role } from "@prisma/client";
 
 interface PlanFilters {
   name?: string;
@@ -22,7 +23,8 @@ export const getAllPlans = async (
   limit: number,
   sortBy: string,
   sortOrder: "asc" | "desc",
-  filters?: PlanFilters
+  filters?: PlanFilters,
+  isAdmin?:boolean,
 ): Promise<PaginatedResponse<any>> => {
   const { plans, total } = await repository.getAllPlans(
     userId,
@@ -30,26 +32,26 @@ export const getAllPlans = async (
     limit,
     sortBy,
     sortOrder,
-    filters
+    filters,
+    isAdmin 
   );
   return createPaginatedResponse(plans, total, page, limit);
 };
 
 export const getPlanById = async (id: string, user: UserToken | undefined) => {
-  if (!user) throw new AppError("Usuario no autenticado", 403);
-  
-  const plan = await repository.getPlanById(id, user.id);
+  if (!user) throw new AppError("Usuario no autenticado", 403); 
+  const plan = await repository.getPlanById(id, user.id );
   if (!plan) throw new AppError("Plan no encontrado", 404);
 
-  // Verificar que el usuario tiene acceso a alguna compañía del plan
-  const hasAccess = plan.companies.some((company) =>
-    company.userCompanies.some((uc) => uc.userId === user.id)
-  );
-
-  if (!hasAccess) {
-    throw new AppError("No tienes acceso a este plan", 403);
+  if (user.role === 'USER') {
+    const isAllowed = plan?.allowedUsers?.some(allowedUser => 
+      allowedUser.id === user.id
+    );
+    
+    if (!isAllowed) {
+      throw new AppError("No tienes acceso a este plan", 403);
+    }
   }
-
   return plan;
 };
 
@@ -70,6 +72,7 @@ export const createPlan = async (
   const plan = await repository.createPlan({
     ...data,
     userId: user.id,
+    allowedUserIds: data.allowedUserIds ?? [],
   });
 
   // Crear primera versión con coeficientes
@@ -89,19 +92,21 @@ export const createPlan = async (
 
 export const updatePlan = async (
   id: string,
-  data: Omit<UpdatePlan, "id"> & { logo?: string; companyIds?: string[] },
+  data: Omit<UpdatePlan, "id"> & { logo?: string; companyIds?: string[],allowedUserIds?: string[] },
   user: UserToken
-) => {
-  const plan = await repository.getPlanById(id, user.id);
-  if (!plan) throw new AppError("Plan no encontrado", 404);
-
-  // Verificar acceso
-  const hasAccess = plan.companies.some((company) =>
-    company.userCompanies.some((uc) => uc.userId === user.id)
-  );
-  if (!hasAccess) {
-    throw new AppError("No tienes acceso a este plan", 403);
+) => { 
+  const plan = await repository.getPlanById(id, user.id );
+  
+  if (user.role === 'USER') {
+    const isAllowed = plan?.allowedUsers?.some(allowedUser => 
+      allowedUser.id === user.id
+    );
+    
+    if (!isAllowed) {
+      throw new AppError("No tienes acceso a este plan", 403);
+    }
   }
+  if (!plan) throw new AppError("Plan no encontrado", 404);
 
   // Si se cambian las compañías, verificar acceso a las nuevas
   if (data.companyIds) {
@@ -110,7 +115,10 @@ export const updatePlan = async (
     }
   }
 
-  const updatedPlan = await repository.updatePlan(id, data);
+  const updatedPlan = await repository.updatePlan(id, {
+  ...data,
+  allowedUserIds: data.allowedUserIds
+});
 
 // Si vienen nuevos coeficientes → crear nueva versión
 if (data.coefficients && data.coefficients.length > 0) {
@@ -133,15 +141,18 @@ return updatedPlan;
 
 export const deletePlan = async (id: string, user: UserToken) => {
   const plan = await repository.getPlanById(id, user.id);
+
+  if (user.role === 'USER') {
+    const isAllowed = plan?.allowedUsers?.some(allowedUser => 
+      allowedUser.id === user.id
+    );
+    
+    if (!isAllowed) {
+      throw new AppError("No tienes acceso a este plan", 403);
+    }
+  }
   if (!plan) throw new AppError("Plan no encontrado", 404);
 
-  // Verificar acceso
-  const hasAccess = plan.companies.some((company) =>
-    company.userCompanies.some((uc) => uc.userId === user.id)
-  );
-  if (!hasAccess) {
-    throw new AppError("No tienes acceso a este plan", 403);
-  }
 
   await repository.deletePlan(id);
 };

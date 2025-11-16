@@ -82,6 +82,20 @@ export const planApi = api.injectEndpoints({
         { type: 'Plan', id: 'LIST' }
       ],
     }),
+    getPlansByCompany: builder.query<PaginatedResponse<Plan>, { companyIds: string[] }>({
+      query: (params) => {
+        const searchParams = new URLSearchParams();
+        if (params?.companyIds && params.companyIds.length > 0) {
+          searchParams.append('companyIds', params.companyIds.join(','));
+        }
+        searchParams.append('limit', '1000')
+        return {
+          url: `/plans?${searchParams.toString()}`,
+          method: 'GET'
+        }
+      },
+    }),
+
   }),
 });
 
@@ -90,5 +104,6 @@ export const {
   useCreatePlanMutation, 
   useUpdatePlanMutation, 
   useDeletePlanMutation,
-  useGetPlanByIdQuery
+  useGetPlanByIdQuery,
+  useGetPlansByCompanyQuery 
 } = planApi;

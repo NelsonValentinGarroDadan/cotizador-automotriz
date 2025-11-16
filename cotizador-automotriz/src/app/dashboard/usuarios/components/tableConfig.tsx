@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // administradores/components/tableConfig.tsx
 import TableActions from "@/app/components/ui/tableAction";
 import { TableColumn } from "@/app/types/table";
@@ -20,6 +21,12 @@ export default function userColumns({
       key: "email",
       label: "Email",
       sortable: true,
+    },
+    {
+      key: "allowedPlans",
+      label: "Planes Permitidos",
+      sortable: false,
+      render: (value: any) => value.length
     },
     {
       key: "companies",

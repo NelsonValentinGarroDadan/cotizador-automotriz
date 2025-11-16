@@ -35,6 +35,7 @@ model User {
   quotations     Quotation[]
  
   createdPlanVersions PlanVersion[] @relation("CreatedPlanVersions")
+  allowedPlans Plan[] @relation("AllowedPlans")
   @@map("users") 
 }
 
@@ -85,7 +86,7 @@ model Plan {
   companies   Company[] @relation("PlanCompanies")
   createdBy   User    @relation("CreatedPlans", fields: [createdById], references: [id])
   versions    PlanVersion[]
-
+  allowedUsers User[] @relation("AllowedPlans")
   @@map("plans")
 }
 

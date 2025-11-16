@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // app/administradores/create/components/AdminForm.tsx
 'use client';
@@ -21,6 +22,7 @@ import {
 import CustomButton from '@/app/components/ui/customButton';
 import { Role } from '@/app/types'; 
 import { MultiSelect } from '@/app/components/ui/multiSelect'; 
+import { useGetPlansByCompanyQuery } from '@/app/api/planApi';
 
 interface UserFormProps {
   entity?: UserWithCompanies;  
@@ -33,7 +35,6 @@ export default function UserForm({ entity, readOnly = false }: UserFormProps) {
    
   // Si tenemos entity, ya vienen los datos del CrudPageFactory
   const { data: fetchedAdmin } = useGetUserByIdQuery(
-    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     { id: entity?.id! }, 
     { skip: !entity?.id || Boolean(entity.companies) } // Skip si ya tenemos los datos completos
   ); 
@@ -49,34 +50,47 @@ export default function UserForm({ entity, readOnly = false }: UserFormProps) {
     register, 
     handleSubmit,  
     control,
-    reset, // ✅ Agregar reset
-    formState: { errors } 
+    watch,
+    reset,
+    formState: { errors },
+    setValue,
   } = useForm<CreateAdminInput | UpdateAdminInput>({
     resolver: zodResolver(isEdit || isView ? updateAdminSchema : createAdminSchema),
     defaultValues: {
       companyIds: [],
+      allowedPlanIds: [],
     }
   });
+
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const companyIds = watch("companyIds");
+  const allowedPlanIds = watch("allowedPlanIds");
+
+  const { data: plansData } = useGetPlansByCompanyQuery(
+    { companyIds: companyIds! },
+    { skip: !companyIds || companyIds.length === 0 }
+  );
 
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
   const [error, setError] = useState<string | null>(null);
 
   // ✅ Cargar datos del admin al editar o ver
- useEffect(() => {
-  if (UserData && companiesData?.data) {
-    const assignedCompanies = UserData.companies?.map(({company:c}) => c?.id) || [];
+  useEffect(() => {
+    if (UserData && companiesData?.data) {
+      const assignedCompanies = UserData.companies?.map(({company: c}) => c?.id) || [];
+      const userAllowedPlanIds = UserData.allowedPlans || [];
 
-    reset({
-      email: UserData.email,
-      firstName: UserData.firstName,
-      lastName: UserData.lastName,
-      companyIds: assignedCompanies,
-      password: '',
-    });
-  }
-}, [UserData, companiesData, reset]);
-
+      reset({
+        email: UserData.email,
+        firstName: UserData.firstName,
+        lastName: UserData.lastName,
+        companyIds: assignedCompanies,
+        allowedPlanIds: userAllowedPlanIds.map(p => p.id), // ✅ Agregar planes permitidos
+        password: '',
+      });
+    }
+  }, [UserData, companiesData, reset]);
 
   const onSubmit = async (data: CreateAdminInput | UpdateAdminInput) => {
     try {
@@ -86,8 +100,10 @@ export default function UserForm({ entity, readOnly = false }: UserFormProps) {
         companyIds: Array.isArray(data.companyIds)
         ? data.companyIds.map((c: any) => (typeof c === "string" ? c : c.value))
         : [], // aseguramos que sea array de strings
-      ...(isEdit && !data.password && { password: undefined }),
         ...(isEdit && !data.password && { password: undefined }),
+        allowedPlanIds: Array.isArray(data.allowedPlanIds)
+        ? data.allowedPlanIds.map((p:any) => (typeof p === "string" ? p : p.value))
+        : [],
       };
 
       if (isEdit && entity?.id) {
@@ -98,7 +114,7 @@ export default function UserForm({ entity, readOnly = false }: UserFormProps) {
       } else { 
         await createUser(payload as CreateAdminInput).unwrap();
       }
-      console.log(payload)
+      
       // Notificar a la ventana padre y cerrar
       if (window.opener) {
         window.opener.postMessage(
@@ -127,6 +143,11 @@ export default function UserForm({ entity, readOnly = false }: UserFormProps) {
 
   // Obtener nombres de compañías seleccionadas para vista
   const selectedCompanyNames = UserData?.companies?.map(c => c.company?.name) || [];
+
+  // Obtener nombres de planes permitidos para vista
+  const selectedPlanNames = (plansData?.data || [])
+    .filter(plan => allowedPlanIds?.includes(plan.id))
+    .map(plan => plan.name) || [];
 
   // ✅ Mostrar loading solo si estamos esperando datos
   if (!UserData && entity?.id) {
@@ -230,6 +251,64 @@ export default function UserForm({ entity, readOnly = false }: UserFormProps) {
             <span className="text-red-500 text-sm">
               {errors.companyIds.message}
             </span>
+          )}
+        </div>
+
+        {/* Selector de planes */}
+        <div>
+          <label className="block text-sm font-medium text-black mb-1">
+            Planes permitidos para el usuario
+          </label>
+          
+          {isView ? (
+            // Vista simple: solo texto
+            <div className="border border-gray/50 px-3 py-2 rounded bg-gray/5 min-h-[42px]">
+              {selectedPlanNames.length === 0 ? (
+                <span className="text-gray/60">Sin planes asignados</span>
+              ) : (
+                <ul className="list-disc list-inside space-y-1">
+                  {selectedPlanNames.map((name, idx) => (
+                    <li key={idx} className="text-sm">
+                      {name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : (
+            // Modo edición/creación: MultiSelect
+            <>
+              <MultiSelect
+                options={(plansData?.data || []).map((p) => ({
+                  value: p.id,
+                  label: p.name,
+                }))}
+                value={watch("allowedPlanIds") as any || []}
+                onChange={(value) => setValue("allowedPlanIds", value)}
+                placeholder={companyIds?.length === 0 ? "Selecciona compañías primero" : "Seleccionar planes..."}
+                disabled={!companyIds || companyIds.length === 0}
+              />
+
+              <div className="flex items-center gap-2 mt-3">
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setValue(
+                        "allowedPlanIds", 
+                        (plansData?.data || []).map((p) => p.id)
+                      );
+                    } else {
+                      setValue("allowedPlanIds", []);
+                    }
+                  }}
+                  disabled={!companyIds || companyIds.length === 0}
+                />
+                <span className={(!companyIds || companyIds.length === 0) ? "text-gray/40" : ""}>
+                  Puede ver TODOS los planes de la compañía
+                </span>
+              </div>
+            </>
           )}
         </div>
 

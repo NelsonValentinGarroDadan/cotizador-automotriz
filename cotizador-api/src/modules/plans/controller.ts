@@ -5,6 +5,7 @@ import { AppError } from "../../core/errors/appError";
 import path from "path";
 import sharp from "sharp";
 import { getPaginationParams } from "../../utils/pagination";
+import { Role } from "../../core/types/role";
 
 const uploadDir = path.join(__dirname, "../../../uploads/plans");
 
@@ -33,14 +34,15 @@ export const getAllPlans = async (req: Request, res: Response) => {
     const companyIdsParam = String(req.query.companyIds);
     filters.companyIds = companyIdsParam.split(",").filter(Boolean);
   }
-
+  const isAdmin = req.user.role === Role.ADMIN;
   const result = await service.getAllPlans(
     req.user.id,
     page,
     limit,
     sortBy,
     sortOrder,
-    filters
+    filters,
+    isAdmin 
   );
 
   res.json(result);
@@ -54,7 +56,7 @@ export const getPlanById = async (req: Request, res: Response) => {
 export const createPlan = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
 
-  const { name, description, companyIds, coefficients, desdeMonto, hastaMonto, desdeCuota, hastaCuota } = req.body;
+  const { name, description, companyIds, coefficients, desdeMonto, hastaMonto, desdeCuota, hastaCuota, allowedUserIds } = req.body;
 
   // ✅ Parse de arrays JSON
   const parsedCompanyIds = Array.isArray(companyIds)
@@ -64,6 +66,12 @@ export const createPlan = async (req: Request, res: Response) => {
   const parsedCoefficients = Array.isArray(coefficients)
     ? coefficients
     : JSON.parse(coefficients || "[]");
+
+  const parsedAllowedUserIds = allowedUserIds
+  ? Array.isArray(allowedUserIds)
+    ? allowedUserIds
+    : JSON.parse(allowedUserIds)
+  : [];
 
   let logo: string | undefined;
   if (req.file) {
@@ -84,6 +92,7 @@ export const createPlan = async (req: Request, res: Response) => {
       description,
       companyIds: parsedCompanyIds,
       coefficients: parsedCoefficients,
+      allowedUserIds: parsedAllowedUserIds, 
       desdeMonto: desdeMonto ? parseFloat(desdeMonto) : undefined,
       hastaMonto: hastaMonto ? parseFloat(hastaMonto) : undefined,
       desdeCuota: desdeCuota ? parseInt(desdeCuota) : undefined,
@@ -99,7 +108,7 @@ export const createPlan = async (req: Request, res: Response) => {
 export const updatePlan = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
   const { id } = req.params;
-  const { name, description, companyIds, active, coefficients, desdeMonto, hastaMonto, desdeCuota, hastaCuota } = req.body;
+  const { name, description, companyIds, active, coefficients, desdeMonto, hastaMonto, desdeCuota, hastaCuota,allowedUserIds } = req.body;
 
 
   const parsedCompanyIds = companyIds
@@ -120,14 +129,19 @@ export const updatePlan = async (req: Request, res: Response) => {
 
     logo = `/uploads/plans/${fileName}`;
   }
-
+   const parsedAllowedUserIds = allowedUserIds
+    ? Array.isArray(allowedUserIds)
+      ? allowedUserIds
+      : JSON.parse(allowedUserIds)
+    : undefined;
   const updated = await service.updatePlan(
     id,
     {
       name,
       description,
-      companyIds: parsedCompanyIds,
+      allowedUserIds: parsedAllowedUserIds, 
       active: active !== undefined ? active : undefined,
+      companyIds: parsedCompanyIds,
       coefficients,
       desdeMonto,
       hastaMonto,

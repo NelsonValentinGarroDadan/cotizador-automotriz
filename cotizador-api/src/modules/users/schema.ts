@@ -20,6 +20,7 @@ export const createUserSchema = z.object({
     .regex(nameRegex, "El 'lastName' solo puede contener letras"),
   role: z.enum(["ADMIN", "USER"], { error: "El campo 'role' es obligatorio" }),
   companyIds: z.array(z.uuid()).optional(),
+  allowedPlanIds: z.array(z.uuid()).optional(),
 });
 
 export const updateUserSchema = z
@@ -40,6 +41,7 @@ export const updateUserSchema = z
       .min(6, "La contraseña debe tener al menos 6 caracteres")
       .optional(),
     companyIds: z.array(z.uuid()).optional(),
+    allowedPlanIds: z.array(z.uuid()).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "Debe enviarse al menos un campo para actualizar",

@@ -53,6 +53,17 @@ export const userApi = api.injectEndpoints({
       query: ({ id }) => ({ url: `/users/${id}`, method: 'DELETE' }),
       invalidatesTags: (result, error, { id }) => [{ type: 'User', id }, { type: 'User', id: 'LIST' }],
     }),
+    getUsersByCompany: builder.query<PaginatedResponse<UserWithCompanies>, { companyIds: string[] }>({
+      query: (params) => {
+        const searchParams = new URLSearchParams();
+        if (params?.companyIds) searchParams.append('companyIds', params.companyIds.join(',')); 
+        searchParams.append('limit', '1000')
+        return {
+          url: `/users?${searchParams.toString()}`,
+          method: 'GET'
+        }
+      },
+    })
 
   }),
 });
@@ -62,5 +73,6 @@ export const {
   useCreateUserMutation, 
   useUpdateUserMutation, 
   useDeleteUserMutation,
-  useGetUserByIdQuery
+  useGetUserByIdQuery,
+  useGetUsersByCompanyQuery,
 } = userApi;

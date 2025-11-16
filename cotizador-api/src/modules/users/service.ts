@@ -1,3 +1,4 @@
+import prisma from "../../config/prisma";
 import { AppError } from "../../core/errors/appError";
 import { createPaginatedResponse, PaginatedResponse } from "../../utils/pagination";
 import * as repository from "./repository";
@@ -36,7 +37,7 @@ export const getUserById = async (id: string) => {
 export const createUser = async (data: CreateUser & { companyIds?: string[] }) => {
   const existingUser = await repository.getUserByEmail(data.email);
   if (existingUser) throw new AppError("Este email ya está en uso", 400);
-
+  
   const hashedPassword = await bcrypt.hash(data.password, 10);
   data.password = hashedPassword;
 
@@ -46,6 +47,25 @@ export const createUser = async (data: CreateUser & { companyIds?: string[] }) =
 export const updateUser = async (id: string, data: UpdateUser & { companyIds?: string[] }) => {
   const existingUser = await repository.getUserById(id);
   if (!existingUser) throw new AppError("Usuario no encontrado", 404);
+  
+  if (data.allowedPlanIds) {
+    const invalidPlans = await prisma.plan.findMany({
+      where: {
+        id: { in: data.allowedPlanIds },
+        companies: {
+          none: {
+            userCompanies: {
+              some: { userId: id }
+            }
+          }
+        }
+      }
+    });
+
+    if (invalidPlans.length > 0) {
+      throw new AppError("Intentas asignar planes de compañías no asociadas al usuario", 403);
+    }
+  }
 
   if (data.password) data.password = await bcrypt.hash(data.password, 10);
 

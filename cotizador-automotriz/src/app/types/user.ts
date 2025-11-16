@@ -2,6 +2,7 @@
 import { z } from 'zod';
 import { Role } from "."; 
 import { Company } from './compay';
+import { Plan } from './plan';
 
 export interface User {
   id: string;
@@ -15,6 +16,7 @@ export interface User {
 
 export interface UserWithCompanies extends User {
   companies?: UserCompany[];  
+  allowedPlans?: Plan[]
 }
 
 
@@ -34,17 +36,21 @@ export const createAdminSchema = z.object({
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
   firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   lastName: z.string().min(2, 'El apellido debe tener al menos 2 caracteres'),
-  companyIds: z.array(z.string()).optional(), // IDs de compañías a asignar
+  companyIds: z.array(z.string()).optional(),
+  allowedPlanIds: z.array(z.string()).optional().default([]),
 });
+
 
 // ✅ Schema para editar (sin password obligatorio)
 export const updateAdminSchema = z.object({
-  email: z.string().email('Email inválido').optional(),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').optional().or(z.literal('')),
+  email: z.email('Email inválido').optional(),
+  password: z.string().optional(),
   firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres').optional(),
   lastName: z.string().min(2, 'El apellido debe tener al menos 2 caracteres').optional(),
   companyIds: z.array(z.string()).optional(),
+  allowedPlanIds: z.array(z.string()).optional(),
 });
+
 
 export type CreateAdminInput = z.infer<typeof createAdminSchema>;
 export type UpdateAdminInput = z.infer<typeof updateAdminSchema>;

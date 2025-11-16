@@ -13,8 +13,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
     // ✅ Extraer filtros adicionales
     const search = req.query.search as string | undefined;
     const role = req.query.role as string | undefined;
-    const companies = req.query.companyIds as string | undefined;
-    console.log(companies)
+    const companies = req.query.companyIds as string | undefined; 
     const fechaCreacion = req.query.fechaCreacion as string | undefined;
     
     // ✅ Parsear companyIds si vienen como array o string separado por comas
@@ -44,10 +43,20 @@ export const createUser = async (req:Request, res:Response) => {
 }
 
 export const updateUser = async (req:Request, res:Response) => {
-    await service.updateUser(req.params.id, req.body);
-    console.log(req.body)
-    res.status(200).send();
-}
+    const { allowedPlanIds } = req.body;
+
+    const parsedAllowedPlanIds = allowedPlanIds
+    ? Array.isArray(allowedPlanIds)
+        ? allowedPlanIds
+        : JSON.parse(allowedPlanIds)
+    : undefined;
+
+    await service.updateUser(req.params.id, {
+    ...req.body,
+    allowedPlanIds: parsedAllowedPlanIds
+    });
+        res.status(200).send();
+    }
 
 export const deleteUser = async (req:Request, res:Response) => {
     await service.deleteUser(req.params.id);

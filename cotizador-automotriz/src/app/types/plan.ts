@@ -55,6 +55,7 @@ export interface Plan {
 }
 
 export interface PlanWithDetails extends Plan {
+  allowedUsers: User[];
   companies: Company[];
   createdBy: User;
   versions?: PlanVersion[];
@@ -106,6 +107,7 @@ export const createPlanSchema = z.object({
   desdeCuota: optionalPositiveInteger,
   hastaCuota: optionalPositiveInteger,
   coefficients: z.array(coefficientSchema).min(1, 'Debe incluir al menos un coeficiente'),
+  allowedUserIds: z.array(z.uuid()).optional(), 
 }).refine(
   (data) => {
     if (data.desdeMonto !== undefined && data.hastaMonto !== undefined) {
@@ -140,6 +142,7 @@ export const updatePlanSchema = z.object({
   desdeCuota: optionalPositiveInteger,
   hastaCuota: optionalPositiveInteger,
   coefficients: z.array(coefficientSchema).optional(),
+  allowedUserIds: z.array(z.uuid()).optional(), 
 });
 
 

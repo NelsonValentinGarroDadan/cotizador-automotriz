@@ -10,6 +10,7 @@ import { Plus } from 'lucide-react';
 import { useDispatch } from 'react-redux'; 
 import { companyApi } from '@/app/api/companyApi';
 import { useAuthStore } from '../store/useAuthStore';
+import { Role } from '../types';
 
 export default function Page() {
   const {user, hydrated} = useAuthStore();
@@ -84,7 +85,7 @@ export default function Page() {
         title='Gestion de compañias'
         description='Podras ver y editar las diferentes compañoas a tu cargo.'
         buttons={
-          <WindowFormButton
+          user.role == Role.ADMIN && <WindowFormButton
             formUrl="/companies/create"
             buttonText={<p className='flex gap-3'><Plus className='text-white h-6 w-6' />Crear Compañía</p>}
             onCreated={refetch} 

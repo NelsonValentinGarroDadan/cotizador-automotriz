@@ -29,6 +29,17 @@ const userSelect = {
       },
     },
   },
+  allowedPlans: {
+    select: {
+      id: true,
+      name: true,
+      logo: true,
+      companies: {
+        select: { id: true, name: true }
+      }
+    }
+  }
+
 } as const;
 
 export const getAllUsers = async (
@@ -96,7 +107,7 @@ export const getUserByEmail = async (email: string) =>
   prisma.user.findUnique({ where: { email } });
 
 export const createUser = async (data: CreateUser & { companyIds?: string[] }) => {
-  const { companyIds, ...rest } = data;
+  const { companyIds,allowedPlanIds, ...rest } = data;
 
   return prisma.user.create({
     data: {
@@ -108,13 +119,17 @@ export const createUser = async (data: CreateUser & { companyIds?: string[] }) =
             })),
           }
         : undefined,
+      allowedPlans: {
+        connect: allowedPlanIds?.map(id => ({ id })) ?? []
+      }
+
     },
     select: userSelect,
   });
 };
 
 export const updateUser = async (id: string, data: UpdateUser & { companyIds?: string[] }) => {
-  const { companyIds, ...rest } = data;
+  const { companyIds,allowedPlanIds, ...rest } = data;
 
   return prisma.user.update({
     where: { id },
@@ -130,6 +145,12 @@ export const updateUser = async (id: string, data: UpdateUser & { companyIds?: s
             },
           }
         : {}),
+      ...(allowedPlanIds && {
+          allowedPlans: {
+              set: allowedPlanIds.map(id => ({ id }))
+          }
+      })
+
     },
     select: userSelect,
   });

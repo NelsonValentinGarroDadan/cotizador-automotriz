@@ -1,7 +1,7 @@
 // backend/src/modules/plan/repository.ts
 import prisma from "../../config/prisma";
 import { CreatePlan, UpdatePlan } from "./schema";
-import { Prisma } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
 
 interface PlanFilters {
   name?: string;
@@ -15,17 +15,23 @@ export const getAllPlans = async (
   limit: number,
   sortBy: string,
   sortOrder: "asc" | "desc",
-  filters?: PlanFilters
+  filters?: PlanFilters,
+  isAdmin?: boolean ,
 ) => {
   const skip = (page - 1) * limit;
 
-  const where: Prisma.PlanWhereInput = {
-    companies: {
+  const where: Prisma.PlanWhereInput = {};
+  if (!isAdmin) {
+    where.OR = [ 
+      { allowedUsers: { some: { id: userId } } }, 
+    ];
+  } else { 
+    where.companies = {
       some: {
         userCompanies: { some: { userId } },
       },
-    },
-  };
+    };
+  }
 
   if (!filters?.includeInactive) where.active = true;
 
@@ -62,6 +68,14 @@ export const getAllPlans = async (
               },
             },
           },
+          allowedUsers: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          } 
       }, 
     }),
     prisma.plan.count({ where }),
@@ -107,14 +121,26 @@ export const getPlanById = async (id: string, userId: string) => {
           },
         },
       },
+      allowedUsers: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true
+        }
+      }, 
       _count: { select: { versions: true } },
     },
   });
 };
 
 export const createPlan = async (
-  data: CreatePlan & { logo?: string; userId: string; companyIds: string[] }
+  data: CreatePlan & { logo?: string; userId: string; companyIds: string[]; allowedUserIds?: string[];}
 ) => {
+    const allowedUserIdsWithCreator = [
+    ...(data.allowedUserIds || []),
+    data.userId // Agregar automáticamente al creador
+  ].filter((value, index, self) => self.indexOf(value) === index);
   return prisma.plan.create({
     data: {
       name: data.name,
@@ -122,17 +148,21 @@ export const createPlan = async (
       logo: data.logo,
       createdById: data.userId,
       companies: { connect: data.companyIds.map((id) => ({ id })) },
+      allowedUsers: {
+        connect: allowedUserIdsWithCreator.map(id => ({ id }))
+      },
     },
     include: {
       companies: { select: { id: true, name: true } },
       createdBy: { select: { id: true, firstName: true, lastName: true } },
+      allowedUsers: { select: { id: true, firstName: true, lastName: true, email: true }},
     },
   });
 };
 
 export const updatePlan = async (
   id: string,
-  data: Omit<UpdatePlan, "id"> & { logo?: string; companyIds?: string[] }
+  data: Omit<UpdatePlan, "id"> & { logo?: string; companyIds?: string[],allowedUserIds?: string[] }
 ) => {
   return prisma.plan.update({
     where: { id },
@@ -146,6 +176,11 @@ export const updatePlan = async (
         },
       }),
       ...(data.active !== undefined && { active: data.active }),
+      ...(data.allowedUserIds && {
+        allowedUsers: {
+          set: data.allowedUserIds.map(id => ({ id }))
+        }
+      }) 
     },
     include: {
       companies: { select: { id: true, name: true } },

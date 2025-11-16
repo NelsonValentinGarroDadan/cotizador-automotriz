@@ -11,6 +11,7 @@ import WindowFormButton from '@/app/components/windowFormButton';
 import { Plus } from 'lucide-react'; 
 import { useDispatch } from 'react-redux';
 import { useAuthStore } from '@/app/store/useAuthStore';
+import { Role } from '@/app/types';
 
 export default function Page() {
   const {user, hydrated} = useAuthStore();
@@ -100,7 +101,7 @@ export default function Page() {
         title='Gestión de Planes'
         description='Podrás ver, crear y editar los diferentes planes de tus compañías.'
         buttons={
-          <WindowFormButton
+          user.role == Role.ADMIN &&<WindowFormButton
             formUrl="/planes/create"
             buttonText={
               <p className='flex gap-3'>

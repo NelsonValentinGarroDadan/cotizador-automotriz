@@ -15,6 +15,7 @@ export const createPlanSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   description: z.string().max(1000).optional(),
   companyIds: z.array(z.uuid()).min(1, "Debe seleccionar al menos una compañía"),
+  allowedUserIds: z.array(z.uuid()).optional(), 
   desdeMonto: z.coerce.number().nonnegative().optional(),
   hastaMonto: z.coerce.number().nonnegative().optional(),
   desdeCuota: z.coerce.number().int().optional(),
@@ -25,8 +26,9 @@ export const createPlanSchema = z.object({
 export const updatePlanSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres").optional(),
   description: z.string().max(1000).optional(),
-  companyIds: z.array(z.string().uuid()).optional(),
+  companyIds: z.array(z.uuid()).optional(),
   active: z.boolean().optional(),
+  allowedUserIds: z.array(z.uuid()).optional(), 
 });
 
 export const createPlanVersionSchema = z.object({
@@ -49,6 +51,7 @@ export const updatePlanWithVersionSchema = z.object({
   desdeCuota: z.coerce.number().int().optional(),
   hastaCuota: z.coerce.number().int().optional(),
   coefficients: z.array(coefficientSchema).optional(),
+  allowedUserIds: z.array(z.uuid()).optional(), 
 });
 
 
