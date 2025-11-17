@@ -101,7 +101,7 @@ export default function Page() {
         title='Gestión de Planes'
         description='Podrás ver, crear y editar los diferentes planes de tus compañías.'
         buttons={
-          user.role == Role.ADMIN &&<WindowFormButton
+          (user.role == Role.ADMIN || user.role == Role.SUPER_ADMIN )&&<WindowFormButton
             formUrl="/planes/create"
             buttonText={
               <p className='flex gap-3'>
