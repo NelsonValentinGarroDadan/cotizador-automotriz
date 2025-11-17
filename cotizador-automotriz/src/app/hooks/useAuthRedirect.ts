@@ -23,19 +23,15 @@ const isTokenExpired = (token: string): boolean => {
 
 export const useAuthRedirect = (allowedRoles?: Role[]) => {
   const router = useRouter();
-  const { isAuthenticated, token, logout, hydrated } = useAuthStore();
+  const { isAuthenticated, token, hydrated } = useAuthStore();
 
   const isPopup = typeof window !== 'undefined' && window.opener;
 
   useEffect(() => {
     if (!hydrated) return;
 
-    // ================
-    // 1️⃣ NO AUTENTICADO
-    // ================
+    // 1) No autenticado, sin token o token expirado: solo redirigir
     if (!isAuthenticated || !token || isTokenExpired(token)) {
-      logout();
-
       if (isPopup) {
         window.opener?.postMessage({ unauthorized: true }, window.location.origin);
         window.close();
@@ -46,16 +42,13 @@ export const useAuthRedirect = (allowedRoles?: Role[]) => {
       return;
     }
 
-    // =======================
-    // 2️⃣ VALIDACIÓN DE ROLES
-    // =======================
+    // 2) Validación de roles
     if (allowedRoles?.length && token) {
       const decoded = jwtDecode<JwtPayload>(token);
       const role = decoded.role;
 
-      if (!allowedRoles.includes(role!)) {
+      if (!role || !allowedRoles.includes(role)) {
         if (isPopup) {
-          // 🔥 cerrar ventana y avisar al padre
           window.opener?.postMessage({ unauthorized: true }, window.location.origin);
           window.close();
           return;
@@ -65,6 +58,6 @@ export const useAuthRedirect = (allowedRoles?: Role[]) => {
         return;
       }
     }
-
-  }, [hydrated, isAuthenticated, token, allowedRoles, router, logout, isPopup]);
+  }, [hydrated, isAuthenticated, token, allowedRoles, router, isPopup]);
 };
+
