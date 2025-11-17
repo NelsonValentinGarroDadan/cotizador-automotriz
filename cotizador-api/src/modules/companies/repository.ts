@@ -7,13 +7,16 @@ export const getAllCompanies = async (
   limit: number,
   sortBy: string,
   sortOrder: "asc" | "desc",
-  filters?: { name?: string; createdAtFrom?: Date }
+  filters?: { name?: string; createdAtFrom?: Date },
+  isSuperAdmin?: boolean
 ) => {
   const skip = (page - 1) * limit;
 
-  const where: any = {
-    userCompanies: { some: { userId } },
-  };
+  const where: any = {};
+ 
+  if (!isSuperAdmin) {
+    where.userCompanies = { some: { userId } };
+  }
 
   if (filters?.name) where.name = { contains: filters.name };
   if (filters?.createdAtFrom) where.createdAt = { gte: new Date(filters.createdAtFrom) };
@@ -33,10 +36,13 @@ export const getAllCompanies = async (
     prisma.company.count({ where }),
   ]);
 
-  const roleStats = { ADMIN: 0, USER: 0 };
+  const roleStats: Record<string, number> = { ADMIN: 0, USER: 0 };
   companies.forEach((c) => {
     c.userCompanies.forEach((uc) => {
-      roleStats[uc.user.role] = (roleStats[uc.user.role] || 0) + 1;
+      const role = uc.user.role;
+      if (role === "ADMIN" || role === "USER") {
+        roleStats[role] = (roleStats[role] || 0) + 1;
+      }
     });
   });
 
@@ -49,15 +55,14 @@ export const getCompanyById = async (id: string) => {
     include: {
       userCompanies: {
         include: {
-          user: { select: { id: true, role: true } },  
+          user: { select: { id: true, role: true } },
         },
       },
     },
   });
 };
 
-
-// 🔹 Crear la empresa + relación con el creador
+// Crear la empresa + relacion con el creador
 export const createCompany = async (data: CreateCompany & { logo?: string; userId: string }) => {
   return prisma.company.create({
     data: {
@@ -65,14 +70,17 @@ export const createCompany = async (data: CreateCompany & { logo?: string; userI
       logo: data.logo,
       userCompanies: {
         create: {
-          userId: data.userId, 
+          userId: data.userId,
         },
       },
     },
   });
 };
 
-export const updateCompany = async (id: string, data: Omit<UpdateCompany, "id"> & { logo?: string }) => {
+export const updateCompany = async (
+  id: string,
+  data: Omit<UpdateCompany, "id"> & { logo?: string }
+) => {
   return prisma.company.update({
     where: { id },
     data,

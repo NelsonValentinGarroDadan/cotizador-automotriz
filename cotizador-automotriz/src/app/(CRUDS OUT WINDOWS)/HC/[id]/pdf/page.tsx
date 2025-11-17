@@ -10,7 +10,7 @@ import { useAuthRedirect } from "@/app/hooks/useAuthRedirect";
 import { Role } from "@/app/types";
 
 export default function PdfQuotationPage() {
-  useAuthRedirect([Role.ADMIN, Role.USER]);
+  useAuthRedirect([Role.ADMIN, Role.USER, Role.SUPER_ADMIN]);
   const params = useParams();
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";

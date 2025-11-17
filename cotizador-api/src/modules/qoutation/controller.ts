@@ -3,10 +3,13 @@ import { Request, Response } from "express";
 import * as service from "./service";
 import { AppError } from "../../core/errors/appError";
 import { getPaginationParams } from "../../utils/pagination";
+import { Role } from "../../core/types/role";
 
 export const getAllQuotations = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
-  const isAdmin = req.user.role === "ADMIN";
+
+  const isAdminLike = req.user.role === Role.ADMIN || req.user.role === Role.SUPER_ADMIN;
+
   const ALLOWED_SORT_FIELDS = ["createdAt", "clientName", "totalValue"];
   const { page, limit, sortBy, sortOrder } = getPaginationParams(
     req.query,
@@ -20,13 +23,13 @@ export const getAllQuotations = async (req: Request, res: Response) => {
     planVersionId?: string;
     createdAtFrom?: Date;
     createdAtTo?: Date;
-    isAdmin:boolean;
+    isAdmin: boolean;
   } = {
-    isAdmin
+    isAdmin: isAdminLike,
   };
 
   if (req.query.search) filters.search = String(req.query.search);
-  
+
   if (req.query.companyIds) {
     const companyIdsParam = String(req.query.companyIds);
     filters.companyIds = companyIdsParam.split(",").filter(Boolean);
@@ -45,13 +48,12 @@ export const getAllQuotations = async (req: Request, res: Response) => {
   }
 
   const result = await service.getAllQuotations(
-    req.user.id,
+    req.user,
     page,
     limit,
     sortBy,
     sortOrder,
-    filters,
-    
+    filters
   );
 
   res.json(result);
@@ -65,7 +67,14 @@ export const getQuotationById = async (req: Request, res: Response) => {
 export const createQuotation = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
 
-  const { planVersionId, companyId, clientName, clientDni, vehicleData, totalValue } = req.body;
+  const {
+    planVersionId,
+    companyId,
+    clientName,
+    clientDni,
+    vehicleData,
+    totalValue,
+  } = req.body;
 
   const quotation = await service.createQuotation(
     {
@@ -86,7 +95,14 @@ export const updateQuotation = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
 
   const { id } = req.params;
-   const { planVersionId, companyId, clientName, clientDni, vehicleData, totalValue } = req.body;
+  const {
+    planVersionId,
+    companyId,
+    clientName,
+    clientDni,
+    vehicleData,
+    totalValue,
+  } = req.body;
 
   const updated = await service.updateQuotation(
     id,
@@ -94,7 +110,7 @@ export const updateQuotation = async (req: Request, res: Response) => {
       clientName,
       clientDni,
       vehicleData,
-      planVersionId, 
+      planVersionId,
       companyId,
       totalValue: totalValue ? parseFloat(totalValue) : undefined,
     },
@@ -109,3 +125,4 @@ export const deleteQuotation = async (req: Request, res: Response) => {
   await service.deleteQuotation(req.params.id, req.user);
   res.status(204).send();
 };
+

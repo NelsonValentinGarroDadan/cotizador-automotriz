@@ -4,12 +4,13 @@ import { CreateQuotation, UpdateQuotation } from "./schema";
 import { Prisma } from "@prisma/client";
 
 interface QuotationFilters {
-  search?: string; // Busca por clientName o clientDni
+  search?: string;
   companyIds?: string[];
   planVersionId?: string;
   createdAtFrom?: Date;
   createdAtTo?: Date;
-  isAdmin:boolean;
+  isAdmin: boolean;
+  isSuperAdmin?: boolean;
 }
 
 export const getAllQuotations = async (
@@ -22,20 +23,20 @@ export const getAllQuotations = async (
 ) => {
   const skip = (page - 1) * limit;
 
-  // Usuario solo ve cotizaciones de sus compañías
   const where: Prisma.QuotationWhereInput = {};
-  if (filters!.isAdmin) {
-    where.company = {
-      userCompanies: {
-        some: { userId },
-      },
-    };
-  }else {
-    where.userId = userId;
+
+  if (!filters?.isSuperAdmin) {
+    if (filters?.isAdmin) {
+      where.company = {
+        userCompanies: {
+          some: { userId },
+        },
+      };
+    } else {
+      where.userId = userId;
+    }
   }
 
-
-  // Filtro por búsqueda (nombre o DNI del cliente)
   if (filters?.search) {
     where.OR = [
       { clientName: { contains: filters.search } },
@@ -43,17 +44,14 @@ export const getAllQuotations = async (
     ];
   }
 
-  // Filtro por compañías
   if (filters?.companyIds && filters.companyIds.length > 0) {
     where.companyId = { in: filters.companyIds };
   }
 
-  // Filtro por versión del plan
   if (filters?.planVersionId) {
     where.planVersionId = filters.planVersionId;
   }
 
-  // Filtro por rango de fechas
   if (filters?.createdAtFrom || filters?.createdAtTo) {
     where.createdAt = {};
     if (filters.createdAtFrom) {
@@ -108,7 +106,11 @@ export const getAllQuotations = async (
   return { quotations, total };
 };
 
-export const getQuotationById = async (id: string, userId: string) => {
+export const getQuotationById = async (
+  id: string,
+  userId: string,
+  isSuperAdmin?: boolean
+) => {
   return prisma.quotation.findUnique({
     where: { id },
     include: {
@@ -117,9 +119,11 @@ export const getQuotationById = async (id: string, userId: string) => {
           id: true,
           name: true,
           logo: true,
-          userCompanies: {
-            where: { userId },
-          },
+          userCompanies: isSuperAdmin
+            ? true
+            : {
+                where: { userId },
+              },
         },
       },
       user: {
@@ -245,3 +249,4 @@ export const deleteQuotation = async (id: string) => {
     where: { id },
   });
 };
+

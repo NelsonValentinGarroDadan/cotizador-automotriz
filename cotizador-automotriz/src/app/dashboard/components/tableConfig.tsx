@@ -46,8 +46,8 @@ export  default function  companyColumns(
         showView={false}
         baseUrl="/companies"
         id={value}
-        showDelete={role == Role.ADMIN}
-        showEdit={role == Role.ADMIN}
+        showDelete={role == Role.ADMIN|| role == Role.SUPER_ADMIN}
+        showEdit={role == Role.ADMIN|| role == Role.SUPER_ADMIN}
         onActionComplete={onCreated}
       /> )
     }  

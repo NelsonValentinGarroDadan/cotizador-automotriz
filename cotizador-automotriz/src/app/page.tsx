@@ -26,7 +26,7 @@ export default function Home() {
 
   const { setAuth, isAuthenticated } = useAuthStore();
   const router = useRouter();
-  const [submittLogin, { isLoading, error:errorRequest }] = useLoginMutation();
+  const [submittLogin, { isLoading }] = useLoginMutation();
 
   const onSubmit = async (data: LoginDto) => {
     setError(null);
@@ -37,7 +37,7 @@ export default function Home() {
     } catch (e) {
       console.log(e)
       // Tipar el error correctamente
-      const apiError = errorRequest  as { data:{ error: string[]} }; 
+      const apiError = e  as { data:{ error: string[]} }; 
       if (apiError.data?.error && Array.isArray(apiError.data.error)) {
         // Si viene un array de errores, unirlos
         setError(apiError.data.error.join(", "));

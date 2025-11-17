@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import * as service from "./service";
 import { getPaginationParams } from "../../utils/pagination";
+import { AppError } from "../../core/errors/appError";
+import { Role } from "../../core/types/role";
 
 export const getAllUsers = async (req: Request, res: Response) => {
     const ALLOWED_SORT_FIELDS = ['firstName', 'lastName', 'email', 'createdAt'];
@@ -38,6 +40,13 @@ export const getUserById = async (req:Request, res:Response) => {
 }
 
 export const createUser = async (req:Request, res:Response) => {
+    if (!req.user) throw new AppError("Usuario no autenticado", 403);
+
+    // Solo SUPER_ADMIN puede crear otro SUPER_ADMIN
+    if (req.body.role === "SUPER_ADMIN" && req.user.role !== Role.SUPER_ADMIN) {
+        throw new AppError("Solo un SUPER_ADMIN puede crear otro SUPER_ADMIN", 403);
+    }
+
     const user = await service.createUser(req.body);
     res.status(201).json(user);
 }

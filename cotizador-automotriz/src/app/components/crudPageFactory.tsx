@@ -32,7 +32,7 @@ export function CrudPageFactory<T>({
   error,
   deleteMutation,
   columns,
-  allowedRoles = [Role.ADMIN],
+  allowedRoles = [Role.ADMIN, Role.SUPER_ADMIN],
   entityName, 
 }: CrudPageFactoryProps<T>) {
   useAuthRedirect(allowedRoles);

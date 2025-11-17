@@ -1,12 +1,12 @@
 // backend/src/modules/plan/repository.ts
 import prisma from "../../config/prisma";
 import { CreatePlan, UpdatePlan } from "./schema";
-import { Prisma, Role } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 interface PlanFilters {
   name?: string;
   includeInactive?: boolean;
-  companyIds?: string[]; // ✅ Cambiar de companyId a companyIds
+  companyIds?: string[];
 }
 
 export const getAllPlans = async (
@@ -16,21 +16,25 @@ export const getAllPlans = async (
   sortBy: string,
   sortOrder: "asc" | "desc",
   filters?: PlanFilters,
-  isAdmin?: boolean ,
+  isAdmin?: boolean,
+  isSuperAdmin?: boolean
 ) => {
   const skip = (page - 1) * limit;
 
   const where: Prisma.PlanWhereInput = {};
-  if (!isAdmin) {
-    where.OR = [ 
-      { allowedUsers: { some: { id: userId } } }, 
-    ];
-  } else { 
-    where.companies = {
-      some: {
-        userCompanies: { some: { userId } },
-      },
-    };
+
+  if (!isSuperAdmin) {
+    if (!isAdmin) {
+      // USER: solo planes permitidos explicitamente
+      where.allowedUsers = { some: { id: userId } };
+    } else {
+      // ADMIN: planes de compañias asociadas
+      where.companies = {
+        some: {
+          userCompanies: { some: { userId } },
+        },
+      };
+    }
   }
 
   if (!filters?.includeInactive) where.active = true;
@@ -39,7 +43,6 @@ export const getAllPlans = async (
     where.name = { contains: filters.name };
   }
 
-  // ✅ Filtrar por múltiples compañías
   if (filters?.companyIds && filters.companyIds.length > 0) {
     where.companies = {
       some: {
@@ -55,28 +58,30 @@ export const getAllPlans = async (
       take: limit,
       orderBy: { [sortBy]: sortOrder },
       include: {
-          companies: { select: { id: true, name: true, logo: true } },
-          createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
-          versions: {
-            where: { isLatest: true },
-            include: {
-              coefficients: {
-                include: {
-                  cuotaBalonMonths: { orderBy: { month: 'asc' } },
-                },
-                orderBy: { plazo: 'asc' },
+        companies: { select: { id: true, name: true, logo: true } },
+        createdBy: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+        versions: {
+          where: { isLatest: true },
+          include: {
+            coefficients: {
+              include: {
+                cuotaBalonMonths: { orderBy: { month: "asc" } },
               },
+              orderBy: { plazo: "asc" },
             },
           },
-          allowedUsers: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true
-            }
-          } 
-      }, 
+        },
+        allowedUsers: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
     }),
     prisma.plan.count({ where }),
   ]);
@@ -84,22 +89,34 @@ export const getAllPlans = async (
   return { plans, total };
 };
 
-export const getPlanById = async (id: string, userId: string) => {
+export const getPlanById = async (
+  id: string,
+  userId: string,
+  isSuperAdmin?: boolean
+) => {
+  const where: Prisma.PlanWhereUniqueInput = { id };
+
+  // El filtro por compañias se aplica despues via companies.userCompanies,
+  // por lo que aqui solo controlamos la carga de relaciones.
   return prisma.plan.findUnique({
-    where: { id },
+    where,
     include: {
       companies: {
-        include: {
-          userCompanies: { where: { userId } },
-        },
+        include: isSuperAdmin
+          ? {
+              userCompanies: true,
+            }
+          : {
+              userCompanies: { where: { userId } },
+            },
       },
-      createdBy: { 
-        select: { 
-          id: true, 
-          firstName: true, 
-          lastName: true, 
-          email: true 
-        } 
+      createdBy: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
       },
       versions: {
         orderBy: { version: "desc" },
@@ -108,16 +125,16 @@ export const getPlanById = async (id: string, userId: string) => {
           coefficients: {
             include: {
               cuotaBalonMonths: {
-                orderBy: { month: 'asc' }
+                orderBy: { month: "asc" },
               },
             },
-            orderBy: { plazo: 'asc' }
+            orderBy: { plazo: "asc" },
           },
-          createdBy: { 
-            select: { 
-              firstName: true, 
-              lastName: true 
-            } 
+          createdBy: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
           },
         },
       },
@@ -126,21 +143,27 @@ export const getPlanById = async (id: string, userId: string) => {
           id: true,
           firstName: true,
           lastName: true,
-          email: true
-        }
-      }, 
+          email: true,
+        },
+      },
       _count: { select: { versions: true } },
     },
   });
 };
 
 export const createPlan = async (
-  data: CreatePlan & { logo?: string; userId: string; companyIds: string[]; allowedUserIds?: string[];}
+  data: CreatePlan & {
+    logo?: string;
+    userId: string;
+    companyIds: string[];
+    allowedUserIds?: string[];
+  }
 ) => {
-    const allowedUserIdsWithCreator = [
+  const allowedUserIdsWithCreator = [
     ...(data.allowedUserIds || []),
-    data.userId // Agregar automáticamente al creador
+    data.userId,
   ].filter((value, index, self) => self.indexOf(value) === index);
+
   return prisma.plan.create({
     data: {
       name: data.name,
@@ -149,20 +172,33 @@ export const createPlan = async (
       createdById: data.userId,
       companies: { connect: data.companyIds.map((id) => ({ id })) },
       allowedUsers: {
-        connect: allowedUserIdsWithCreator.map(id => ({ id }))
+        connect: allowedUserIdsWithCreator.map((id) => ({ id })),
       },
     },
     include: {
       companies: { select: { id: true, name: true } },
-      createdBy: { select: { id: true, firstName: true, lastName: true } },
-      allowedUsers: { select: { id: true, firstName: true, lastName: true, email: true }},
+      createdBy: {
+        select: { id: true, firstName: true, lastName: true },
+      },
+      allowedUsers: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
     },
   });
 };
 
 export const updatePlan = async (
   id: string,
-  data: Omit<UpdatePlan, "id"> & { logo?: string; companyIds?: string[],allowedUserIds?: string[] }
+  data: Omit<UpdatePlan, "id"> & {
+    logo?: string;
+    companyIds?: string[];
+    allowedUserIds?: string[];
+  }
 ) => {
   return prisma.plan.update({
     where: { id },
@@ -172,15 +208,15 @@ export const updatePlan = async (
       ...(data.logo && { logo: data.logo }),
       ...(data.companyIds && {
         companies: {
-          set: data.companyIds.map((id) => ({ id })),
+          set: data.companyIds.map((cid) => ({ id: cid })),
         },
       }),
       ...(data.active !== undefined && { active: data.active }),
       ...(data.allowedUserIds && {
         allowedUsers: {
-          set: data.allowedUserIds.map(id => ({ id }))
-        }
-      }) 
+          set: data.allowedUserIds.map((uid) => ({ id: uid })),
+        },
+      }),
     },
     include: {
       companies: { select: { id: true, name: true } },
@@ -205,7 +241,6 @@ export const createPlanVersion = async (data: {
   hastaCuota?: number;
   coefficients: any[];
 }) => {
-  // Marcar todas las versiones anteriores como no latest
   await prisma.planVersion.updateMany({
     where: { planId: data.planId },
     data: { isLatest: false },
@@ -246,7 +281,7 @@ export const createPlanVersion = async (data: {
     },
   });
 };
- 
+
 export const getLastVersionNumber = async (planId: string) => {
   const last = await prisma.planVersion.findFirst({
     where: { planId },
@@ -255,3 +290,4 @@ export const getLastVersionNumber = async (planId: string) => {
   });
   return last?.version || 0;
 };
+

@@ -13,7 +13,7 @@ import { useGetAllCompaniesQuery } from '@/app/api/companyApi';
 import { useAuthRedirect } from '@/app/hooks/useAuthRedirect';
 
 export default function Page() {
-  useAuthRedirect([Role.ADMIN]);
+  useAuthRedirect([Role.ADMIN, Role.SUPER_ADMIN]);
   const dispatch = useDispatch();
   const useAdminsTableStore = useMemo(() => createTableStore('admins'), []);
   const { data:companies } = useGetAllCompaniesQuery({ limit: 50 })

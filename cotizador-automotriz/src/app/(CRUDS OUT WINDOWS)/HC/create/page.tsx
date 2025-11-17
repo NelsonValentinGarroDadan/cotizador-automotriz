@@ -11,7 +11,7 @@ export default function CreateQuotationPage() {
       action="create"
       formComponent={QuotationForm}
       entityName="Cotización"
-      allowedRoles={[Role.ADMIN, Role.USER]}
+      allowedRoles={[Role.ADMIN, Role.USER, Role.SUPER_ADMIN]}
     />
   );
 }

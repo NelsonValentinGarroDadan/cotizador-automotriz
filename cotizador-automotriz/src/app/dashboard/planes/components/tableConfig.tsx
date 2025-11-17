@@ -84,7 +84,7 @@ export default function planColumns({
         <TableActions
           showView={true}
           showDelete={role == Role.ADMIN && row.active}
-          showEdit={role == Role.ADMIN}
+          showEdit={role == Role.ADMIN || role == Role.SUPER_ADMIN}
           baseUrl="/planes"
           id={value}
           onActionComplete={onCreated}

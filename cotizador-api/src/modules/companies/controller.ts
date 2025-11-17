@@ -23,7 +23,7 @@ export const getAllCompanies = async (req: Request, res: Response) => {
     filters.createdAtFrom = new Date(String(req.query.fechaCreacion));
   }
 
-  const result = await service.getAllCompanies(req.user.id, page, limit, sortBy, sortOrder, filters);
+  const result = await service.getAllCompanies(req.user, page, limit, sortBy, sortOrder, filters);
   res.json(result);
 };
 export const getCompanyById = async (req: Request, res: Response) => {  

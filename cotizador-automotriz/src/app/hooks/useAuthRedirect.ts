@@ -4,10 +4,11 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/app/store/useAuthStore';
 import { jwtDecode } from 'jwt-decode';
+import { Role } from '../types';
 
 interface JwtPayload {
   exp: number;
-  role?: 'ADMIN' | 'USER';
+  role?: Role;
   [key: string]: unknown;
 }
 
@@ -20,7 +21,7 @@ const isTokenExpired = (token: string): boolean => {
   }
 };
 
-export const useAuthRedirect = (allowedRoles?: Array<'ADMIN' | 'USER'>) => {
+export const useAuthRedirect = (allowedRoles?: Role[]) => {
   const router = useRouter();
   const { isAuthenticated, token, logout, hydrated } = useAuthStore();
 

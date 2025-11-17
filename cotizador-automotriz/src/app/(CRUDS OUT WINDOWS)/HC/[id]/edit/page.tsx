@@ -20,7 +20,7 @@ export default function EditQuotationPage() {
       isLoading={isLoading}
       error={error}
       entityName="Cotización"
-      allowedRoles={[Role.ADMIN,Role.USER]}
+      allowedRoles={[Role.ADMIN, Role.USER, Role.SUPER_ADMIN]}
     />
   );
 }

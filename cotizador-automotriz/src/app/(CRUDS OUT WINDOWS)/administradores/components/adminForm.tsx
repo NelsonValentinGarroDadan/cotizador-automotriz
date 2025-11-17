@@ -21,6 +21,7 @@ import {
 import CustomButton from '@/app/components/ui/customButton';
 import { Role } from '@/app/types'; 
 import { MultiSelect } from '@/app/components/ui/multiSelect'; 
+import { useSearchParams } from 'next/navigation';
 
 interface AdminFormProps {
   entity?: UserWithCompanies; // ✅ Cambiar de adminId a entity
@@ -30,6 +31,9 @@ interface AdminFormProps {
 export default function AdminForm({ entity, readOnly = false }: AdminFormProps) {
   const isEdit = Boolean(entity) && !readOnly;
   const isView = Boolean(entity) && readOnly;
+
+  const searchParams = useSearchParams();
+  const isSuperAdminContext = searchParams.get('superadmin') === 'true';
    
   // Si tenemos entity, ya vienen los datos del CrudPageFactory
   const { data: fetchedAdmin } = useGetUserByIdQuery(
@@ -80,9 +84,11 @@ export default function AdminForm({ entity, readOnly = false }: AdminFormProps) 
 
   const onSubmit = async (data: CreateAdminInput | UpdateAdminInput) => {
     try {
+      const defaultRole = isEdit && adminData ? (adminData.role as Role) : (isSuperAdminContext ? Role.SUPER_ADMIN : Role.ADMIN);
+
       const payload = {
         ...data,
-        role: Role.ADMIN, 
+        role: defaultRole, 
         companyIds: Array.isArray(data.companyIds)
         ? data.companyIds.map((c: any) => (typeof c === "string" ? c : c.value))
         : [], // aseguramos que sea array de strings
