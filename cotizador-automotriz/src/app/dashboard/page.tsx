@@ -85,7 +85,7 @@ export default function Page() {
         title='Gestion de compañias'
         description='Podras ver y editar las diferentes compañoas a tu cargo.'
         buttons={
-          user.role == Role.ADMIN && <WindowFormButton
+          user.role == Role.SUPER_ADMIN && <WindowFormButton
             formUrl="/companies/create"
             buttonText={<p className='flex gap-3'><Plus className='text-white h-6 w-6' />Crear Compañía</p>}
             onCreated={refetch} 
