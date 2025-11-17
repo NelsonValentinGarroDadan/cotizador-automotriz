@@ -34,8 +34,8 @@ export default function QuotationForm({
 
   const { data: companiesData } = useGetAllCompaniesQuery({ page: 1, limit: 1000 });
   const { data: plansData } = useGetAllPlansQuery({ page: 1, limit: 1000 });
-  const [createQuotation, { isLoading: isCreating }] = useCreateQuotationMutation(); 
-  const [updateQuotation,  ] = useUpdateQuotationMutation();
+  const [createQuotation, { isLoading: isCreating }] = useCreateQuotationMutation();
+  const [updateQuotation] = useUpdateQuotationMutation();
   const [requestError, setRequestError] = useState<string | null>(null);
 
   const {
@@ -61,47 +61,69 @@ export default function QuotationForm({
   const plans = useMemo(() => {
     if (!plansData?.data) return [];
     return (plansData.data as PlanWithDetails[]).filter((p) =>
-      p.companies?.some((c) => c.id === selectedCompanyId)
+      p.companies?.some((c) => c.id === selectedCompanyId),
     );
   }, [plansData, selectedCompanyId]);
-  // 🔄 Precargar datos en modo edición / vista
+
+  // Helpers de restricciones por monto/cuotas a nivel versión de plan
+  const isMontoWithinVersionRange = (
+    version: NonNullable<PlanWithDetails['versions']>[number],
+    amount: number,
+  ) => {
+    if (version.desdeMonto !== null && version.desdeMonto !== undefined && amount < Number(version.desdeMonto)) {
+      return false;
+    }
+    if (version.hastaMonto !== null && version.hastaMonto !== undefined && amount > Number(version.hastaMonto)) {
+      return false;
+    }
+    return true;
+  };
+
+  const isPlazoWithinVersionRange = (
+    version: NonNullable<PlanWithDetails['versions']>[number],
+    plazo: number,
+  ) => {
+    if (version.desdeCuota !== null && version.desdeCuota !== undefined && plazo < Number(version.desdeCuota)) {
+      return false;
+    }
+    if (version.hastaCuota !== null && version.hastaCuota !== undefined && plazo > Number(version.hastaCuota)) {
+      return false;
+    }
+    return true;
+  };
+
+  // Precargar datos en modo edición / vista
   useEffect(() => {
     if (!entity) return;
-    console.log(entity.totalValue)
+
     // Cliente
-    setValue("clientName", entity.clientName || "");
-    setValue("clientDni", entity.clientDni || "");
-    setValue("vehicleData", entity.vehicleData || "");
+    setValue('clientName', entity.clientName || '');
+    setValue('clientDni', entity.clientDni || '');
+    setValue('vehicleData', entity.vehicleData || '');
 
     // Monto
     if (entity.totalValue) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setMonto(Number(entity.totalValue));
-      setValue("totalValue", Number(entity.totalValue));
+      setValue('totalValue', Number(entity.totalValue));
     }
 
     // Compañía
     if (entity.company?.id) {
       setSelectedCompanyId(entity.company.id);
-      setValue("companyId", entity.company.id);
+      setValue('companyId', entity.company.id);
     }
 
-    // =============================
-    //  CARGAR PLAN / VERSIÓN USADA
-    // =============================
+    // Cargar plan / versión usada
     if (entity.planVersionId && plansData?.data) {
       const allPlans = plansData.data as PlanWithDetails[];
 
-      // Buscar plan que contiene la version usada
       const planEncontrado = allPlans.find((p) =>
-        p.versions?.some((v) => v.id === entity.planVersionId)
+        p.versions?.some((v) => v.id === entity.planVersionId),
       );
 
       if (planEncontrado) {
-        const version = planEncontrado.versions?.find(
-          (v) => v.id === entity.planVersionId
-        );
-
+        const version = planEncontrado.versions?.find((v) => v.id === entity.planVersionId);
         const coef = version?.coefficients?.[0];
         const plazo = coef?.plazo ?? 0;
 
@@ -111,13 +133,11 @@ export default function QuotationForm({
           plazo,
         });
 
-        setValue("planId", planEncontrado.id);
-        setValue("planVersionId", version!.id);
+        setValue('planId', planEncontrado.id);
+        setValue('planVersionId', version!.id);
       }
     }
   }, [entity, plansData, setValue]);
-
-
 
   const onSubmit = async (data: CreateInput) => {
     if (!selectedPlan) {
@@ -133,27 +153,25 @@ export default function QuotationForm({
       plazo: selectedPlan.plazo,
     };
 
-     try {
-    setRequestError(null); // limpiar antes
+    try {
+      setRequestError(null);
 
-    if (action === "edit" && entity?.id) {
-      await updateQuotation({ id: entity.id, data: payload }).unwrap();
-    } else {
-      await createQuotation(payload).unwrap();
-    }
+      if (action === 'edit' && entity?.id) {
+        await updateQuotation({ id: entity.id, data: payload }).unwrap();
+      } else {
+        await createQuotation(payload).unwrap();
+      }
 
-    if (window.opener) {
-      window.opener.postMessage({ created: true }, window.location.origin);
-      window.close();
-    }
-  } catch (err: any) {
-      console.log(err);
-      const apiError = err  as { data:{ errors: string[]} }; 
+      if (window.opener) {
+        window.opener.postMessage({ created: true }, window.location.origin);
+        window.close();
+      }
+    } catch (err: any) {
+      const apiError = err as { data: { errors: string[] } };
       if (apiError.data?.errors && Array.isArray(apiError.data.errors)) {
-        // Si viene un array de errores, unirlos
-        setRequestError(apiError.data.errors.join(", "));
-      } else { 
-        setRequestError(err?.data?.message || "Error al guardar la cotizacoin");
+        setRequestError(apiError.data.errors.join(', '));
+      } else {
+        setRequestError(err?.data?.message || 'Error al guardar la cotización');
       }
     }
   };
@@ -165,15 +183,19 @@ export default function QuotationForm({
           currency: 'ARS',
           minimumFractionDigits: 0,
         })
-      : '—';
+      : '$0';
 
-  const plazosUnicos = Array.from(
-    new Set(
-      plans.flatMap((p) =>
-        p.versions?.find((v) => v.isLatest)?.coefficients.map((c) => c.plazo) || []
-      )
-    )
-  ).sort((a, b) => a - b); 
+  const plazosUnicos = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          plans.flatMap((p) =>
+            p.versions?.find((v) => v.isLatest)?.coefficients.map((c) => c.plazo) || [],
+          ),
+        ),
+      ).sort((a, b) => a - b),
+    [plans],
+  );
 
   const plansToShow = isView
     ? plans.filter((p) => p.id === selectedPlan?.planId)
@@ -181,10 +203,12 @@ export default function QuotationForm({
 
   return (
     <div className="w-[90%] h-[90%] border rounded shadow bg-blue-light-ligth overflow-y-auto">
-      <h1 className="text-xl font-bold mb-4 text-white bg-gray py-2 px-4">Simulador de Cotización</h1>
+      <h1 className="text-xl font-bold mb-4 text-white bg-gray py-2 px-4">
+        Simulador de Cotización
+      </h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 p-4">
-        {/* 1️⃣ Datos del Cliente */}
+        {/* 1. Datos del Cliente */}
         <div className="bg-white p-4 rounded border">
           <h2 className="text-lg font-semibold mb-3 text-black">Datos del Cliente</h2>
 
@@ -213,7 +237,7 @@ export default function QuotationForm({
           </div>
         </div>
 
-        {/* 2️⃣ Compañía */}
+        {/* 2. Compañía */}
         <div className="bg-white p-4 rounded border">
           <h2 className="text-lg font-semibold mb-3 text-black">Seleccionar Compañía</h2>
 
@@ -223,8 +247,8 @@ export default function QuotationForm({
             onChange={(val) => {
               const v = Array.isArray(val) ? val[0] : val;
               setSelectedCompanyId(v);
-              setValue('companyId', v); 
-              setSelectedPlan(null); // reset
+              setValue('companyId', v);
+              setSelectedPlan(null);
             }}
             placeholder="Seleccionar compañía..."
             disabled={isView}
@@ -235,7 +259,7 @@ export default function QuotationForm({
           )}
         </div>
 
-        {/* 3️⃣ Monto */}
+        {/* 3. Monto */}
         <div className="bg-white p-4 rounded border">
           <h2 className="text-lg font-semibold mb-3 text-black">Monto a Financiar</h2>
 
@@ -243,16 +267,16 @@ export default function QuotationForm({
             type="number"
             className="border border-yellow-light bg-yellow-light px-3 py-2 rounded w-full"
             placeholder="Ej: 12000000"
-            value={monto}                 
-            disabled={isView}  
+            value={monto}
+            disabled={isView}
             onChange={(e) => {
               setMonto(Number(e.target.value));
-              setSelectedPlan(null); // reset
+              setSelectedPlan(null);
             }}
           />
         </div>
 
-        {/* 4️⃣ Tabla de Planes */}
+        {/* 4. Tabla de Planes */}
         {selectedCompanyId && monto > 0 && (
           <div className="bg-white p-4 rounded border">
             <h2 className="text-lg font-semibold mb-4 text-black">Planes Disponibles</h2>
@@ -263,7 +287,6 @@ export default function QuotationForm({
                   <tr>
                     <th className="bg-gray text-white px-3 py-2 text-center w-20">Sel.</th>
                     <th className="bg-gray text-white px-3 py-2 text-left">Plan</th>
-
                     {plazosUnicos.map((plazo) => (
                       <th key={plazo} className="bg-gray text-white px-3 py-2 text-center">
                         {plazo} cuotas
@@ -271,11 +294,49 @@ export default function QuotationForm({
                     ))}
                   </tr>
                 </thead>
-                
                 <tbody>
                   {plansToShow.map((plan) => {
                     const version = plan.versions?.find((v) => v.isLatest);
                     if (!version) return null;
+
+                    const montoValido = isMontoWithinVersionRange(version, monto);
+
+                    const plazosValidos = version.coefficients
+                      .map((c) => c.plazo)
+                      .filter((plazo) => montoValido && isPlazoWithinVersionRange(version, plazo))
+                      .sort((a, b) => a - b);
+
+                    const tieneAlgunaCuotaValida = plazosValidos.length > 0;
+
+                    const desdeMonto = version.desdeMonto !== null && version.desdeMonto !== undefined
+                      ? Number(version.desdeMonto)
+                      : undefined;
+                    const hastaMonto = version.hastaMonto !== null && version.hastaMonto !== undefined
+                      ? Number(version.hastaMonto)
+                      : undefined;
+
+                    let reasonText: string | null = null;
+                    if (!montoValido && (desdeMonto !== undefined || hastaMonto !== undefined)) {
+                      if (desdeMonto !== undefined && hastaMonto !== undefined) {
+                        reasonText = `Monto fuera de rango. Permitido entre ${formatMoney(desdeMonto)} y ${formatMoney(hastaMonto)}.`;
+                      } else if (desdeMonto !== undefined) {
+                        reasonText = `Monto fuera de rango. Debe ser desde ${formatMoney(desdeMonto)}.`;
+                      } else if (hastaMonto !== undefined) {
+                        reasonText = `Monto fuera de rango. Debe ser hasta ${formatMoney(hastaMonto)}.`;
+                      }
+                    } else if (montoValido && !tieneAlgunaCuotaValida) {
+                      const desdeCuota = version.desdeCuota ?? undefined;
+                      const hastaCuota = version.hastaCuota ?? undefined;
+                      if (desdeCuota !== undefined && hastaCuota !== undefined) {
+                        reasonText = `No hay plazos disponibles para este monto. Solo se permiten entre ${desdeCuota} y ${hastaCuota} cuotas.`;
+                      } else if (desdeCuota !== undefined) {
+                        reasonText = `No hay plazos disponibles para este monto. Se permiten desde ${desdeCuota} cuotas.`;
+                      } else if (hastaCuota !== undefined) {
+                        reasonText = `No hay plazos disponibles para este monto. Se permiten hasta ${hastaCuota} cuotas.`;
+                      } else {
+                        reasonText = 'No hay plazos disponibles para este monto según las restricciones del plan.';
+                      }
+                    }
 
                     return (
                       <tr key={plan.id}>
@@ -286,49 +347,61 @@ export default function QuotationForm({
                             name="planSelect"
                             checked={selectedPlan?.planId === plan.id}
                             onChange={() => {
-                                setSelectedPlan({
-                                  planId: plan.id,
-                                  planVersionId: version.id,
-                                  plazo: plazosUnicos[0],
-                                });
-
-                                setValue("planId", plan.id);
-                                setValue("planVersionId", version.id); 
-                              }}
-                            disabled={isView}    
+                              if (!tieneAlgunaCuotaValida) return;
+                              const primerPlazo = plazosValidos[0];
+                              setSelectedPlan({
+                                planId: plan.id,
+                                planVersionId: version.id,
+                                plazo: primerPlazo,
+                              });
+                              setValue('planId', plan.id);
+                              setValue('planVersionId', version.id);
+                            }}
+                            disabled={isView || !tieneAlgunaCuotaValida}
                           />
                         </td>
 
                         {/* Nombre */}
                         <td className="border border-gray-300 p-2 font-medium text-black">
-                          {plan.name}
+                          <div>{plan.name}</div>
+                          {reasonText && (
+                            <div className="text-xs text-red-600 mt-1">
+                              {reasonText}
+                            </div>
+                          )}
                         </td>
 
                         {/* Celdas de plazo */}
                         {plazosUnicos.map((plazo) => {
                           const c = version.coefficients.find((x) => x.plazo === plazo);
-                          const esPlanCheques = plan.name.toUpperCase().includes("CHEQUES");
+                          const esPlanCheques = plan.name.toUpperCase().includes('CHEQUES');
                           const cantidadCheques = plazo + 1;
-                          if (!c)
+
+                          const plazoValido =
+                            !!c &&
+                            montoValido &&
+                            isPlazoWithinVersionRange(version, plazo);
+
+                          if (!plazoValido) {
                             return (
                               <td
                                 key={plazo}
                                 className="border border-gray-300 p-2 text-center text-gray-400"
                               >
-                                —
+                                -
                               </td>
                             );
+                          }
 
                           const tnaMostrar = Math.ceil(Number(c.tna));
                           const coef = Number(c.coeficiente);
-                          const cuotaFinal =  monto * (coef / 10000);
-                          const quebrantoPorcentaje = Number(c.quebrantoFinanciero || 0) / 100; 
-                          const factorQuebranto = 1.21; 
+                          const cuotaFinal = monto * (coef / 10000);
+                          const quebrantoPorcentaje = Number(c.quebrantoFinanciero || 0) / 100;
+                          const factorQuebranto = 1.21;
                           const quebranto = Math.ceil(monto * quebrantoPorcentaje * factorQuebranto);
 
                           const cuotaBalon = Number(c.cuotaBalon || 0);
                           const mesesBalon = c.cuotaBalonMonths?.map((m) => m.month) || [];
- 
 
                           return (
                             <td
@@ -343,7 +416,8 @@ export default function QuotationForm({
 
                               {esPlanCheques && (
                                 <div className="text-xs text-blue-700 mt-1">
-                                  {cantidadCheques} cheques de {formatMoney(Math.ceil(cuotaFinal))}, (1ro Corriente)
+                                  {cantidadCheques} cheques de {formatMoney(Math.ceil(cuotaFinal))},{' '}
+                                  (1ro Corriente)
                                 </div>
                               )}
 
@@ -369,13 +443,12 @@ export default function QuotationForm({
             </div>
           </div>
         )}
-        {/* Errores globales del formulario */}
+
         {requestError && (
           <div className="bg-red-100 text-red-700 p-2 rounded text-sm text-center">
             {requestError}
           </div>
         )}
-
 
         {!isView && (
           <CustomButton type="submit" disabled={isCreating}>
