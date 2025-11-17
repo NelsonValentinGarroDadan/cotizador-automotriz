@@ -19,9 +19,14 @@ export default function quotationColumns({
     },
     {
       key: "company",
-      label: "Compañía",
+      label: "Compañía / Usuario",
       sortable: false,
-      render: (_, row: Quotation) => row.company?.name ?? "—",
+      render: (_, row: Quotation) => {
+        const company = row.company.name ?? "-";
+        const user = row.user.firstName && row.user.lastName ? row.user.firstName + " " + row.user.lastName : "-";
+
+        return company + " / "+ user
+      },
     },
     {
       key: "planVersion",
