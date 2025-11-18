@@ -5,6 +5,7 @@ import { CrudPageFactory } from '@/app/components/crudPageFactory';
 import { User } from '@/app/types/user';
 import { useGetUserByIdQuery } from '@/app/api/userApi'; 
 import  UserForm from '../../components/userForm';
+import { Role } from '@/app/types';
 
 export default function EditCompanyPage() {
   const { id } = useParams();
@@ -18,6 +19,7 @@ export default function EditCompanyPage() {
       isLoading={isLoading}
       error={error}
       entityName="Usuario" 
+      allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN]}
     />
   );
 }

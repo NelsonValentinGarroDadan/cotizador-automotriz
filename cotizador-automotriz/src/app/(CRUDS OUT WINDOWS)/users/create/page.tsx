@@ -3,6 +3,7 @@
 import { CrudPageFactory } from '@/app/components/crudPageFactory';
 import UserForm from '../components/userForm'; 
 import { User } from '@/app/types/user';
+import { Role } from '@/app/types';
 
 export default function CreateCompanyPage() {
   return (
@@ -10,6 +11,7 @@ export default function CreateCompanyPage() {
       action="create"
       formComponent={UserForm}
       entityName="Usuario"
+      allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN]}
     />
   );
 }

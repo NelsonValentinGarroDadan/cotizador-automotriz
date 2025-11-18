@@ -14,18 +14,18 @@ routerPlans.get("/", controller.getAllPlans);
 routerPlans.get("/:id", controller.getPlanById);
 routerPlans.post(
   "/",
-  authorizeRole([Role.ADMIN]),
+  authorizeRole([Role.ADMIN,Role.SUPER_ADMIN]),
   uploadLogo.single("logo"),
   validateRequest(createPlanSchema),
   controller.createPlan
 );
 routerPlans.put(
   "/:id",
-  authorizeRole([Role.ADMIN]),
+  authorizeRole([Role.ADMIN,Role.SUPER_ADMIN]),
   uploadLogo.single("logo"),
   validateRequest(updatePlanWithVersionSchema),
   controller.updatePlan
 );
-routerPlans.delete("/:id",authorizeRole([Role.ADMIN]), controller.deletePlan);
+routerPlans.delete("/:id",authorizeRole([Role.ADMIN,Role.SUPER_ADMIN]), controller.deletePlan);
 
 export default routerPlans;

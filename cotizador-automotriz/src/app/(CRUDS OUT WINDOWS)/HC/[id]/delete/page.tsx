@@ -26,7 +26,7 @@ export default function DeleteQuotationPage() {
         { key: 'company', label: 'Compañía', value: data?.company.name },
       ]}
       entityName="Cotización"
-      allowedRoles={[Role.ADMIN, Role.USER, Role.SUPER_ADMIN]}
+      allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN]}
     />
   );
 }

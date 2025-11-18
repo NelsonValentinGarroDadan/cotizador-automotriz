@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { CrudPageFactory } from '@/app/components/crudPageFactory'; 
 import { User } from '@/app/types/user';
 import { useDeleteUserMutation, useGetUserByIdQuery } from '@/app/api/userApi';
+import { Role } from '@/app/types';
 
 export default function DeleteCompanyPage() {
   const { id } = useParams();
@@ -26,6 +27,7 @@ export default function DeleteCompanyPage() {
         { key: 'email', label: 'Email' },
       ]}
       entityName="Usuario"
+      allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN]}
     />
   );
 }

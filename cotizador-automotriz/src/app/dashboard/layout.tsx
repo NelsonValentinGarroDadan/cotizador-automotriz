@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navLinks = isSuperAdmin
     ? [
-        { label: "Compañias", href: "/dashboard" },
+        { label: "Compañias", href: "/dashboard/companias" },
         { label: "Planes", href: "/dashboard/planes" },
         { label: "Administradores", href: "/dashboard/administradores" },
         { label: "Superadmins", href: "/dashboard/superadmins" },
@@ -25,14 +25,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       ]
     : isAdmin
       ? [
-          { label: "Compañias", href: "/dashboard" },
           { label: "Planes", href: "/dashboard/planes" },
-          { label: "Administradores", href: "/dashboard/administradores" },
           { label: "Usuarios", href: "/dashboard/usuarios" },
           { label: "Historial de cotizaciones", href: "/dashboard/historial-cotizaciones" },
         ]
       : [
-          { label: "Compañias", href: "/dashboard" },
           { label: "Planes", href: "/dashboard/planes" },
           { label: "Historial de cotizaciones", href: "/dashboard/historial-cotizaciones" },
           {

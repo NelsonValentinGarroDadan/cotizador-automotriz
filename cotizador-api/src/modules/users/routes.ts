@@ -3,11 +3,13 @@ import { catchAsync } from "../../utils/catchAsync";
 import { validateRequest } from "../../core/middleware/validateRequest";
 import * as controller from "./controller";
 import { createUserSchema, updateUserSchema } from "./schema";
+import { authorizeRole } from "../../core/middleware/authorizeRole";
+import { Role } from "../../core/types/role";
 
 const routerUsers = Router(); 
 
 routerUsers.get('/', catchAsync(controller.getAllUsers));
-routerUsers.get('/:id', catchAsync(controller.getUserById));
+routerUsers.get('/:id',catchAsync(controller.getUserById));
 routerUsers.post('/', validateRequest(createUserSchema), catchAsync(controller.createUser));
 routerUsers.put('/:id', validateRequest(updateUserSchema), catchAsync(controller.updateUser));
 routerUsers.delete('/:id', catchAsync(controller.deleteUser));

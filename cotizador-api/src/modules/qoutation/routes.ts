@@ -27,7 +27,7 @@ quotationRoutes.put(
 // Eliminar cotización (solo admins)
 quotationRoutes.delete(
   "/:id",
-  authorizeRole([Role.ADMIN]),
+  authorizeRole([Role.ADMIN,Role.SUPER_ADMIN]),
   controller.deleteQuotation
 );
 

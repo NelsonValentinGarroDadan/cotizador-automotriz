@@ -15,10 +15,9 @@ export const getAllUsers = async (req: Request, res: Response) => {
   );
 
   const search = req.query.search as string | undefined;
-  const role = req.query.role as string | undefined;
+  const role = req.query.role as Role | undefined;
   const companies = req.query.companyIds as string | undefined;
   const fechaCreacion = req.query.fechaCreacion as string | undefined;
-
   let companyIds: string[] | undefined;
   if (companies) {
     companyIds = companies.split(",").filter(Boolean);
@@ -37,25 +36,20 @@ export const getAllUsers = async (req: Request, res: Response) => {
 };
 
 export const getUserById = async (req: Request, res: Response) => {
-  const user = await service.getUserById(req.params.id);
+  if (!req.user) throw new AppError("Usuario no autenticado", 403);
+  const user = await service.getUserById(req.params.id, req.user);
   res.json(user);
 };
 
 export const createUser = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
-
-  // Solo SUPER_ADMIN puede crear otro SUPER_ADMIN
-  if (req.body.role === "SUPER_ADMIN" && req.user.role !== Role.SUPER_ADMIN) {
-    throw new AppError("Solo un SUPER_ADMIN puede crear otro SUPER_ADMIN", 403);
-  }
-
-  const user = await service.createUser(req.body);
+  const user = await service.createUser(req.body, req.user);
   res.status(201).json(user);
 };
 
 export const updateUser = async (req: Request, res: Response) => {
   const { allowedPlanIds } = req.body;
-
+  if (!req.user) throw new AppError("Usuario no autenticado", 403);
   const parsedAllowedPlanIds = allowedPlanIds
     ? Array.isArray(allowedPlanIds)
       ? allowedPlanIds
@@ -65,12 +59,12 @@ export const updateUser = async (req: Request, res: Response) => {
   await service.updateUser(req.params.id, {
     ...req.body,
     allowedPlanIds: parsedAllowedPlanIds,
-  });
+  }, req.user);
   res.status(200).send();
 };
 
 export const deleteUser = async (req: Request, res: Response) => {
-  await service.deleteUser(req.params.id);
+   if (!req.user) throw new AppError("Usuario no autenticado", 403);
+  await service.deleteUser(req.params.id, req.user);
   res.status(200).send();
 };
-

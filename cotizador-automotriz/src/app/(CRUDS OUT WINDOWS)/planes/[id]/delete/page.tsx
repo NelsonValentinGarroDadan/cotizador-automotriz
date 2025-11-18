@@ -4,6 +4,7 @@ import { use } from 'react';
 import { CrudPageFactory } from '@/app/components/crudPageFactory'; 
 import { PlanWithDetails } from '@/app/types/plan';
 import { useGetPlanByIdQuery, useDeletePlanMutation } from '@/app/api/planApi';
+import { Role } from '@/app/types';
 
 export default function DeletePlanPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -32,6 +33,7 @@ export default function DeletePlanPage({ params }: { params: Promise<{ id: strin
         },
       ]}
       entityName="Plan"
+      allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN]}
     />
   );
 }

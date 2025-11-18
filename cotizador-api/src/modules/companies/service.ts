@@ -31,14 +31,6 @@ export const getCompanyById = async (id: string, user: UserToken | undefined) =>
   const company = await repository.getCompanyById(id);
   if (!company) throw new AppError("Compaña no encontrada", 404);
 
-  // SUPER_ADMIN puede ver cualquier compañia
-  if (user.role === Role.SUPER_ADMIN) {
-    return company;
-  }
-
-  const isMember = company.userCompanies.some((uc) => uc.userId === user.id);
-  if (!isMember) throw new AppError("No tienes acceso a esta compañia", 403);
-
   return company;
 };
 
@@ -57,16 +49,6 @@ export const updateCompany = async (
   const company = await repository.getCompanyById(id);
   if (!company) throw new AppError("Compañia no encontrada", 404);
 
-  // SUPER_ADMIN puede editar cualquier compañia
-  if (user.role === Role.SUPER_ADMIN) {
-    return await repository.updateCompany(id, data);
-  }
-
-  const isAdmin = company.userCompanies.some(
-    (uc) => uc.userId === user.id && uc.user.role === "ADMIN"
-  );
-  if (!isAdmin) throw new AppError("No tienes permisos para editar esta compañia", 403);
-
   return await repository.updateCompany(id, data);
 };
 
@@ -74,16 +56,6 @@ export const deleteCompany = async (id: string, user: UserToken) => {
   const company = await repository.getCompanyById(id);
   if (!company) throw new AppError("Compañia no encontrada", 404);
 
-  // SUPER_ADMIN puede eliminar cualquier compañia
-  if (user.role === Role.SUPER_ADMIN) {
-    await repository.deleteCompany(id);
-    return;
-  }
-
-  const isAdmin = company.userCompanies.some(
-    (uc) => uc.userId === user.id && uc.user.role === "ADMIN"
-  );
-  if (!isAdmin) throw new AppError("No tienes permisos para eliminar esta compañia", 403);
-
   await repository.deleteCompany(id);
+  return;
 };

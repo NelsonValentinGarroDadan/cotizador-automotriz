@@ -2,6 +2,7 @@
 'use client';
 import { CrudPageFactory } from '@/app/components/crudPageFactory';  
 import PlanForm from '../components/plansForm';
+import { Role } from '@/app/types';
 
 export default function CreatePlanPage() {
   return (
@@ -9,6 +10,7 @@ export default function CreatePlanPage() {
       action="create"
       formComponent={PlanForm}
       entityName="Plan"
+      allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN]}
     />
   );
 }
