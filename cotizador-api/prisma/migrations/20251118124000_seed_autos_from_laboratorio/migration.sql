@@ -525,6 +525,7 @@ INSERT INTO `autos_lineas` (`idlinea`, `idmarca`, `descrip`, `ajuste`, `dias_nad
 (3237, 97, 'Z TRUCK CS ', '0.00', 0, '', '0.00', '0.00', '0.00', 0, 0, '0.00', '0.00', 0, 0, '0.00', '0.00', '0.00', '0.00', 0, 0, 0, 0, 0, 0, '', '0.00', 0, 0, 0);
 
 INSERT INTO `autos_marcas` (`idmarca`, `descrip`, `logo`, `orden`, `codigo`, `repuestos`, `predeterminada`) VALUES
+(0, 'SIN MARCA', '', 0, '', 0, 0),
 (1, 'RENAULT', '', 0, '', 0, 0),
 (12, 'NISSAN', '', 0, '', 0, 0),
 (21, 'AUDI', '', 0, '', 0, 0),
