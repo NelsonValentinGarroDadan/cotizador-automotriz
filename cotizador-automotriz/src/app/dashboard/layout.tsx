@@ -18,6 +18,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ? [
         { label: "Compañias", href: "/dashboard/companias" },
         { label: "Planes", href: "/dashboard/planes" },
+        { label: "Vehiculos", href: "/dashboard/vehiculos" },
         { label: "Administradores", href: "/dashboard/administradores" },
         { label: "Superadmins", href: "/dashboard/superadmins" },
         { label: "Usuarios", href: "/dashboard/usuarios" },
@@ -26,6 +27,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     : isAdmin
       ? [
           { label: "Planes", href: "/dashboard/planes" },
+          { label: "Vehiculos", href: "/dashboard/vehiculos" },
           { label: "Usuarios", href: "/dashboard/usuarios" },
           { label: "Historial de cotizaciones", href: "/dashboard/historial-cotizaciones" },
         ]
@@ -45,7 +47,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <>
       <Header />
 
-      <section className="flex w-full h-auto">
+      <section className="w-full h-auto">
         <NavDashboard navsLinks={navLinks} />
         {children}
       </section>

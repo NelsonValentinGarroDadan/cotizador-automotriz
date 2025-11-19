@@ -13,13 +13,15 @@ export const getAllCompanies = async (
   const skip = (page - 1) * limit;
 
   const where: any = {};
- 
+
   if (!isSuperAdmin) {
     where.userCompanies = { some: { userId } };
   }
 
   if (filters?.name) where.name = { contains: filters.name };
-  if (filters?.createdAtFrom) where.createdAt = { gte: new Date(filters.createdAtFrom) };
+  if (filters?.createdAtFrom) {
+    where.createdAt = { gte: new Date(filters.createdAtFrom) };
+  }
 
   const [companies, total] = await Promise.all([
     prisma.company.findMany({
@@ -31,6 +33,26 @@ export const getAllCompanies = async (
         userCompanies: {
           select: { user: { select: { role: true } } },
         },
+        vehicles: {
+          select: {
+            idversion: true,
+            descrip: true,
+            nueva_descrip: true,
+            codigo: true,
+            marca: {
+              select: {
+                idmarca: true,
+                descrip: true,
+              },
+            },
+            modelo: {
+              select: {
+                idmodelo: true,
+                descrip: true,
+              },
+            },
+          },
+        }
       },
     }),
     prisma.company.count({ where }),
@@ -58,12 +80,34 @@ export const getCompanyById = async (id: string) => {
           user: { select: { id: true, role: true } },
         },
       },
+      vehicles: {
+        select: {
+          idversion: true,
+          descrip: true,
+          nueva_descrip: true,
+          codigo: true,
+          marca: {
+            select: {
+              idmarca: true,
+              descrip: true,
+            },
+          },
+          modelo: {
+            select: {
+              idmodelo: true,
+              descrip: true,
+            },
+          },
+        },
+      },
     },
   });
 };
 
 // Crear la empresa + relacion con el creador
-export const createCompany = async (data: CreateCompany & { logo?: string; userId: string }) => {
+export const createCompany = async (
+  data: CreateCompany & { logo?: string; userId: string }
+) => {
   return prisma.company.create({
     data: {
       name: data.name,

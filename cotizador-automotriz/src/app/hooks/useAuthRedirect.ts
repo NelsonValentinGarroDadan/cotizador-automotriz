@@ -58,6 +58,6 @@ export const useAuthRedirect = (allowedRoles?: Role[]) => {
         return;
       }
     }
-  }, [hydrated, isAuthenticated, token, allowedRoles, router, isPopup]);
+  }, [hydrated, isAuthenticated, token]);
 };
 

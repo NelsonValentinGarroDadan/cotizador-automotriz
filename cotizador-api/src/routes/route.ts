@@ -5,6 +5,7 @@ import  authenticate  from "../core/middleware/authMiddleware";
 import routerCompanies from "../modules/companies/routes";
 import routerPlans from "../modules/plans/routes";
 import quotationRoutes from "../modules/qoutation/routes";
+import vehiculesRoutes from "../modules/vehicules/routes";
 import { authorizeRole } from "../core/middleware/authorizeRole";
 import { Role } from "../core/types/role";
 
@@ -22,5 +23,7 @@ router.use('/companies',authorizeRole([Role.SUPER_ADMIN]),routerCompanies);
 router.use('/plans',routerPlans);
 
 router.use('/quotations', quotationRoutes);
+
+router.use('/vehicules', authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]), vehiculesRoutes);
 
 export default router;

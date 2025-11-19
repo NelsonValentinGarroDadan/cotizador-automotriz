@@ -98,6 +98,26 @@ export const getAllQuotations = async (
             },
           },
         },
+        vehicleVersion: {
+          select: {
+            idversion: true,
+            descrip: true,
+            nueva_descrip: true,
+            codigo: true,
+            marca: {
+              select: {
+                idmarca: true,
+                descrip: true,
+              },
+            },
+            modelo: {
+              select: {
+                idmodelo: true,
+                descrip: true,
+              },
+            },
+          },
+        },
       },
     }),
     prisma.quotation.count({ where }),
@@ -161,6 +181,26 @@ export const getQuotationById = async (
           },
         },
       },
+      vehicleVersion: {
+        select: {
+          idversion: true,
+          descrip: true,
+          nueva_descrip: true,
+          codigo: true,
+          marca: {
+            select: {
+              idmarca: true,
+              descrip: true,
+            },
+          },
+          modelo: {
+            select: {
+              idmodelo: true,
+              descrip: true,
+            },
+          },
+        },
+      },
     },
   });
 };
@@ -176,6 +216,7 @@ export const createQuotation = async (
       clientName: data.clientName,
       clientDni: data.clientDni,
       vehicleData: data.vehicleData,
+      vehicleVersionId: data.vehicleVersionId,
       totalValue: data.totalValue,
     },
     include: {
@@ -204,6 +245,13 @@ export const createQuotation = async (
           },
         },
       },
+      vehicleVersion: {
+        select: {
+          idversion: true,
+          descrip: true,
+          nueva_descrip: true,
+        },
+      },
     },
   });
 };
@@ -218,9 +266,14 @@ export const updateQuotation = async (
       ...(data.clientName !== undefined && { clientName: data.clientName }),
       ...(data.clientDni !== undefined && { clientDni: data.clientDni }),
       ...(data.vehicleData !== undefined && { vehicleData: data.vehicleData }),
+      ...(data.vehicleVersionId !== undefined && {
+        vehicleVersionId: data.vehicleVersionId,
+      }),
       ...(data.totalValue !== undefined && { totalValue: data.totalValue }),
       ...(data.companyId !== undefined && { companyId: data.companyId }),
-      ...(data.planVersionId !== undefined && { planVersionId: data.planVersionId }),
+      ...(data.planVersionId !== undefined && {
+        planVersionId: data.planVersionId,
+      }),
     },
     include: {
       company: {
@@ -238,6 +291,13 @@ export const updateQuotation = async (
               name: true,
             },
           },
+        },
+      },
+      vehicleVersion: {
+        select: {
+          idversion: true,
+          descrip: true,
+          nueva_descrip: true,
         },
       },
     },

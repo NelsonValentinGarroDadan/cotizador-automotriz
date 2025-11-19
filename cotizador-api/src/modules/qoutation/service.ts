@@ -55,18 +55,43 @@ export const getQuotationById = async (
     user.id,
     user.role === Role.SUPER_ADMIN
   );
-  if (!quotation) throw new AppError("Cotizacion no encontrada", 404);
+  if (!quotation) throw new AppError("Cotización no encontrada", 404);
 
   if (user.role !== Role.SUPER_ADMIN) {
     const isMember = quotation.company.userCompanies.some(
       (uc) => uc.userId === user.id
     );
     if (!isMember) {
-      throw new AppError("No tienes acceso a esta cotizacion", 403);
+      throw new AppError("No tienes acceso a esta cotización", 403);
     }
   }
 
   return quotation;
+};
+
+const validateVehicleVersionAccess = async (
+  companyId: string,
+  vehicleVersionId: number | undefined,
+  user: UserToken
+) => {
+  if (!vehicleVersionId || user.role === Role.SUPER_ADMIN) {
+    return;
+  }
+
+  // Verificar que la versión de vehículo está asignada a la compañía
+  const vehicle = await prisma.autosVersion.findFirst({
+    where: {
+      idversion: vehicleVersionId,
+      companyId,
+    },
+  });
+
+  if (!vehicle) {
+    throw new AppError(
+      "El vehículo seleccionado no pertenece a una compañía a tu cargo",
+      403
+    );
+  }
 };
 
 export const createQuotation = async (
@@ -98,7 +123,7 @@ export const createQuotation = async (
   });
 
   if (!planVersion) {
-    throw new AppError("Version del plan no encontrada", 404);
+    throw new AppError("Versión del plan no encontrada", 404);
   }
 
   if (user.role !== Role.SUPER_ADMIN) {
@@ -110,6 +135,12 @@ export const createQuotation = async (
       throw new AppError("No tienes acceso a este plan", 403);
     }
   }
+
+  await validateVehicleVersionAccess(
+    data.companyId,
+    data.vehicleVersionId,
+    user
+  );
 
   return await repository.createQuotation({
     ...data,
@@ -127,16 +158,26 @@ export const updateQuotation = async (
     user.id,
     user.role === Role.SUPER_ADMIN
   );
-  if (!quotation) throw new AppError("Cotizacion no encontrada", 404);
+  if (!quotation) throw new AppError("Cotización no encontrada", 404);
 
   if (user.role !== Role.SUPER_ADMIN) {
     const isMember = quotation.company.userCompanies.some(
       (uc) => uc.userId === user.id
     );
     if (!isMember) {
-      throw new AppError("No tienes acceso a esta cotizacion", 403);
+      throw new AppError("No tienes acceso a esta cotización", 403);
     }
   }
+
+  const nextCompanyId = data.companyId ?? quotation.companyId;
+  const nextVehicleVersionId =
+    data.vehicleVersionId ?? quotation.vehicleVersionId ?? undefined;
+
+  await validateVehicleVersionAccess(
+    nextCompanyId,
+    nextVehicleVersionId,
+    user
+  );
 
   return await repository.updateQuotation(id, data);
 };
@@ -147,16 +188,17 @@ export const deleteQuotation = async (id: string, user: UserToken) => {
     user.id,
     user.role === Role.SUPER_ADMIN
   );
-  if (!quotation) throw new AppError("Cotizacion no encontrada", 404);
+  if (!quotation) throw new AppError("Cotización no encontrada", 404);
 
   if (user.role !== Role.SUPER_ADMIN) {
     const isMember = quotation.company.userCompanies.some(
       (uc) => uc.userId === user.id
     );
     if (!isMember) {
-      throw new AppError("No tienes acceso a esta cotizacion", 403);
+      throw new AppError("No tienes acceso a esta cotización", 403);
     }
   }
 
   await repository.deleteQuotation(id);
 };
+

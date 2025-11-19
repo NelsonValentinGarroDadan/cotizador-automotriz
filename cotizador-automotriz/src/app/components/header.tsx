@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useAuthStore } from "../store/useAuthStore"; 
 import { useState } from "react";
 import { capitalizeWords } from "../lib/capitalizeWords";
+import { usePathname } from "next/navigation";
 
 export default function Header(){ 
+    const pathname = usePathname();
     const { isAuthenticated, user } = useAuthStore();
     const home = isAuthenticated ? "/dashboard" : "/"; 
     const [date] = useState(new Date());  
@@ -18,7 +20,7 @@ export default function Header(){
 
     const formattedDate = date.toLocaleDateString('es-AR', options);
     const formattedDateCapitalized = capitalizeWords(formattedDate);
-
+    if(pathname === "/dashboard") return null;
     return (
         <header className="bg-white py-3 h-auto md:h-[10vh] md:py-3 gap-3 flex flex-col xl:flex-row items-center justify-between w-full shadow-[2px_0_5px_rgba(0,0,0,1)] px-5">
             

@@ -22,11 +22,10 @@ export default function NavDashboard({ navsLinks }: { navsLinks: NavItem[] }) {
   const handleLogout = () => {
     logout();
     router.push("/");
-  };
-
+  }; 
   return (
-    <section className="h-full min-h-[90vh] flex flex-col items-start justify-between py-5 sticky top-0 left-0">
-      <div className="flex flex-col items-start w-full">
+    <section className=" px-5 pt-2 sticky top-0 left-0 z-1000 bg-white w-full">
+      <div className="flex  items-start w-full">
         {navsLinks.map((link) => {
           const isActive = pathname === link.href;
           if (link.action) {
@@ -37,7 +36,7 @@ export default function NavDashboard({ navsLinks }: { navsLinks: NavItem[] }) {
                 buttonText={<span>{link.action}</span>}
                 title="Ver detalles"
                 width={link.widtgAction}
-                className="text-blue! text-left! text-xl hover:bg-blue-light-ligth! w-full px-5 py-3 bg-transparent!"
+                className="text-blue! text-left! text-xl hover:bg-blue-light-ligth!  px-3 py-3 bg-transparent!"
               />
             );
           }
@@ -45,23 +44,23 @@ export default function NavDashboard({ navsLinks }: { navsLinks: NavItem[] }) {
             <Link
               key={link.label}
               href={link.href}
-              className={`text-blue text-xl hover:bg-blue-light-ligth w-full px-5 py-3 ${
-                isActive ? "bg-blue-light-ligth  border-r-3 border-blue" : ""
+              className={`text-blue text-xl hover:bg-blue-light-ligth   px-3 py-3 ${
+                isActive ? "bg-blue-light-ligth  border-b-3 border-blue" : ""
               }`}
             >
               {link.label}
             </Link>
           );
         })}
+        <CustomButton
+          type="button"
+          onClick={handleLogout}
+          className="text-xl text-blue! bg-transparent! text-left hover:bg-blue-light-ligth!  px-5 py-3 ml-10"
+        >
+          Cerrar sesión
+        </CustomButton>
       </div>
 
-      <CustomButton
-        type="button"
-        onClick={handleLogout}
-        className="text-xl text-blue! bg-transparent! text-left hover:bg-blue-light-ligth!  w-full px-5 py-3"
-      >
-        Cerrar sesión
-      </CustomButton>
     </section>
   );
 }
