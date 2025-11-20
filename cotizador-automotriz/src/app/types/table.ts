@@ -1,4 +1,10 @@
-export type FilterType = 'text' | 'select' | 'date' | 'number' | 'multiselect';;
+export type FilterType =
+  | 'text'
+  | 'select'
+  | 'date'
+  | 'number'
+  | 'multiselect'
+  | 'selectSearch';
 
 export interface FilterConfig {
   name: string;
@@ -7,6 +13,7 @@ export interface FilterConfig {
   placeholder?: string;
   options?: { value: string; label: string }[];
   multiple?: boolean;
+  loadOptions?: (search: string) => Promise<{ value: string; label: string }[]>;
 }
 
 export interface TableColumn {

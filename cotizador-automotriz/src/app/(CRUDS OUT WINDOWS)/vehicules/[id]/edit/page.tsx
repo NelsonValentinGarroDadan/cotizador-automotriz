@@ -3,8 +3,9 @@
 import { CrudPageFactory } from '@/app/components/crudPageFactory';
 import VehiculeForm from '../../components/vehiculeForm';
 import { Role } from '@/app/types';
-import { VehiculeVersion, useGetVehiculeVersionByIdQuery } from '@/app/api/vehiculeApi';
+import { useGetVehiculeVersionByIdQuery } from '@/app/api/vehiculeApi';
 import { useParams } from 'next/navigation';
+import { VehiculeVersion } from '@/app/types/vehiculos';
 
 export default function EditVehiculePage() {
   const params = useParams<{ id: string }>();

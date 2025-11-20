@@ -1,7 +1,7 @@
 import TableActions from "@/app/components/ui/tableAction";
-import { TableColumn } from "@/app/types/table";
-import { VehiculeVersion } from "@/app/api/vehiculeApi";
+import { TableColumn } from "@/app/types/table"; 
 import { Role } from "@/app/types";
+import { VehiculeVersion } from "@/app/types/vehiculos";
 
 export default function vehiculeColumns({
   onCreated,
@@ -57,7 +57,7 @@ export default function vehiculeColumns({
           <div className="flex flex-col gap-1">
             <span className="font-medium">{companies[0].name}</span>
             <span className="text-sm text-gray-500">
-              +{companies.length - 1} mǭs
+              +{companies.length - 1} mas
             </span>
           </div>
         );

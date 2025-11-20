@@ -68,6 +68,32 @@ export function SelectSearch({
 
   const selectedOption = options.find((opt) => opt.value === value);
 
+  // Cargar opciones iniciales cuando hay un valor preseleccionado
+  // (por ejemplo, filtros guardados en Zustand) pero el dropdown
+  // todavía no se abrió y no tenemos opciones en memoria.
+  useEffect(() => {
+    if (!value || selectedOption || isOpen) return;
+
+    let active = true;
+    const fetchInitialOptions = async () => {
+      setLoading(true);
+      try {
+        const result = await loadOptions('');
+        if (active) {
+          setOptions(result);
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    fetchInitialOptions();
+
+    return () => {
+      active = false;
+    };
+  }, [value, selectedOption, isOpen, loadOptions]);
+
   const handleSelect = (optionValue: string) => {
     if (disabled) return;
     onChange(optionValue);
@@ -151,4 +177,3 @@ export function SelectSearch({
     </div>
   );
 }
-

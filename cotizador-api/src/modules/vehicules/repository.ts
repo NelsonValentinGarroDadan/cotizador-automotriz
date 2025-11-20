@@ -344,6 +344,13 @@ export const getVersions = async (
     where.idmarca = filters.brandId;
   }
 
+  if (filters?.lineId) {
+    where.modelo = {
+      ...(where.modelo || {}),
+      idlinea: filters.lineId,
+    };
+  }
+
   if (filters?.modelId) {
     where.idmodelo = filters.modelId;
   }

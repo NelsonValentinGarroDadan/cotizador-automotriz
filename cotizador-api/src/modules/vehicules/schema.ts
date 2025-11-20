@@ -7,6 +7,7 @@ export const getVehiclesQuerySchema = z.object({
   brandId: z.coerce.number().int().positive().optional(),
   lineId: z.coerce.number().int().positive().optional(),
   modelId: z.coerce.number().int().positive().optional(),
+  companyId: z.string().uuid("ID de compañia inalido").optional(),
 });
 
 // Brands

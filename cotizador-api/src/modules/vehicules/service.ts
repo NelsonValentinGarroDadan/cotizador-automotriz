@@ -456,21 +456,34 @@ export const getVersions = async (
   filters?: GetVehiclesQuery
 ): Promise<PaginatedResponse<any>> => {
   const isSuperAdmin = user.role === Role.SUPER_ADMIN;
-  const companyIds =
+  let companyIds =
     !isSuperAdmin && user.role === Role.ADMIN
       ? await getAdminCompanyIds(user.id)
       : undefined;
+
+  const companyIdFilter = filters?.companyId;
+
+  if (!isSuperAdmin && companyIdFilter) {
+    companyIds = (companyIds || []).filter((id) => id === companyIdFilter);
+  }
 
   if (user.role === Role.ADMIN && (!companyIds || companyIds.length === 0)) {
     return createPaginatedResponse([], 0, page, limit);
   }
 
+  const effectiveCompanyIds = isSuperAdmin
+    ? companyIdFilter
+      ? [companyIdFilter]
+      : undefined
+    : companyIds;
+
   const { items, total } = await repository.getVersions(page, limit, sortBy, sortOrder, {
     search: filters?.search,
     brandId: filters?.brandId,
+    lineId: filters?.lineId,
     modelId: filters?.modelId,
     isSuperAdmin,
-    companyIds,
+    companyIds: effectiveCompanyIds,
   });
 
   return createPaginatedResponse(items, total, page, limit);

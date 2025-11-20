@@ -4,6 +4,7 @@
 import { Controller, useForm } from 'react-hook-form';
 import { useEffect, useRef } from 'react';
 import { FilterConfig, PaginationData, TableColumn } from '@/app/types/table';
+import { SelectSearch } from '@/app/components/ui/selectSearch';
 import PageHeader from '@/app/components/ui/pageHeader';
 import CustomButton from './customButton';
 import MultiSelectFilter from './multiSelectFilter';
@@ -123,6 +124,22 @@ export function CustomTable({
             )}
           />
         );
+      case 'selectSearch':
+        return (
+          <Controller
+            name={filter.name}
+            control={control}
+            defaultValue=""
+            render={({ field }) => (
+              <SelectSearch
+                value={field.value || undefined}
+                onChange={(val) => field.onChange(val ?? '')}
+                loadOptions={filter.loadOptions || (() => Promise.resolve([]))}
+                placeholder={filter.placeholder || 'Seleccionar...'}
+              />
+            )}
+          />
+        );
       case 'date':
         return (
           <input
@@ -149,7 +166,7 @@ export function CustomTable({
 
   return (
     <div className="w-full flex flex-col h-full py-1"> 
-      <div className="sticky top-0 z-50 bg-white shadow-sm">
+      <div className="sticky top-15 z-50 bg-white shadow-sm">
           {/* HEADER */}
           {title && (
             <PageHeader

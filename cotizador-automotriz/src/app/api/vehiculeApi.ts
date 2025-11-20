@@ -1,19 +1,8 @@
 import { api } from "./api";
 import { PaginatedResponse } from "../types";
+import { VehiculeVersion, VehiculeVersionPayload } from "../types/vehiculos";
 
-export interface VehiculeVersion {
-  idversion: number;
-  descrip: string;
-  nueva_descrip: string;
-  codigo: string;
-  marca: { idmarca: number; descrip: string };
-  modelo: {
-    idmodelo: number;
-    descrip: string;
-    linea?: { idlinea: number; descrip: string };
-  };
-  company?: { id: string; name: string }[];
-}
+
 
 export interface GetVehiculeParams {
   page?: number;
@@ -24,16 +13,10 @@ export interface GetVehiculeParams {
   brandId?: number;
   lineId?: number;
   modelId?: number;
+   companyId?: string;
 }
 
-export interface VehiculeVersionPayload {
-  brandId: number;
-  modelId: number;
-  descrip: string;
-  nueva_descrip?: string;
-  codigo?: string;
-  companyIds: string[];
-}
+
 
 export const vehiculeApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -56,6 +39,8 @@ export const vehiculeApi = api.injectEndpoints({
           searchParams.append("lineId", params.lineId.toString());
         if (params?.modelId)
           searchParams.append("modelId", params.modelId.toString());
+        if (params?.companyId)
+          searchParams.append("companyId", params.companyId);
 
         return {
           url: `/vehicules/versions?${searchParams.toString()}`,

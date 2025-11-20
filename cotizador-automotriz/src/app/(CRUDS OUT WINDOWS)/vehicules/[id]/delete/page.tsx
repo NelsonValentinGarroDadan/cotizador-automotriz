@@ -2,12 +2,12 @@
 
 import { CrudPageFactory } from '@/app/components/crudPageFactory';
 import { Role } from '@/app/types';
-import {
-  VehiculeVersion,
+import { 
   useGetVehiculeVersionByIdQuery,
   useDeleteVehiculeVersionMutation,
 } from '@/app/api/vehiculeApi';
 import { useParams } from 'next/navigation';
+import { VehiculeVersion } from '@/app/types/vehiculos';
 
 export default function DeleteVehiculePage() {
   const params = useParams<{ id: string }>();
