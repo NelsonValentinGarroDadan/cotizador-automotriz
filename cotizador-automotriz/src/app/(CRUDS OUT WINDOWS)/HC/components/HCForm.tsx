@@ -63,6 +63,7 @@ export default function QuotationForm({
   });
 
   const companies = companiesData?.data || [];
+  const vehicleVersionId = watch('vehicleVersionId') as number | undefined;
 
   const plans = useMemo(() => {
     if (!plansData?.data) return [];
@@ -265,16 +266,11 @@ export default function QuotationForm({
           )}
         </div>
 
-        {/* 3. Vehiculo */}
         <div className="bg-white p-4 rounded border">
           <h2 className="text-lg font-semibold mb-3 text-black">Seleccionar Vehiculo</h2>
 
           <SelectSearch
-            value={
-              watch('vehicleVersionId')
-                ? String(watch('vehicleVersionId'))
-                : undefined
-            }
+            value={vehicleVersionId ? String(vehicleVersionId) : undefined}
             onChange={(val) =>
               setValue(
                 'vehicleVersionId',
@@ -338,7 +334,7 @@ export default function QuotationForm({
         </div>
 
         {/* 5. Tabla de Planes */}
-        {selectedCompanyId && monto > 0 && watch('vehicleVersionId') && (
+        {selectedCompanyId && monto > 0 && !!vehicleVersionId && (
           <div className="bg-white p-4 rounded border">
             <h2 className="text-lg font-semibold mb-4 text-black">Planes Disponibles</h2>
 
