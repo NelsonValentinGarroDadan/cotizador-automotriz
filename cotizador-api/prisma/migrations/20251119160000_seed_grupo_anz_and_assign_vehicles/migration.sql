@@ -59,7 +59,11 @@ CREATE TABLE IF NOT EXISTS `_CompanyVehicles` (
   `B` VARCHAR(36) NOT NULL,
   PRIMARY KEY (`A`, `B`),
   KEY `idx_CompanyVehicles_B` (`B`)
-) DEFAULT CHARSET=utf8mb4;
+) DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+ALTER TABLE `_CompanyVehicles`
+  CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  MODIFY `B` VARCHAR(36) NOT NULL COLLATE utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO `_CompanyVehicles` (`A`, `B`)
 SELECT
