@@ -1,9 +1,7 @@
 import { Router } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { validateRequest } from "../../core/middleware/validateRequest";
-import { uploadLogo } from "../../core/middleware/uploadLogo";
-import { authorizeRole } from "../../core/middleware/authorizeRole";
-import { Role } from "../../core/types/role";
+import { uploadLogo } from "../../core/middleware/uploadLogo"; 
 import * as controller from "./controller";
 import { createCompanyValidation, updateCompanySchema } from "./schema";
 
