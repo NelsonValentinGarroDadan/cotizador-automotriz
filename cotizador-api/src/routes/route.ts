@@ -18,7 +18,7 @@ router.use(authenticate);
 
 router.use('/users',authorizeRole([Role.SUPER_ADMIN,Role.ADMIN]),routerUsers);
 
-router.use('/companies',authorizeRole([Role.SUPER_ADMIN]),routerCompanies);
+router.use('/companies',routerCompanies);
 
 router.use('/plans',routerPlans);
 
