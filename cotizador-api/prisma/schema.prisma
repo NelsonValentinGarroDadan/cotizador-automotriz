@@ -164,15 +164,14 @@ model Quotation {
   userId           String
   clientName       String    @db.VarChar(255)
   clientDni        String    @db.VarChar(20)
-  vehicleData      String?   @db.VarChar(255)
-  vehicleVersionId Int?
+  vehicleVersionId Int
   totalValue       Decimal?  @db.Decimal(10, 2)
   createdAt        DateTime  @default(now())
 
   planVersion    PlanVersion  @relation(fields: [planVersionId], references: [id])
   company        Company      @relation(fields: [companyId], references: [id])
   user           User         @relation(fields: [userId], references: [id])
-  vehicleVersion AutosVersion? @relation(fields: [vehicleVersionId], references: [idversion])
+  vehicleVersion AutosVersion @relation(fields: [vehicleVersionId], references: [idversion])
 
   @@index([userId])
   @@index([companyId])

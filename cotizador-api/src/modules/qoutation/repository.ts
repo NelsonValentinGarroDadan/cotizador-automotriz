@@ -215,7 +215,6 @@ export const createQuotation = async (
       userId: data.userId,
       clientName: data.clientName,
       clientDni: data.clientDni,
-      vehicleData: data.vehicleData,
       vehicleVersionId: data.vehicleVersionId,
       totalValue: data.totalValue,
     },
@@ -265,7 +264,6 @@ export const updateQuotation = async (
     data: {
       ...(data.clientName !== undefined && { clientName: data.clientName }),
       ...(data.clientDni !== undefined && { clientDni: data.clientDni }),
-      ...(data.vehicleData !== undefined && { vehicleData: data.vehicleData }),
       ...(data.vehicleVersionId !== undefined && {
         vehicleVersionId: data.vehicleVersionId,
       }),
@@ -309,4 +307,3 @@ export const deleteQuotation = async (id: string) => {
     where: { id },
   });
 };
-

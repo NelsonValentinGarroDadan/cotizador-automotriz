@@ -5,7 +5,6 @@ import {
   createBrandSchema,
   createLineSchema,
   createModelSchema,
-  createVehicleVersionSchema,
   getVehiclesQuerySchema,
   updateBrandSchema,
   updateLineSchema,
@@ -174,8 +173,14 @@ export const getVersions = async (req: Request, res: Response) => {
     ALLOWED_SORT_FIELDS,
     "descrip"
   );
+  console.log(req.query);
+  const validate = getVehiclesQuerySchema.safeParse(req.query);
+  if (!validate .success) {
+    const errors = validate .error.issues.map((e) => e.message);
+    throw new AppError(errors.join(','), 403);
+  }
 
-  const filters = getVehiclesQuerySchema.parse(req.query);
+  const filters = validate.data;
 
   const result = await service.getVersions(req.user, page, limit, sortBy, sortOrder, filters);
   res.json(result);
@@ -184,8 +189,7 @@ export const getVersions = async (req: Request, res: Response) => {
 export const createVersion = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
 
-  const payload = createVehicleVersionSchema.parse(req.body);
-  const created = await service.createVersion(req.user, payload);
+  const created = await service.createVersion(req.user, req.body);
   res.status(201).json(created);
 };
 

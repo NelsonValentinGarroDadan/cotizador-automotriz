@@ -72,7 +72,7 @@ export const createQuotation = async (req: Request, res: Response) => {
     companyId,
     clientName,
     clientDni,
-    vehicleData,
+    vehicleVersionId,
     totalValue,
   } = req.body;
 
@@ -82,7 +82,7 @@ export const createQuotation = async (req: Request, res: Response) => {
       companyId,
       clientName,
       clientDni,
-      vehicleData,
+      vehicleVersionId,
       totalValue: totalValue ? parseFloat(totalValue) : undefined,
     },
     req.user
@@ -100,7 +100,7 @@ export const updateQuotation = async (req: Request, res: Response) => {
     companyId,
     clientName,
     clientDni,
-    vehicleData,
+    vehicleVersionId,
     totalValue,
   } = req.body;
 
@@ -109,7 +109,7 @@ export const updateQuotation = async (req: Request, res: Response) => {
     {
       clientName,
       clientDni,
-      vehicleData,
+      vehicleVersionId,
       planVersionId,
       companyId,
       totalValue: totalValue ? parseFloat(totalValue) : undefined,
@@ -125,4 +125,3 @@ export const deleteQuotation = async (req: Request, res: Response) => {
   await service.deleteQuotation(req.params.id, req.user);
   res.status(204).send();
 };
-

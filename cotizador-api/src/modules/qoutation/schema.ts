@@ -2,8 +2,8 @@
 import { z } from "zod";
 
 export const createQuotationSchema = z.object({
-  planVersionId: z.uuid("ID de versión del plan inválido"),
-  companyId: z.string().uuid("ID de compañía inválido"),
+  planVersionId: z.uuid("ID de version del plan invalido"),
+  companyId: z.string().uuid("ID de compania invalido"),
   clientName: z
     .string()
     .min(2, "El nombre del cliente debe tener al menos 2 caracteres")
@@ -12,15 +12,10 @@ export const createQuotationSchema = z.object({
     .string()
     .min(7, "El DNI debe tener al menos 7 caracteres")
     .max(20, "El DNI no puede superar los 20 caracteres"),
-  vehicleData: z
-    .string()
-    .max(255, "Los datos del vehículo no pueden superar los 255 caracteres")
-    .optional(),
   vehicleVersionId: z.coerce
     .number()
-    .int("El ID de versión de vehículo debe ser un número entero")
-    .positive("El ID de versión de vehículo debe ser positivo")
-    .optional(),
+    .int("El ID de version de vehiculo debe ser un numero entero")
+    .positive("El ID de version de vehiculo debe ser positivo"),
   totalValue: z.coerce
     .number()
     .nonnegative("El valor total debe ser positivo")
@@ -29,11 +24,11 @@ export const createQuotationSchema = z.object({
 
 export const updateQuotationSchema = z.object({
   planVersionId: z
-    .uuid("ID de versión del plan inválido")
+    .uuid("ID de version del plan invalido")
     .optional(),
   companyId: z
     .string()
-    .uuid("ID de compañía inválido")
+    .uuid("ID de compania invalido")
     .optional(),
   clientName: z
     .string()
@@ -45,14 +40,10 @@ export const updateQuotationSchema = z.object({
     .min(7, "El DNI debe tener al menos 7 caracteres")
     .max(20, "El DNI no puede superar los 20 caracteres")
     .optional(),
-  vehicleData: z
-    .string()
-    .max(255, "Los datos del vehículo no pueden superar los 255 caracteres")
-    .optional(),
   vehicleVersionId: z.coerce
     .number()
-    .int("El ID de versión de vehículo debe ser un número entero")
-    .positive("El ID de versión de vehículo debe ser positivo")
+    .int("El ID de version de vehiculo debe ser un numero entero")
+    .positive("El ID de version de vehiculo debe ser positivo")
     .optional(),
   totalValue: z.coerce
     .number()

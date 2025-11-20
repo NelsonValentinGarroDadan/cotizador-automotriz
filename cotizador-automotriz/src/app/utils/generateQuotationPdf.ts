@@ -7,9 +7,6 @@ import { User } from "../types/user";
 
 (pdfMake as any).vfs = pdfFonts.vfs;
 
-// =========================
-// Convertir WebP a PNG/JPEG compatible con pdfMake
-// =========================
 export async function urlToBase64(url: string): Promise<string | undefined> {
   try {
     const res = await fetch(url);
@@ -21,18 +18,16 @@ export async function urlToBase64(url: string): Promise<string | undefined> {
 
     const blob = await res.blob();
 
-    // ✅ Convertir WebP a PNG usando canvas
     return await new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = "anonymous";
-      
+
       img.onload = () => {
         try {
-          // Crear canvas
           const canvas = document.createElement("canvas");
           canvas.width = img.width;
           canvas.height = img.height;
-          
+
           const ctx = canvas.getContext("2d");
           if (!ctx) {
             console.warn("[PDF] No se pudo obtener contexto del canvas");
@@ -40,20 +35,11 @@ export async function urlToBase64(url: string): Promise<string | undefined> {
             return;
           }
 
-          // Dibujar imagen en canvas
           ctx.drawImage(img, 0, 0);
-          
-          // Convertir a PNG base64
           const pngBase64 = canvas.toDataURL("image/png");
-          
-          if (pngBase64.startsWith("data:image/png")) {
-            resolve(pngBase64);
-          } else {
-            console.warn("[PDF] Conversión a PNG falló");
-            resolve(undefined);
-          }
+          resolve(pngBase64.startsWith("data:image/png") ? pngBase64 : undefined);
         } catch (err) {
-          console.error("[PDF] Error en conversión canvas:", err);
+          console.error("[PDF] Error en conversion canvas:", err);
           resolve(undefined);
         }
       };
@@ -63,33 +49,8 @@ export async function urlToBase64(url: string): Promise<string | undefined> {
         resolve(undefined);
       };
 
-      // Crear URL del blob y cargar en imagen
       const objectURL = URL.createObjectURL(blob);
       img.src = objectURL;
-      
-      // Limpiar después de cargar
-      img.onload = () => {
-        URL.revokeObjectURL(objectURL);
-        
-        try {
-          const canvas = document.createElement("canvas");
-          canvas.width = img.width;
-          canvas.height = img.height;
-          
-          const ctx = canvas.getContext("2d");
-          if (!ctx) {
-            resolve(undefined);
-            return;
-          }
-
-          ctx.drawImage(img, 0, 0);
-          const pngBase64 = canvas.toDataURL("image/png");
-          resolve(pngBase64.startsWith("data:image/png") ? pngBase64 : undefined);
-        } catch (err) {
-          console.error("[PDF] Error en canvas:", err);
-          resolve(undefined);
-        }
-      };
     });
   } catch (err) {
     console.error("[PDF] Error convirtiendo imagen:", err);
@@ -97,9 +58,6 @@ export async function urlToBase64(url: string): Promise<string | undefined> {
   }
 }
 
-// =========================
-// GENERAR DOCUMENTO PDF
-// =========================
 interface GenerateQuotationPdfInput {
   company: Company;
   user: User;
@@ -117,22 +75,17 @@ export function generateQuotationPdfDoc({
   companyLogoBase64,
   planLogoBase64,
 }: GenerateQuotationPdfInput) {
-
-  const today = new Date().toLocaleDateString("es-AR");
   const cotizacionDate = new Date(quotation.createdAt).toLocaleDateString("es-AR");
+  const today = new Date().toLocaleDateString("es-AR");
 
-  const plazos = coefficients.map((c: any) => c.plazo).sort((a: number, b: number) => a - b);
-
-  const rowCells = coefficients.map((c: any) => {
-    const coefNum = Number(c.coeficiente);
-    const cuota = Number(quotation.totalValue) * (coefNum / 10000);
-
+  const tnaBlocks = coefficients.map((c: any) => {
     const tnaMostrar = Math.ceil(Number(c.tna));
-    const isChequePlan = quotation.planVersion.plan.name.toUpperCase().includes("CHEQUE");
-    const cantidadCheques = c.plazo + 1;
+    const coef = Number(c.coeficiente);
+    const cuota = Number(quotation.totalValue) * (coef / 10000);
 
+    const factorQuebranto = 1.21;
     const quebrantoP = Number(c.quebrantoFinanciero || 0) / 100;
-    const quebranto = Math.ceil(Number(quotation.totalValue) * quebrantoP * 1.21);
+    const quebranto = Math.ceil(Number(quotation.totalValue) * quebrantoP * factorQuebranto);
 
     const cuotaBalon = Number(c.cuotaBalon || 0);
     const mesesBalon = c.cuotaBalonMonths?.map((x: any) => x.month) || [];
@@ -148,15 +101,7 @@ export function generateQuotationPdfDoc({
       },
     ];
 
-    if (isChequePlan) {
-      contenido.push({
-        text: `${cantidadCheques} cheques de $${Math.ceil(cuota).toLocaleString("es-AR")} (1ro corr.)`,
-        fontSize: 8,
-        color: "#0044aa",
-      });
-    }
-
-    if (!isChequePlan && quebranto > 0) {
+    if (quebranto > 0) {
       contenido.push({
         text: `Quebranto: $${quebranto.toLocaleString("es-AR")}`,
         fontSize: 8,
@@ -166,7 +111,7 @@ export function generateQuotationPdfDoc({
 
     if (cuotaBalon > 0) {
       contenido.push({
-        text: `Cuota Balón: $${cuotaBalon.toLocaleString("es-AR")} meses: ${mesesBalon.join(", ")}`,
+        text: `Cuota Balon: $${cuotaBalon.toLocaleString("es-AR")} meses: ${mesesBalon.join(", ")}`,
         fontSize: 8,
         color: "#b38300",
       });
@@ -175,13 +120,17 @@ export function generateQuotationPdfDoc({
     return { stack: contenido, alignment: "center" };
   });
 
+  const vehicleLabel =
+    quotation.vehicleVersion
+      ? `${quotation.vehicleVersion.marca?.descrip ?? ""} ${quotation.vehicleVersion.modelo?.descrip ?? ""} ${quotation.vehicleVersion.nueva_descrip || quotation.vehicleVersion.descrip}`.trim() ||
+        "N/D"
+      : "N/D";
 
   const docDefinition: any = {
     pageSize: "A4",
     pageMargins: [40, 30, 40, 30],
 
     content: [
-      // ----------------- HEADER (NEGRO + BG #7d8385) -----------------
       {
         table: {
           widths: ["60%", "40%"],
@@ -190,13 +139,13 @@ export function generateQuotationPdfDoc({
               {
                 stack: [
                   { text: company.name, style: "headerTitle" },
-                  { text: `Fecha de Cotización: ${cotizacionDate}`, color: "white" },
+                  { text: `Fecha de Cotizacion: ${cotizacionDate}`, color: "white" },
                   { text: `Fecha Actual: ${today}`, color: "white" },
                   { text: `Atendido por: ${user.firstName} ${user.lastName}`, color: "white" },
                 ],
-                margin: [10, 10, 0, 10], 
+                margin: [10, 10, 0, 10],
               },
-              { 
+              {
                 alignment: "right",
                 margin: [0, 5, 10, 5],
                 stack: [
@@ -213,13 +162,11 @@ export function generateQuotationPdfDoc({
         },
       },
 
-      // -------- LINEA --------
       {
         canvas: [{ type: "line", x1: 0, y1: 15, x2: 515, y2: 15, lineWidth: 1 }],
         margin: [0, 10, 0, 20],
       },
 
-      // ----------------- DATOS DEL CLIENTE -----------------
       {
         text: "Datos del Cliente",
         style: "sectionTitle",
@@ -231,7 +178,7 @@ export function generateQuotationPdfDoc({
           body: [
             ["Nombre", quotation.clientName],
             ["DNI", quotation.clientDni],
-            ["Vehículo", quotation.vehicleData || "—"],
+            ["Vehiculo", vehicleLabel],
             ["Monto Total", `$${Number(quotation.totalValue).toLocaleString("es-AR")}`],
           ],
         },
@@ -240,7 +187,6 @@ export function generateQuotationPdfDoc({
         margin: [0, 5, 0, 25],
       },
 
-      // ----------------- PLAN SECTION (BG #7d8385 + texto negro) -----------------
       {
         table: {
           widths: ["70%", "30%"],
@@ -267,39 +213,38 @@ export function generateQuotationPdfDoc({
           hLineWidth: () => 0,
           vLineWidth: () => 0,
         },
-        margin: [0, 0, 0, 25],
       },
 
-      // ----------------- TABLA COMPLETA COMO EL FORMULARIO -----------------
       {
-        table: {
-          widths: plazos.map(() => `${100 / plazos.length}%`),
-          body: [
-            plazos.map((p) => ({
-              text: `${p} cuotas`,
-              bold: true,
-              alignment: "center",
-              fillColor: "#eaeaea",
-            })),
-            rowCells,
-          ],
-        },
-        layout: "lightHorizontalLines",
+        text: "Resumen de Cuotas",
+        style: "sectionTitle",
+        margin: [0, 20, 0, 10],
+      },
+
+      {
+        columns: tnaBlocks,
+        columnGap: 10,
       },
     ],
 
     styles: {
       headerTitle: {
-        fontSize: 20,
+        fontSize: 16,
         bold: true,
         color: "white",
       },
-      sectionTitle: { fontSize: 14, bold: true, },
-      planName: { fontSize: 17, bold: true },
+      sectionTitle: {
+        fontSize: 14,
+        bold: true,
+        margin: [0, 0, 0, 8],
+      },
+      planName: {
+        fontSize: 14,
+        bold: true,
+      },
     },
   };
 
   return docDefinition;
 }
-
 

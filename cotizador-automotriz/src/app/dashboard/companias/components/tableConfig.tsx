@@ -29,7 +29,7 @@ export  default function  companyColumns(
       src={baseUrl + value}
       alt="Logo"
       className="w-auto h-20 mx-auto rounded"
-    /> : <span className="h-20 block text-lg text-center w-full font-bold">-</span>,
+    /> : <span className="h-20 flex items-center justify-center text-lg  w-full h-full font-bold">-</span>,
   },  
   {
     key: "createdAt",

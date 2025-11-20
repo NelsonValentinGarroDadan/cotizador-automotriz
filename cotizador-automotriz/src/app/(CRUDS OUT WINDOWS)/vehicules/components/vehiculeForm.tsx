@@ -7,9 +7,13 @@ import CustomButton from '@/app/components/ui/customButton';
 import { CustomInput } from '@/app/components/ui/customInput';
 import { MultiSelect } from '@/app/components/ui/multiSelect';
 import { SelectSearch, SelectSearchOption } from '@/app/components/ui/selectSearch';
-import {  useCreateVehiculeVersionMutation, useUpdateVehiculeVersionMutation } from '@/app/api/vehiculeApi';
+import {
+  useCreateVehiculeVersionMutation,
+  useUpdateVehiculeVersionMutation,
+  vehiculeApi,
+} from '@/app/api/vehiculeApi';
 import { useGetAllCompaniesQuery } from '@/app/api/companyApi';
-import { useAuthStore } from '@/app/store/useAuthStore';
+import { useDispatch } from 'react-redux';
 import { VehiculeVersion, VehiculeVersionPayload } from '@/app/types/vehiculos';
 
 interface VehiculeFormProps {
@@ -21,9 +25,7 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
   const isEdit = Boolean(entity) && !readOnly;
   const isView = Boolean(entity) && readOnly;
 
-  const { token } = useAuthStore();
-  const apiBaseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL_API || 'http://localhost:3003/api';
+  const dispatch = useDispatch();
 
   const {
     register,
@@ -45,6 +47,7 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
   const [loadingBrand, setLoadingBrand] = useState(false);
   const [loadingLine, setLoadingLine] = useState(false);
   const [loadingModel, setLoadingModel] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (entity && companiesData?.data) {
@@ -55,6 +58,7 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
         codigo: entity.codigo,
         companyIds: assignedCompanies,
         brandId: entity.marca.idmarca,
+        lineId: entity.modelo.linea?.idlinea,
         modelId: entity.modelo.idmodelo,
       });
     }
@@ -63,14 +67,14 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
   const loadBrands = async (search: string): Promise<SelectSearchOption[]> => {
     setLoadingBrand(true);
     try {
-      const url = `${apiBaseUrl}/vehicules/brands?limit=50&search=${encodeURIComponent(
-        search || ''
-      )}`;
-      const res = await fetch(url, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-      const json = await res.json();
-      return (json.data || []).map((b: any) => ({
+      const result = await (dispatch as any)(
+        vehiculeApi.endpoints.getVehiculeBrands.initiate({
+          limit: 50,
+          search: search || undefined,
+        })
+      ).unwrap();
+
+      return (result.data || []).map((b: any) => ({
         value: String(b.idmarca),
         label: b.descrip,
       }));
@@ -83,17 +87,15 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
     if (!brandId) return [];
     setLoadingLine(true);
     try {
-      const params = new URLSearchParams();
-      params.append('limit', '50');
-      params.append('brandId', brandId.toString());
-      if (search) params.append('search', search);
+      const result = await (dispatch as any)(
+        vehiculeApi.endpoints.getVehiculeLines.initiate({
+          limit: 50,
+          brandId,
+          search: search || undefined,
+        })
+      ).unwrap();
 
-      const url = `${apiBaseUrl}/vehicules/lines?${params.toString()}`;
-      const res = await fetch(url, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-      const json = await res.json();
-      return (json.data || []).map((l: any) => ({
+      return (result.data || []).map((l: any) => ({
         value: String(l.idlinea),
         label: l.descrip,
       }));
@@ -110,18 +112,16 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
     if (!brandId || !lineId) return [];
     setLoadingModel(true);
     try {
-      const params = new URLSearchParams();
-      params.append('limit', '50');
-      params.append('brandId', brandId.toString());
-      params.append('lineId', lineId.toString());
-      if (search) params.append('search', search);
+      const result = await (dispatch as any)(
+        vehiculeApi.endpoints.getVehiculeModels.initiate({
+          limit: 50,
+          brandId,
+          lineId,
+          search: search || undefined,
+        })
+      ).unwrap();
 
-      const url = `${apiBaseUrl}/vehicules/models?${params.toString()}`;
-      const res = await fetch(url, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-      const json = await res.json();
-      return (json.data || []).map((m: any) => ({
+      return (result.data || []).map((m: any) => ({
         value: String(m.idmodelo),
         label: m.descrip,
       }));
@@ -142,28 +142,31 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
     useUpdateVehiculeVersionMutation();
 
   const onSubmit = async (data: VehiculeVersionPayload) => {
-    const payload: VehiculeVersionPayload = {
-      ...data,
-      brandId: Number(data.brandId),
-      modelId: Number(data.modelId),
-      companyIds: data.companyIds,
-    };
+    try {
+      setError(null);
+      if (isEdit && entity) {
+        await updateVehicule({
+          idversion: entity.idversion,
+          data,
+        }).unwrap();
+      } else {
+        await createVehicule(data).unwrap();
+      }
 
-    if (isEdit && entity) {
-      await updateVehicule({
-        idversion: entity.idversion,
-        data: payload,
-      }).unwrap();
-    } else {
-      await createVehicule(payload).unwrap();
-    }
-
-    if (window.opener) {
-      window.opener.postMessage(
-        { [isEdit ? 'updated' : 'created']: true },
-        window.location.origin
-      );
-      window.close();
+      if (window.opener) {
+        window.opener.postMessage(
+          { [isEdit ? 'updated' : 'created']: true },
+          window.location.origin
+        );
+        window.close();
+      }
+    } catch (err: any) {
+      const apiError = err as { data?: { errors?: string[]; message?: string } };
+      if (apiError.data?.errors && Array.isArray(apiError.data.errors)) {
+        setError(apiError.data.errors.join(', '));
+      } else {
+        setError(apiError.data?.message || 'Error al guardar el vehiculo');
+      }
     }
   };
 
@@ -198,6 +201,18 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
               </div>
             )}
           />
+
+          {!isEdit && (
+            <CustomInput
+              label="Nueva marca (opcional)"
+              {...register('newBrandDescrip')}
+              error={errors.newBrandDescrip?.toString()}
+              inputClassName="!border-yellow-light bg-yellow-light"
+              labelClassName="!text-black"
+              placeholder="Completar solo si no seleccionas marca"
+              disabled={isView}
+            />
+          )}
 
           <Controller
             name="lineId"
@@ -252,6 +267,29 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
           />
         </div>
 
+        {!isEdit && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CustomInput
+              label="Nueva línea (opcional)"
+              {...register('newLineDescrip')}
+              error={errors.newLineDescrip?.toString()}
+              inputClassName="!border-yellow-light bg-yellow-light"
+              labelClassName="!text-black"
+              placeholder="Completar solo si no seleccionas línea"
+              disabled={isView}
+            />
+            <CustomInput
+              label="Nuevo modelo (opcional)"
+              {...register('newModelDescrip')}
+              error={errors.newModelDescrip?.toString()}
+              inputClassName="!border-yellow-light bg-yellow-light"
+              labelClassName="!text-black"
+              placeholder="Completar solo si no seleccionas modelo"
+              disabled={isView}
+            />
+          </div>
+        )}
+
         <CustomInput
           label="Descripción (Versión)"
           {...register('descrip')}
@@ -305,6 +343,12 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
             </div>
           )}
         />
+
+        {error && (
+          <div className="mt-2 rounded bg-red-100 border border-red-300 px-3 py-2 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         {!isView && (
           <div className="flex justify-end gap-4 mt-4">

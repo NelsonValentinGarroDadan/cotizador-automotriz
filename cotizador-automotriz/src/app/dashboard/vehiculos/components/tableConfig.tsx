@@ -1,16 +1,18 @@
 import TableActions from "@/app/components/ui/tableAction";
-import { TableColumn } from "@/app/types/table"; 
+import { TableColumn } from "@/app/types/table";
 import { Role } from "@/app/types";
 import { VehiculeVersion } from "@/app/types/vehiculos";
 
 export default function vehiculeColumns({
   onCreated,
   role,
+  showCompanyColumn = true,
 }: {
   onCreated: () => void;
   role: Role;
+  showCompanyColumn?: boolean;
 }): TableColumn[] {
-  return [
+  const columns: TableColumn[] = [
     {
       key: "descrip",
       label: "Version",
@@ -28,8 +30,7 @@ export default function vehiculeColumns({
       key: "idlinea",
       label: "Linea",
       sortable: true,
-      render: (_, row: VehiculeVersion) =>
-        row.modelo?.linea?.descrip ?? "-",
+      render: (_, row: VehiculeVersion) => row.modelo?.linea?.descrip ?? "-",
     },
     {
       key: "idmodelo",
@@ -37,7 +38,10 @@ export default function vehiculeColumns({
       sortable: true,
       render: (_, row: VehiculeVersion) => row.modelo?.descrip ?? "-",
     },
-    {
+  ];
+
+  if (showCompanyColumn) {
+    columns.push({
       key: "company",
       label: "Compañias",
       sortable: false,
@@ -62,22 +66,25 @@ export default function vehiculeColumns({
           </div>
         );
       },
-    },
-    {
-      key: "idversion",
-      label: "Acciones",
-      sortable: false,
-      render: (value: number) => (
-        <TableActions
-          baseUrl="/vehicules"
-          id={value}
-          showDelete={role === Role.ADMIN || role === Role.SUPER_ADMIN}
-          showEdit={role === Role.ADMIN || role === Role.SUPER_ADMIN}
-          showView={true}
-          onActionComplete={onCreated}
-        />
-      ),
-    },
-  ];
+    });
+  }
+
+  columns.push({
+    key: "idversion",
+    label: "Acciones",
+    sortable: false,
+    render: (value: number) => (
+      <TableActions
+        baseUrl="/vehicules"
+        id={value}
+        showDelete={role === Role.ADMIN || role === Role.SUPER_ADMIN}
+        showEdit={role === Role.ADMIN || role === Role.SUPER_ADMIN}
+        showView={true}
+        onActionComplete={onCreated}
+      />
+    ),
+  });
+
+  return columns;
 }
 

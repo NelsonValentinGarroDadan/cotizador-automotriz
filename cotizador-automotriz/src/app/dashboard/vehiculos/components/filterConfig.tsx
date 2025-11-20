@@ -48,10 +48,10 @@ export const getVehiculeFilters = ({
   if (showCompanyFilter) {
     filters.push({
       name: 'companyId',
-      label: 'Compa��ia',
+      label: 'Compañia',
       type: 'select',
       options: [
-        { value: '', label: 'Todas las compa��ias' },
+        { value: '', label: 'Todas las compañias' },
         ...companyOptions,
       ],
     });

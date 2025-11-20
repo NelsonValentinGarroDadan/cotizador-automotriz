@@ -1,54 +1,60 @@
 import z from "zod";
 import { Company } from "./compay";
-import {  PlanVersion } from "./plan";
+import { PlanVersion } from "./plan";
 import { User } from "./user";
 
 export interface Quotation {
   id: string;
   clientName: string;
   clientDni: string;
-  vehicleData?: string;
   totalValue?: number;
   createdAt: string;
   company: Company;
-  planVersionId:string;
+  planVersionId: string;
   user: User;
   planVersion: PlanVersion;
+  vehicleVersion?: {
+    idversion: number;
+    descrip: string;
+    nueva_descrip: string;
+    codigo: string;
+    marca?: { idmarca: number; descrip: string };
+    modelo?: { idmodelo: number; descrip: string };
+  };
 }
 
-// 🧩 Este tipo acepta string o number, perfecto para inputs controlados
 export const numberFromString = z
   .union([z.string(), z.number()])
   .transform((v) => {
     if (v === "" || v === null || v === undefined) return undefined;
     const n = Number(v);
-    return isNaN(n) ? undefined : n;
+    return Number.isNaN(n) ? undefined : n;
   })
   .optional();
 
-// 🧩 Schema de creación
 export const createSchema = z.object({
-  companyId: z.uuid("Compañía inválida"),
-  planId: z.uuid("Plan inválido"),
-  planVersionId: z.uuid("Versión inválida"),
+  companyId: z.uuid("Compañia invalida"),
+  planId: z.uuid("Plan invalido"),
+  planVersionId: z.uuid("Version invalida"),
   clientName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  clientDni: z.string().min(7, "Mínimo 7 caracteres"),
-  vehicleData: z.string().optional(),
+  clientDni: z.string().min(7, "Minimo 7 caracteres"),
+  vehicleVersionId: z.coerce
+    .number()
+    .int("ID de vehiculo invalido")
+    .positive("ID de vehiculo invalido"),
   totalValue: numberFromString,
 });
 
-// 🧩 Schema de actualización parcial
 export const updateSchema = createSchema.partial();
-export type updateSchema = z.infer<typeof updateSchema>
+export type updateSchema = z.infer<typeof updateSchema>;
 
-// ✅ Tipos inferidos compatibles con react-hook-form
 export type CreateInput = {
   companyId: string;
   planId: string;
   planVersionId: string;
   clientName: string;
   clientDni: string;
-  vehicleData?: string;
+  vehicleVersionId: unknown;
   totalValue?: string | number | undefined;
 };
 

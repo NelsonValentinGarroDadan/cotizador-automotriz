@@ -1,6 +1,11 @@
 import { Router } from "express";
 import { catchAsync } from "../../utils/catchAsync";
+import { validateRequest } from "../../core/middleware/validateRequest";
 import * as controller from "./controller";
+import {
+  createVehicleVersionSchema,
+  updateVehicleVersionSchema,
+} from "./schema";
 
 const routerVehicules = Router();
 
@@ -18,8 +23,16 @@ routerVehicules.put("/models/:idmodelo", catchAsync(controller.updateModel));
 routerVehicules.delete("/models/:idmodelo", catchAsync(controller.deleteModel));
 routerVehicules.get("/versions/:idversion", catchAsync(controller.getVersionById));
 routerVehicules.get("/versions", catchAsync(controller.getVersions));
-routerVehicules.post("/versions", catchAsync(controller.createVersion));
-routerVehicules.put("/versions/:idversion", catchAsync(controller.updateVersion));
+routerVehicules.post(
+  "/versions",
+  validateRequest(createVehicleVersionSchema),
+  catchAsync(controller.createVersion)
+);
+routerVehicules.put(
+  "/versions/:idversion",
+  validateRequest(updateVehicleVersionSchema),
+  catchAsync(controller.updateVersion)
+);
 routerVehicules.delete("/versions/:idversion", catchAsync(controller.deleteVersion));
 
 export default routerVehicules;

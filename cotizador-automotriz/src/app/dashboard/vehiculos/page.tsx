@@ -5,18 +5,17 @@ import { useEffect, useMemo } from 'react';
 import { CustomTable } from '@/app/components/ui/customTable';
 import { createTableStore } from '@/app/store/useTableStore';
 import vehiculeColumns from './components/tableConfig';
-import { useGetAllVehiculeVersionsQuery } from '@/app/api/vehiculeApi';
+import { useGetAllVehiculeVersionsQuery, vehiculeApi } from '@/app/api/vehiculeApi';
 import { useDispatch } from 'react-redux';
 import { useAuthStore } from '@/app/store/useAuthStore';
 import { Role } from '@/app/types';
-import { vehiculeApi } from '@/app/api/vehiculeApi';
 import WindowFormButton from '@/app/components/windowFormButton';
 import { Plus } from 'lucide-react';
 import { useGetAllCompaniesQuery } from '@/app/api/companyApi';
-import { FilterConfig } from '@/app/types/table'; 
+import { getVehiculeFilters } from './components/filterConfig';
 
 export default function VehiculesPage() {
-  const { user, hydrated, token } = useAuthStore();
+  const { user, hydrated } = useAuthStore();
   const dispatch = useDispatch();
   const useVehiculesTableStore = useMemo(
     () => createTableStore('vehicules'),
@@ -28,9 +27,6 @@ export default function VehiculesPage() {
     page: 1,
     limit: 1000,
   });
-
-  const apiBaseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL_API || 'http://localhost:3003/api';
 
   const { data, refetch, isLoading, isFetching } =
     useGetAllVehiculeVersionsQuery(
@@ -70,69 +66,42 @@ export default function VehiculesPage() {
   };
 
   const loadBrandOptions = async (search: string) => {
-    const params = new URLSearchParams();
-    params.append('limit', '50');
-    if (search) params.append('search', search);
+    const result = await (dispatch as any)(
+      vehiculeApi.endpoints.getVehiculeBrands.initiate({
+        limit: 50,
+        search: search || undefined,
+      })
+    ).unwrap();
 
-    const res = await fetch(
-      `${apiBaseUrl}/vehicules/brands?${params.toString()}`,
-      {
-        headers: token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : undefined,
-      }
-    );
-
-    const json = await res.json();
-    return (json.data || []).map((b: any) => ({
+    return (result.data || []).map((b: any) => ({
       value: String(b.idmarca),
       label: b.descrip,
     }));
   };
 
   const loadLineOptions = async (search: string) => {
-    const params = new URLSearchParams();
-    params.append('limit', '50');
-    if (search) params.append('search', search);
+    const result = await (dispatch as any)(
+      vehiculeApi.endpoints.getVehiculeLines.initiate({
+        limit: 50,
+        search: search || undefined,
+      })
+    ).unwrap();
 
-    const res = await fetch(
-      `${apiBaseUrl}/vehicules/lines?${params.toString()}`,
-      {
-        headers: token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : undefined,
-      }
-    );
-
-    const json = await res.json();
-    return (json.data || []).map((l: any) => ({
+    return (result.data || []).map((l: any) => ({
       value: String(l.idlinea),
       label: l.descrip,
     }));
   };
 
   const loadModelOptions = async (search: string) => {
-    const params = new URLSearchParams();
-    params.append('limit', '50');
-    if (search) params.append('search', search);
+    const result = await (dispatch as any)(
+      vehiculeApi.endpoints.getVehiculeModels.initiate({
+        limit: 50,
+        search: search || undefined,
+      })
+    ).unwrap();
 
-    const res = await fetch(
-      `${apiBaseUrl}/vehicules/models?${params.toString()}`,
-      {
-        headers: token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : undefined,
-      }
-    );
-
-    const json = await res.json();
-    return (json.data || []).map((m: any) => ({
+    return (result.data || []).map((m: any) => ({
       value: String(m.idmodelo),
       label: m.descrip,
     }));
@@ -156,56 +125,23 @@ export default function VehiculesPage() {
     return null;
   }
 
+  const showCompanyColumn = companyOptions.length > 1;
+
   const columns = vehiculeColumns({
     onCreated: refetch,
     role: user.role,
+    showCompanyColumn,
   });
 
-  const vehiculeFilters: FilterConfig[] = [
-    {
-      name: 'search',
-      label: 'Buscar por version',
-      type: 'text',
-      placeholder: 'Ej: Corolla XEi',
-    },
-    {
-      name: 'brandId',
-      label: 'Marca',
-      type: 'selectSearch',
-      placeholder: 'Todas las marcas',
-      loadOptions: loadBrandOptions,
-    },
-    {
-      name: 'lineId',
-      label: 'Linea',
-      type: 'selectSearch',
-      placeholder: 'Todas las lineas',
-      loadOptions: loadLineOptions,
-    },
-    {
-      name: 'modelId',
-      label: 'Modelo',
-      type: 'selectSearch',
-      placeholder: 'Todos los modelos',
-      loadOptions: loadModelOptions,
-    },
-  ];
+  const showCompanyFilter =companyOptions.length > 1;
 
-  const showCompanyFilter =
-    user.role === Role.SUPER_ADMIN ||
-    (user.role === Role.ADMIN && companyOptions.length > 1);
-
-  if (showCompanyFilter) {
-    vehiculeFilters.push({
-      name: 'companyId',
-      label: 'Compañia',
-      type: 'select',
-      options: [
-        { value: '', label: 'Todas las compañias' },
-        ...companyOptions,
-      ],
-    });
-  }
+  const vehiculeFilters = getVehiculeFilters({
+    companyOptions,
+    showCompanyFilter,
+    loadBrandOptions,
+    loadLineOptions,
+    loadModelOptions,
+  });
 
   return (
     <section className="w-full border-l border-gray px-5 min-h-screen">
@@ -222,8 +158,8 @@ export default function VehiculesPage() {
         loading={isLoading || isFetching}
         onFilter={handleFilter}
         onPageChange={handlePageChange}
-        title="Gestión de Vehículos"
-        description="Podrás ver y administrar las versiones de vehículos disponibles para tus compañías."
+        title="Gestion de Vehiculos"
+        description="Podris ver y administrar las versiones de vehiculos disponibles para tus compañias."
         buttons={
           (user.role === Role.ADMIN || user.role === Role.SUPER_ADMIN) && (
             <WindowFormButton
@@ -231,7 +167,7 @@ export default function VehiculesPage() {
               buttonText={
                 <p className="flex gap-3">
                   <Plus className="text-white h-6 w-6" />
-                  Crear Vehículo
+                  Crear Vehiculo
                 </p>
               }
               onCreated={refetch}

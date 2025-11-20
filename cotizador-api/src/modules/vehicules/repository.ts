@@ -4,7 +4,7 @@ import { calculatePagination } from "../../utils/pagination";
 interface BrandFilters {
   search?: string;
   companyIds?: string[];
-  isSuperAdmin?: boolean;
+  isSuperAdmin?: boolean; 
 }
 
 interface LineFilters extends BrandFilters {
@@ -53,7 +53,7 @@ export const getBrands = async (
   limit: number,
   sortBy: string,
   sortOrder: "asc" | "desc",
-  filters?: BrandFilters
+  filters?: VersionFilters
 ) => {
   const { skip, take } = calculatePagination(page, limit);
 

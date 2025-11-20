@@ -1,9 +1,11 @@
+/* eslint-disable react-hooks/exhaustive-deps */ 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useDispatch } from 'react-redux';
 import { CreateInput, createSchema, Quotation } from '@/app/types/quotition';
 import { useGetAllCompaniesQuery } from '@/app/api/companyApi';
 import { useGetAllPlansQuery } from '@/app/api/planApi';
@@ -12,6 +14,8 @@ import CustomButton from '@/app/components/ui/customButton';
 import { MultiSelect } from '@/app/components/ui/multiSelect';
 import { PlanWithDetails } from '@/app/types/plan';
 import { CustomInput } from '@/app/components/ui/customInput';
+import { SelectSearch, SelectSearchOption } from '@/app/components/ui/selectSearch'; 
+import { vehiculeApi } from '@/app/api/vehiculeApi';
 
 export default function QuotationForm({
   entity,
@@ -36,23 +40,25 @@ export default function QuotationForm({
   const { data: plansData } = useGetAllPlansQuery({ page: 1, limit: 1000 });
   const [createQuotation, { isLoading: isCreating }] = useCreateQuotationMutation();
   const [updateQuotation] = useUpdateQuotationMutation();
-  const [requestError, setRequestError] = useState<string | null>(null);
+  const [requestError, setRequestError] = useState<string | null>(null); 
+  const dispatch = useDispatch();
 
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<CreateInput>({
     resolver: zodResolver(createSchema),
     defaultValues: {
       clientName: '',
       clientDni: '',
-      vehicleData: '',
       totalValue: undefined,
       companyId: '',
       planId: '',
       planVersionId: '',
+      vehicleVersionId: undefined as unknown as number,
     },
   });
 
@@ -65,7 +71,6 @@ export default function QuotationForm({
     );
   }, [plansData, selectedCompanyId]);
 
-  // Helpers de restricciones por monto/cuotas a nivel versión de plan
   const isMontoWithinVersionRange = (
     version: NonNullable<PlanWithDetails['versions']>[number],
     amount: number,
@@ -92,29 +97,27 @@ export default function QuotationForm({
     return true;
   };
 
-  // Precargar datos en modo edición / vista
+  // Precargar datos en modo edicion / vista
   useEffect(() => {
     if (!entity) return;
 
-    // Cliente
     setValue('clientName', entity.clientName || '');
     setValue('clientDni', entity.clientDni || '');
-    setValue('vehicleData', entity.vehicleData || '');
 
-    // Monto
     if (entity.totalValue) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMonto(Number(entity.totalValue));
       setValue('totalValue', Number(entity.totalValue));
     }
 
-    // Compañía
     if (entity.company?.id) {
       setSelectedCompanyId(entity.company.id);
       setValue('companyId', entity.company.id);
     }
 
-    // Cargar plan / versión usada
+    if (entity.vehicleVersion?.idversion) {
+      setValue('vehicleVersionId', entity.vehicleVersion.idversion);
+    }
+
     if (entity.planVersionId && plansData?.data) {
       const allPlans = plansData.data as PlanWithDetails[];
 
@@ -138,6 +141,15 @@ export default function QuotationForm({
       }
     }
   }, [entity, plansData, setValue]);
+
+  // Preseleccionar compania si solo hay una
+  useEffect(() => {
+    if (!selectedCompanyId && companies.length === 1) {
+      const onlyCompany = companies[0];
+      setSelectedCompanyId(onlyCompany.id);
+      setValue('companyId', onlyCompany.id);
+    }
+  }, [companies, selectedCompanyId, setValue]);
 
   const onSubmit = async (data: CreateInput) => {
     if (!selectedPlan) {
@@ -171,7 +183,7 @@ export default function QuotationForm({
       if (apiError.data?.errors && Array.isArray(apiError.data.errors)) {
         setRequestError(apiError.data.errors.join(', '));
       } else {
-        setRequestError(err?.data?.message || 'Error al guardar la cotización');
+        setRequestError(err?.data?.message || 'Error al guardar la cotizacion');
       }
     }
   };
@@ -204,7 +216,7 @@ export default function QuotationForm({
   return (
     <div className="w-[90%] h-[90%] border rounded shadow bg-blue-light-ligth overflow-y-auto">
       <h1 className="text-xl font-bold mb-4 text-white bg-gray py-2 px-4">
-        Simulador de Cotización
+        Simulador de Cotizacion
       </h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 p-4">
@@ -217,7 +229,7 @@ export default function QuotationForm({
               label="Nombre del Cliente"
               {...register('clientName')}
               error={errors.clientName?.message}
-              placeholder="Ej: Juan Pérez"
+              placeholder="Ej: Juan Perez"
               disabled={isView}
             />
             <CustomInput
@@ -227,19 +239,12 @@ export default function QuotationForm({
               placeholder="Ej: 30123456"
               disabled={isView}
             />
-            <CustomInput
-              label="Datos del vehículo (opcional)"
-              {...register('vehicleData')}
-              error={errors.vehicleData?.message}
-              placeholder="Ej: Toyota Corolla 2.0"
-              disabled={isView}
-            />
           </div>
         </div>
 
-        {/* 2. Compañía */}
+        {/* 2. Compania */}
         <div className="bg-white p-4 rounded border">
-          <h2 className="text-lg font-semibold mb-3 text-black">Seleccionar Compañía</h2>
+          <h2 className="text-lg font-semibold mb-3 text-black">Seleccionar Compania</h2>
 
           <MultiSelect
             options={companies.map((c) => ({ value: c.id, label: c.name }))}
@@ -249,8 +254,9 @@ export default function QuotationForm({
               setSelectedCompanyId(v);
               setValue('companyId', v);
               setSelectedPlan(null);
+              setValue('vehicleVersionId', undefined as unknown as number);
             }}
-            placeholder="Seleccionar compañía..."
+            placeholder="Seleccionar compañia..."
             disabled={isView}
           />
 
@@ -259,7 +265,53 @@ export default function QuotationForm({
           )}
         </div>
 
-        {/* 3. Monto */}
+        {/* 3. Vehiculo */}
+        <div className="bg-white p-4 rounded border">
+          <h2 className="text-lg font-semibold mb-3 text-black">Seleccionar Vehiculo</h2>
+
+          <SelectSearch
+            value={
+              watch('vehicleVersionId')
+                ? String(watch('vehicleVersionId'))
+                : undefined
+            }
+            onChange={(val) =>
+              setValue(
+                'vehicleVersionId',
+                val ? Number(val) : undefined,
+              )
+            }
+            loadOptions={async (search: string): Promise<SelectSearchOption[]> => {
+              if (!selectedCompanyId) return [];
+              const result = await (dispatch as any)(
+                vehiculeApi.endpoints.getAllVehiculeVersions.initiate({
+                  limit: 50,
+                  companyId: selectedCompanyId,
+                  search: search || undefined,
+                })
+              ).unwrap() as { data?: any[] };
+
+              return (result.data || []).map((v: any) => ({
+                value: String(v.idversion),
+                label: v.nueva_descrip || v.descrip,
+              }));
+            }}
+            placeholder={
+              selectedCompanyId
+                ? 'Seleccionar vehiculo...'
+                : 'Selecciona primero una compania'
+            }
+            disabled={isView || !selectedCompanyId}
+          />
+
+          {errors.vehicleVersionId?.message && (
+            <span className="text-red-500 text-sm">
+              {errors.vehicleVersionId.message}
+            </span>
+          )}
+        </div>
+
+        {/* 4. Monto */}
         <div className="bg-white p-4 rounded border">
           <h2 className="text-lg font-semibold mb-3 text-black">Monto a Financiar</h2>
 
@@ -276,7 +328,7 @@ export default function QuotationForm({
           />
         </div>
 
-        {/* 4. Tabla de Planes */}
+        {/* 5. Tabla de Planes */}
         {selectedCompanyId && monto > 0 && (
           <div className="bg-white p-4 rounded border">
             <h2 className="text-lg font-semibold mb-4 text-black">Planes Disponibles</h2>
@@ -334,7 +386,7 @@ export default function QuotationForm({
                       } else if (hastaCuota !== undefined) {
                         reasonText = `No hay plazos disponibles para este monto. Se permiten hasta ${hastaCuota} cuotas.`;
                       } else {
-                        reasonText = 'No hay plazos disponibles para este monto según las restricciones del plan.';
+                        reasonText = 'No hay plazos disponibles para este monto segun las restricciones del plan.';
                       }
                     }
 
@@ -422,14 +474,14 @@ export default function QuotationForm({
                               )}
 
                               {!esPlanCheques && quebranto > 0 && (
-                                <div className="bg-gray-100 text-xs text-gray-700 p-1 mt-1 rounded">
+                                <div className="text-xs text-gray-600 mt-1">
                                   Quebranto: {formatMoney(quebranto)}
                                 </div>
                               )}
 
                               {cuotaBalon > 0 && (
-                                <div className="text-xs text-yellow-700 mt-1">
-                                  {mesesBalon.length} Cuota Balón: {formatMoney(cuotaBalon)}
+                                <div className="text-xs text-amber-700 mt-1">
+                                  Cuota Balon: {formatMoney(cuotaBalon)} meses: {mesesBalon.join(', ')}
                                 </div>
                               )}
                             </td>
@@ -445,15 +497,22 @@ export default function QuotationForm({
         )}
 
         {requestError && (
-          <div className="bg-red-100 text-red-700 p-2 rounded text-sm text-center">
-            {requestError}
-          </div>
+          <div className="text-red-500 text-sm mt-2">{requestError}</div>
         )}
 
         {!isView && (
-          <CustomButton type="submit" disabled={isCreating}>
-            {isCreating ? 'Creando...' : 'Guardar Cotización'}
-          </CustomButton>
+          <div className="flex justify-end gap-4 mt-4">
+            <CustomButton
+              type="button"
+              onClick={() => window.close()}
+              className="bg-gray hover:bg-gray/80"
+            >
+              Cancelar
+            </CustomButton>
+            <CustomButton type="submit" disabled={isCreating}>
+              {action === 'edit' ? 'Actualizar' : 'Crear'}
+            </CustomButton>
+          </div>
         )}
       </form>
     </div>

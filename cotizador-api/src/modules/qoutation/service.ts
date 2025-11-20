@@ -71,7 +71,7 @@ export const getQuotationById = async (
 
 const validateVehicleVersionAccess = async (
   companyId: string,
-  vehicleVersionId: number | undefined,
+  vehicleVersionId: number | null | undefined,
   user: UserToken
 ) => {
   if (!vehicleVersionId || user.role === Role.SUPER_ADMIN) {
@@ -82,7 +82,7 @@ const validateVehicleVersionAccess = async (
   const vehicle = await prisma.autosVersion.findFirst({
     where: {
       idversion: vehicleVersionId,
-      companyId,
+      company: {some: { id:companyId }} 
     },
   });
 
@@ -171,7 +171,7 @@ export const updateQuotation = async (
 
   const nextCompanyId = data.companyId ?? quotation.companyId;
   const nextVehicleVersionId =
-    data.vehicleVersionId ?? quotation.vehicleVersionId ?? undefined;
+    data.vehicleVersionId ?? quotation.vehicleVersionId;
 
   await validateVehicleVersionAccess(
     nextCompanyId,
@@ -201,4 +201,3 @@ export const deleteQuotation = async (id: string, user: UserToken) => {
 
   await repository.deleteQuotation(id);
 };
-
