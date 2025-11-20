@@ -27,16 +27,16 @@ export default function vehiculeColumns({
       render: (_, row: VehiculeVersion) => row.marca?.descrip ?? "-",
     },
     {
-      key: "idlinea",
-      label: "Linea",
-      sortable: true,
-      render: (_, row: VehiculeVersion) => row.modelo?.linea?.descrip ?? "-",
-    },
-    {
       key: "idmodelo",
       label: "Modelo",
       sortable: true,
       render: (_, row: VehiculeVersion) => row.modelo?.descrip ?? "-",
+    },
+    {
+      key: "idlinea",
+      label: "Linea",
+      sortable: true,
+      render: (_, row: VehiculeVersion) => row.modelo?.linea?.descrip ?? "-",
     },
   ];
 

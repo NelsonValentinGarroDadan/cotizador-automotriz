@@ -141,6 +141,14 @@ export default function UserForm({ entity, readOnly = false }: UserFormProps) {
     label: c.name
   })) || [];
 
+  // Autoseleccionar compañía cuando solo hay una al crear
+  useEffect(() => {
+    const availableCompanies = companiesData?.data || [];
+    if (!isView && !isEdit && availableCompanies.length === 1 && (!companyIds || companyIds.length === 0)) {
+      setValue('companyIds', [availableCompanies[0].id]);
+    }
+  }, [companiesData, isView, isEdit, companyIds, setValue]);
+
   // Obtener nombres de compañías seleccionadas para vista
   const selectedCompanyNames = UserData?.companies?.map(c => c.company?.name) || [];
 

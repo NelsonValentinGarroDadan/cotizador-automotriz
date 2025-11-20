@@ -1,21 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // app/planes/components/tableConfig.tsx
-import TableActions from "@/app/components/ui/tableAction"; 
-import { TableColumn } from "@/app/types/table"; 
+import TableActions from "@/app/components/ui/tableAction";
+import { TableColumn } from "@/app/types/table";
 import { Plan } from "@/app/types/plan";
 import { CheckCircle, XCircle } from "lucide-react";
 import { Role } from "@/app/types";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL_IMG;  
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL_IMG;
 
-export default function planColumns({ 
+export default function planColumns({
   onCreated,
-  role
-}: { 
-  onCreated: () => void,
-  role:Role 
+  role,
+  showCompaniesColumn,
+}: {
+  onCreated: () => void;
+  role: Role;
+  showCompaniesColumn: boolean;
 }): TableColumn[] {
-  return [
+  const columns: TableColumn[] = [
     {
       key: "name",
       label: "Nombre",
@@ -34,27 +36,37 @@ export default function planColumns({
             className="w-auto h-20 mx-auto rounded"
           />
         ) : (
-          <span className="h-20 block text-lg text-center w-full font-bold">-</span>
+          <span className="h-20 block text-lg text-center w-full font-bold">
+            -
+          </span>
         ),
     },
-    {
-      key: "companies", // ✅ Cambiar key
+  ];
+
+  if (showCompaniesColumn) {
+    columns.push({
+      key: "companies",
       label: "Compañías",
       sortable: false,
-      render: (value: any, row: Plan) => {
+      render: (_value: any, row: Plan) => {
         const companies = row.companies || [];
-        if (companies.length === 0) return '-';
+        if (companies.length === 0) return "-";
         if (companies.length === 1) return companies[0].name;
         return (
           <div className="flex flex-col">
             <span className="font-medium">{companies[0].name}</span>
             {companies.length > 1 && (
-              <span className="text-xs text-gray">+{companies.length - 1} más</span>
+              <span className="text-xs text-gray">
+                +{companies.length - 1} más
+              </span>
             )}
           </div>
         );
       },
-    },
+    });
+  }
+
+  columns.push(
     {
       key: "active",
       label: "Estado",
@@ -74,7 +86,8 @@ export default function planColumns({
       key: "createdAt",
       label: "Fecha de creación",
       sortable: true,
-      render: (value: string) => new Date(value).toLocaleDateString("es-AR"),
+      render: (value: string) =>
+        new Date(value).toLocaleDateString("es-AR"),
     },
     {
       key: "id",
@@ -91,6 +104,9 @@ export default function planColumns({
           width={900}
         />
       ),
-    },
-  ];
+    }
+  );
+
+  return columns;
 }
+

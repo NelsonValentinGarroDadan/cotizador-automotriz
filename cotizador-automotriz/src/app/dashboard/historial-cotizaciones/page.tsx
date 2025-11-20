@@ -50,7 +50,12 @@ export default function Page() {
     return null;
   }
   const columns = quotationColumns({ onCreated: refetch , role: user.role});
-  const filtersConfig = quotationFilters({ companies: companies?.data || [] });
+  const companiesList = companies?.data || [];
+  const showCompanyFilter = companiesList.length > 1;
+  const filtersConfig = quotationFilters({
+    companies: companiesList,
+    showCompanyFilter,
+  });
   return (
     <section className="w-full border-l border-gray px-5 min-h-screen">
       <CustomTable

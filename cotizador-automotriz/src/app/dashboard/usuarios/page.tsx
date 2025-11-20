@@ -16,7 +16,7 @@ export default function Page() {
   useAuthRedirect([Role.ADMIN, Role.SUPER_ADMIN]);
   const dispatch = useDispatch();
   const useUsersTableStore = useMemo(() => createTableStore('users'), []);
-  const { data:companies } = useGetAllCompaniesQuery({ limit: 50 })
+  const { data: companies } = useGetAllCompaniesQuery({ limit: 50 });
   const { filters, pagination, sort  } = useUsersTableStore();
 
   const { data, refetch, isLoading, isFetching } = useGetAllUsersQuery({
@@ -53,11 +53,16 @@ export default function Page() {
   const handlePageChange = () => {
     refetch();
   };
+  const companiesList = companies?.data || [];
+  const showCompanyFilter = companiesList.length > 1;
+
   const columns = usersColumns({
     onCreated: refetch
-  })
+  });
+
   const filtersConfig = usersFilters({
-    companies: companies?.data || []
+    companies: companiesList,
+    showCompanyFilter,
   });
   return (
     <section className='w-full border-l border-gray  px-5 min-h-screen'> 

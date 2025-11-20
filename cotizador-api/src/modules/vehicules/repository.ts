@@ -265,14 +265,16 @@ export const getModels = async (
 
   const [items, total] = await Promise.all([
     prisma.autosModelo.findMany({
+      include: {
+        linea: true,
+      },
       where,
       skip,
       take,
       orderBy: { [sortBy]: sortOrder },
     }),
     prisma.autosModelo.count({ where }),
-  ]);
-
+  ]); 
   return { items, total };
 };
 

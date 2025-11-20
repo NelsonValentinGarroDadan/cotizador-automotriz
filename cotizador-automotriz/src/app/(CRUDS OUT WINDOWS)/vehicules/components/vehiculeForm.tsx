@@ -32,6 +32,8 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
     handleSubmit,
     control,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<VehiculeVersionPayload>({
     defaultValues: {
@@ -45,32 +47,67 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
   });
 
   const [loadingBrand, setLoadingBrand] = useState(false);
-  const [loadingLine, setLoadingLine] = useState(false);
   const [loadingModel, setLoadingModel] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const companyIds = watch('companyIds');
+  const brandId = watch('brandId');
+
+  // Cargar datos del vehículo al editar/ver
   useEffect(() => {
     if (entity && companiesData?.data) {
-      const assignedCompanies = entity.company?.map((c) => c.id) || [];
+      const availableCompanies = companiesData.data;
+      const assignedCompanies =
+        entity.company
+          ?.filter((c) => availableCompanies.some((ac: any) => ac.id === c.id))
+          .map((c) => c.id) || [];
+
       reset({
         descrip: entity.descrip,
         nueva_descrip: entity.nueva_descrip,
         codigo: entity.codigo,
         companyIds: assignedCompanies,
         brandId: entity.marca.idmarca,
-        lineId: entity.modelo.linea?.idlinea,
         modelId: entity.modelo.idmodelo,
       });
     }
   }, [entity, companiesData, reset]);
+
+  // Refuerzo: asegurar que brandId se setee en edición aunque el reset se haya perdido
+  useEffect(() => {
+    if (entity && entity.marca?.idmarca && !brandId) {
+      setValue('brandId', entity.marca.idmarca);
+    }
+  }, [entity, brandId, setValue]);
+
+  // Precargar compañía cuando el usuario solo tiene una al crear
+  useEffect(() => {
+    const availableCompanies = companiesData?.data || [];
+    if (
+      !isView &&
+      !isEdit &&
+      availableCompanies.length === 1 &&
+      (!companyIds || companyIds.length === 0)
+    ) {
+      reset((prev) => ({
+        ...prev,
+        companyIds: [availableCompanies[0].id],
+      }));
+    }
+  }, [companiesData, isView, isEdit, companyIds, reset]);
+
+  const firstCompanyId =
+    Array.isArray(companyIds) && companyIds.length > 0 ? companyIds[0] : undefined;
 
   const loadBrands = async (search: string): Promise<SelectSearchOption[]> => {
     setLoadingBrand(true);
     try {
       const result = await (dispatch as any)(
         vehiculeApi.endpoints.getVehiculeBrands.initiate({
-          limit: 50,
+          sortBy:'desc',
+          sortOrder:'asc', 
           search: search || undefined,
+          companyId: firstCompanyId,
         })
       ).unwrap();
 
@@ -83,47 +120,24 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
     }
   };
 
-  const loadLines = async (search: string, brandId?: number): Promise<SelectSearchOption[]> => {
-    if (!brandId) return [];
-    setLoadingLine(true);
-    try {
-      const result = await (dispatch as any)(
-        vehiculeApi.endpoints.getVehiculeLines.initiate({
-          limit: 50,
-          brandId,
-          search: search || undefined,
-        })
-      ).unwrap();
-
-      return (result.data || []).map((l: any) => ({
-        value: String(l.idlinea),
-        label: l.descrip,
-      }));
-    } finally {
-      setLoadingLine(false);
-    }
-  };
-
-  const loadModels = async (
-    search: string,
-    brandId?: number,
-    lineId?: number
-  ): Promise<SelectSearchOption[]> => {
-    if (!brandId || !lineId) return [];
+  const loadModels = async (search: string): Promise<SelectSearchOption[]> => {
     setLoadingModel(true);
     try {
       const result = await (dispatch as any)(
-        vehiculeApi.endpoints.getVehiculeModels.initiate({
-          limit: 50,
-          brandId,
-          lineId,
+        vehiculeApi.endpoints.getVehiculeModels.initiate({ 
+          sortBy:'desc',
+          sortOrder:'asc', 
+          brandId: brandId || undefined,
           search: search || undefined,
+          companyId: firstCompanyId,
         })
       ).unwrap();
 
       return (result.data || []).map((m: any) => ({
         value: String(m.idmodelo),
-        label: m.descrip,
+        label: m.linea?.descrip
+          ? `${m.descrip} (${m.linea.descrip})`
+          : m.descrip,
       }));
     } finally {
       setLoadingModel(false);
@@ -131,7 +145,7 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
   };
 
   const companyOptions =
-    companiesData?.data.map((c) => ({
+    companiesData?.data.map((c: any) => ({
       value: c.id,
       label: c.name,
     })) || [];
@@ -177,149 +191,7 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
       </h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Controller
-            name="brandId"
-            control={control}
-            render={({ field }) => (
-              <div>
-                <label className="block text-sm font-medium text-black mb-1">
-                  Marca
-                </label>
-                <SelectSearch
-                  value={field.value ? String(field.value) : undefined}
-                  onChange={(val) => field.onChange(val ? Number(val) : undefined)}
-                  loadOptions={loadBrands}
-                  placeholder={loadingBrand ? 'Cargando...' : 'Seleccionar marca'}
-                  disabled={isView}
-                />
-                {errors.brandId && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {String(errors.brandId.message)}
-                  </p>
-                )}
-              </div>
-            )}
-          />
-
-          {!isEdit && (
-            <CustomInput
-              label="Nueva marca (opcional)"
-              {...register('newBrandDescrip')}
-              error={errors.newBrandDescrip?.toString()}
-              inputClassName="!border-yellow-light bg-yellow-light"
-              labelClassName="!text-black"
-              placeholder="Completar solo si no seleccionas marca"
-              disabled={isView}
-            />
-          )}
-
-          <Controller
-            name="lineId"
-            control={control}
-            render={({ field }) => (
-              <div>
-                <label className="block text-sm font-medium text-black mb-1">
-                  Línea
-                </label>
-                <SelectSearch
-                  value={field.value ? String(field.value) : undefined}
-                  onChange={(val) => field.onChange(val ? Number(val) : undefined)}
-                  loadOptions={(search) =>
-                    loadLines(search, (control._formValues as any).brandId)
-                  }
-                  placeholder={loadingLine ? 'Cargando...' : 'Seleccionar línea'}
-                  disabled={isView}
-                />
-                {errors as any /* avoid TS noise */ && null}
-              </div>
-            )}
-          />
-
-          <Controller
-            name="modelId"
-            control={control}
-            render={({ field }) => (
-              <div>
-                <label className="block text-sm font-medium text-black mb-1">
-                  Modelo
-                </label>
-                <SelectSearch
-                  value={field.value ? String(field.value) : undefined}
-                  onChange={(val) => field.onChange(val ? Number(val) : undefined)}
-                  loadOptions={(search) =>
-                    loadModels(
-                      search,
-                      (control._formValues as any).brandId,
-                      (control._formValues as any).lineId
-                    )
-                  }
-                  placeholder={loadingModel ? 'Cargando...' : 'Seleccionar modelo'}
-                  disabled={isView}
-                />
-                {errors.modelId && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {String(errors.modelId.message)}
-                  </p>
-                )}
-              </div>
-            )}
-          />
-        </div>
-
-        {!isEdit && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <CustomInput
-              label="Nueva línea (opcional)"
-              {...register('newLineDescrip')}
-              error={errors.newLineDescrip?.toString()}
-              inputClassName="!border-yellow-light bg-yellow-light"
-              labelClassName="!text-black"
-              placeholder="Completar solo si no seleccionas línea"
-              disabled={isView}
-            />
-            <CustomInput
-              label="Nuevo modelo (opcional)"
-              {...register('newModelDescrip')}
-              error={errors.newModelDescrip?.toString()}
-              inputClassName="!border-yellow-light bg-yellow-light"
-              labelClassName="!text-black"
-              placeholder="Completar solo si no seleccionas modelo"
-              disabled={isView}
-            />
-          </div>
-        )}
-
-        <CustomInput
-          label="Descripción (Versión)"
-          {...register('descrip')}
-          error={errors.descrip?.message}
-          inputClassName="!border-yellow-light bg-yellow-light"
-          labelClassName="!text-black"
-          placeholder="Ej: Corolla 2.0 XEi CVT"
-          disabled={isView}
-        />
-
-        <CustomInput
-          label="Descripción corta"
-          {...register('nueva_descrip')}
-          error={errors.nueva_descrip?.message}
-          inputClassName="!border-yellow-light bg-yellow-light"
-          labelClassName="!text-black"
-          placeholder="Ej: Corolla XEi"
-          disabled={isView}
-        />
-
-        <CustomInput
-          label="Código interno"
-          {...register('codigo')}
-          error={errors.codigo?.message}
-          inputClassName="!border-yellow-light bg-yellow-light"
-          labelClassName="!text-black"
-          placeholder="Ej: COR2XEI"
-          disabled={isView}
-        />
-
+        {/* Compañías primero para filtrar marcas/modelos */}
         <Controller
           name="companyIds"
           control={control}
@@ -331,7 +203,11 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
               <MultiSelect
                 options={companyOptions}
                 value={field.value as string[]}
-                onChange={field.onChange}
+                onChange={(value) => {
+                  field.onChange(value);
+                  setValue('brandId', undefined as any);
+                  setValue('modelId', undefined as any);
+                }}
                 placeholder="Seleccionar compañías..."
                 disabled={isView}
               />
@@ -342,6 +218,197 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
               )}
             </div>
           )}
+        />
+
+        {isView && entity ? (
+          // Vista: mostrar marca / línea / modelo en línea, sin inputs
+          <div className="bg-white p-4 rounded border">
+            <h2 className="text-lg font-semibold mb-4 text-black">
+              Detalle de vehículo
+            </h2>
+            <div className="flex flex-wrap gap-6 text-sm">
+              <div>
+                <span className="font-medium">Marca: </span>
+                <span>{entity.marca.descrip}</span>
+              </div>
+              <div>
+                <span className="font-medium">Línea: </span>
+                <span>{entity.modelo.linea?.descrip || 'Sin línea'}</span>
+              </div>
+              <div>
+                <span className="font-medium">Modelo: </span>
+                <span>{entity.modelo.descrip}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Marca / Modelo existentes en la misma fila */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Marca existente */}
+              <div className="space-y-2">
+                <Controller
+                  name="brandId"
+                  control={control}
+                  render={({ field }) => (
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-1">
+                        Marca existente
+                      </label>
+                      <SelectSearch
+                        value={field.value ? String(field.value) : undefined}
+                        onChange={(val) => {
+                          const num = val ? Number(val) : undefined;
+                          field.onChange(num);
+                          if (num) {
+                            setValue('newBrandDescrip', '');
+                            setValue('modelId', undefined as any);
+                            setValue('newModelDescrip', '');
+                            setValue('newLineDescrip', '');
+                          }
+                        }}
+                        loadOptions={loadBrands}
+                        placeholder={loadingBrand ? 'Cargando...' : 'Seleccionar marca'}
+                        disabled={isView}
+                      />
+                      {errors.brandId && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {String(errors.brandId.message)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                />
+
+                {!isEdit && (
+                  <CustomInput
+                    label="Nueva marca (opcional)"
+                    {...register('newBrandDescrip', {
+                      onChange: (e) => {
+                        const val = e.target.value;
+                        setValue('newBrandDescrip', val);
+                        if (val) {
+                          setValue('brandId', undefined as any);
+                        }
+                      },
+                    })}
+                    error={errors.newBrandDescrip?.toString()}
+                    inputClassName="!border-yellow-light bg-yellow-light"
+                    labelClassName="!text-black"
+                    placeholder="Completar solo si no seleccionas marca"
+                    disabled={isView}
+                  />
+                )}
+              </div>
+
+              {/* Modelo existente */}
+              <div className="space-y-2">
+                <Controller
+                  name="modelId"
+                  control={control}
+                  render={({ field }) => (
+                    <div>
+                      <label className="block text-sm font-medium text-black mb-1">
+                        Modelo existente
+                      </label>
+                      <SelectSearch
+                        value={field.value ? String(field.value) : undefined}
+                        onChange={(val) => {
+                          const num = val ? Number(val) : undefined;
+                          field.onChange(num);
+                          if (num) {
+                            setValue('newModelDescrip', '');
+                            setValue('newLineDescrip', '');
+                          }
+                        }}
+                        loadOptions={loadModels}
+                        placeholder={
+                          !brandId
+                            ? 'Primero seleccioná una marca'
+                            : loadingModel
+                            ? 'Cargando...'
+                            : 'Seleccionar modelo'
+                        }
+                        disabled={isView || !brandId}
+                      />
+                      {!brandId && !isView && (
+                        <p className="text-xs text-gray mt-1">
+                          Para ver modelos existentes, seleccioná una marca primero.
+                        </p>
+                      )}
+                      {errors.modelId && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {String(errors.modelId.message)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                />
+
+                {!isEdit && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <CustomInput
+                      label="Nuevo modelo (opcional)"
+                      {...register('newModelDescrip', {
+                        onChange: (e) => {
+                          const val = e.target.value;
+                          setValue('newModelDescrip', val);
+                          if (val) {
+                            setValue('modelId', undefined as any);
+                          }
+                        },
+                      })}
+                      error={errors.newModelDescrip?.toString()}
+                      inputClassName="!border-yellow-light bg-yellow-light"
+                      labelClassName="!text-black"
+                      placeholder="Completar solo si no seleccionas modelo"
+                      disabled={isView}
+                    />
+
+                    <CustomInput
+                      label="Nueva línea (opcional)"
+                      {...register('newLineDescrip')}
+                      error={errors.newLineDescrip?.toString()}
+                      inputClassName="!border-yellow-light bg-yellow-light"
+                      labelClassName="!text-black"
+                      placeholder="Línea para el nuevo modelo"
+                      disabled={isView}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+      <CustomInput
+        label="Descripción corta"
+        {...register('nueva_descrip')}
+        error={errors.nueva_descrip?.message}
+        inputClassName="!border-yellow-light bg-yellow-light"
+        labelClassName="!text-black"
+        placeholder="Ej: Corolla XEi"
+        disabled={isView}
+      />
+        <CustomInput
+          label="Descripción"
+          {...register('descrip')}
+          error={errors.descrip?.message}
+          inputClassName="!border-yellow-light bg-yellow-light"
+          labelClassName="!text-black"
+          placeholder="Ej: Corolla 2.0 XEi CVT"
+          disabled={isView}
+        />
+
+
+        <CustomInput
+          label="Código interno"
+          {...register('codigo')}
+          error={errors.codigo?.message}
+          inputClassName="!border-yellow-light bg-yellow-light"
+          labelClassName="!text-black"
+          placeholder="Ej: COR2XEI"
+          disabled={isView}
         />
 
         {error && (
@@ -368,3 +435,4 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
     </div>
   );
 }
+

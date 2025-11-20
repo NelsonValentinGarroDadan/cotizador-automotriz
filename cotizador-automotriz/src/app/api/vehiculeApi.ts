@@ -20,6 +20,8 @@ export interface GetVehiculeBrandParams {
   limit?: number;
   search?: string;
   companyId?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 export interface GetVehiculeLineParams {
@@ -27,6 +29,8 @@ export interface GetVehiculeLineParams {
   search?: string;
   brandId?: number;
   companyId?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 export interface GetVehiculeModelParams {
@@ -35,6 +39,8 @@ export interface GetVehiculeModelParams {
   brandId?: number;
   lineId?: number;
   companyId?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 
@@ -94,7 +100,12 @@ export const vehiculeApi = api.injectEndpoints({
         if (params?.companyId) {
           searchParams.append("companyId", params.companyId);
         }
-
+        if (params?.sortBy) {
+          searchParams.append("sortBy", params.sortBy);
+        }
+        if (params?.sortOrder) {
+          searchParams.append("sortOrder", params.sortOrder);
+        }
         return {
           url: `/vehicules/brands?${searchParams.toString()}`,
           method: "GET",

@@ -283,18 +283,27 @@ export default function QuotationForm({
             }
             loadOptions={async (search: string): Promise<SelectSearchOption[]> => {
               if (!selectedCompanyId) return [];
-              const result = await (dispatch as any)(
+              const result = (await (dispatch as any)(
                 vehiculeApi.endpoints.getAllVehiculeVersions.initiate({
                   limit: 50,
                   companyId: selectedCompanyId,
                   search: search || undefined,
                 })
-              ).unwrap() as { data?: any[] };
+              ).unwrap()) as { data?: any[] };
 
-              return (result.data || []).map((v: any) => ({
-                value: String(v.idversion),
-                label: v.nueva_descrip || v.descrip,
-              }));
+              return (result.data || []).map((v: any) => {
+                const parts = [
+                  v.nueva_descrip || v.descrip,
+                  v.marca?.descrip,
+                  v.modelo?.linea?.descrip,
+                  v.modelo?.descrip,
+                ].filter(Boolean);
+
+                return {
+                  value: String(v.idversion),
+                  label: parts.join(" - "),
+                };
+              });
             }}
             placeholder={
               selectedCompanyId
@@ -329,7 +338,7 @@ export default function QuotationForm({
         </div>
 
         {/* 5. Tabla de Planes */}
-        {selectedCompanyId && monto > 0 && (
+        {selectedCompanyId && monto > 0 && watch('vehicleVersionId') && (
           <div className="bg-white p-4 rounded border">
             <h2 className="text-lg font-semibold mb-4 text-black">Planes Disponibles</h2>
 

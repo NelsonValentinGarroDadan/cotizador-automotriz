@@ -24,4 +24,5 @@ export interface VehiculeVersion {
     linea?: { idlinea: number; descrip: string };
   };
   company?: { id: string; name: string }[];
+  linea: { idlinea: number; descrip: string };
 }

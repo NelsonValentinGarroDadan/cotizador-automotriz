@@ -34,7 +34,6 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
   const plan = entity;
   const isEdit = Boolean(plan) && !readOnly;
   const isView = Boolean(plan) && readOnly;
-   
   
   const { data: companiesData, isLoading: isLoadingCompanies } = useGetAllCompaniesQuery({
     page: 1,
@@ -64,7 +63,7 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
   });
   
   // eslint-disable-next-line react-hooks/incompatible-library
-  const companyIds = watch("companyIds"); 
+  const companyIds = watch('companyIds'); 
 
   const { data: usersData } = useGetUsersByCompanyQuery(
     { companyIds },
@@ -106,10 +105,18 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
           cuotaPromedio: c.cuotaPromedio || undefined,
           cuotaBalonMonths: c.cuotaBalonMonths.map(m => m.month),
         })) || [],
-        allowedUserIds: plan.allowedUsers?.map(u => u.id) || [], // ✅ Cargar usuarios permitidos
+        allowedUserIds: plan.allowedUsers?.map(u => u.id) || [],
       });
     }
   }, [plan, reset]);
+
+  // Precargar compañía cuando el usuario solo tiene una al crear
+  useEffect(() => {
+    const availableCompanies = companiesData?.data || [];
+    if (!isView && !isEdit && availableCompanies.length === 1 && (!companyIds || companyIds.length === 0)) {
+      setValue('companyIds', [availableCompanies[0].id]);
+    }
+  }, [companiesData, isView, isEdit, companyIds, setValue]);
 
   const onSubmit = async (data: CreatePlanInput | UpdatePlanInput) => {
     try {
@@ -128,16 +135,15 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
       if (fullData.desdeCuota !== undefined) formData.append('desdeCuota', fullData.desdeCuota.toString());
       if (fullData.hastaCuota !== undefined) formData.append('hastaCuota', fullData.hastaCuota.toString());
       
-      // ✅ Agregar allowedUserIds (siempre)
+      // Agregar allowedUserIds (siempre)
       if (data.allowedUserIds) {
-        formData.append("allowedUserIds", JSON.stringify(data.allowedUserIds));
+        formData.append('allowedUserIds', JSON.stringify(data.allowedUserIds));
       } else {
-        formData.append("allowedUserIds", JSON.stringify([]));
+        formData.append('allowedUserIds', JSON.stringify([]));
       }
 
       formData.append('coefficients', JSON.stringify(fullData.coefficients));
     
-      
       if (file) {
         formData.append('logo', file);
       }
@@ -159,15 +165,20 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
       console.log(err);
       const apiError = err  as { data:{ errors: string[]} }; 
       if (apiError.data?.errors && Array.isArray(apiError.data.errors)) {
-        // Si viene un array de errores, unirlos
-        setError(apiError.data.errors.join(", "));
+        setError(apiError.data.errors.join(', '));
       } else { 
-        setError(err?.data?.message || "Error al guardar el plan");
+        setError(err?.data?.message || 'Error al guardar el plan');
       }
     }
   };
 
   const availableCompanies = companiesData?.data || [];
+
+  // Compañías visibles del plan según las compañías disponibles para el usuario
+  const visiblePlanCompanies =
+    plan?.companies?.filter((company) =>
+      availableCompanies.some((available) => available.id === company.id)
+    ) || [];
 
   if (isLoadingCompanies) {
     return (
@@ -202,20 +213,18 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
     );
   }
 
-  const companyOptions = availableCompanies.map(c => ({
+  const companyOptions = availableCompanies.map((c: any) => ({
     value: c.id,
-    label: c.name
+    label: c.name,
   }));
   
-  const userOptions = (usersData?.data || []).map(u => ({
+  const userOptions = (usersData?.data || []).map((u: any) => ({
     value: u.id,
     label: `${u.firstName} ${u.lastName}`,
   }));
 
-  // ✅ Obtener nombres de usuarios permitidos para modo vista
-  const selectedUserNames = plan?.allowedUsers?.map(u => 
-    `${u.firstName} ${u.lastName}`
-  ) || [];
+  const selectedUserNames =
+    plan?.allowedUsers?.map((u) => `${u.firstName} ${u.lastName}`) || [];
 
   return (
     <div className="w-[90%] h-[90%] border rounded shadow bg-blue-light-ligth overflow-y-auto">
@@ -279,9 +288,9 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
               </label>
               {isView && plan ? (
                 <div className="border border-gray/50 px-3 py-2 rounded bg-gray/5 min-h-[42px]">
-                  {plan.companies && plan.companies.length > 0 ? (
+                  {visiblePlanCompanies.length > 0 ? (
                     <ul className="list-disc list-inside space-y-1">
-                      {plan.companies.map((company) => (
+                      {visiblePlanCompanies.map((company) => (
                         <li key={company.id} className="text-sm">
                           {company.name}
                         </li>
@@ -311,7 +320,6 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
               </h2>
 
               {isView ? (
-                // ✅ Modo Vista: Mostrar lista de usuarios permitidos
                 <div>
                   <label className="block text-sm font-medium text-black mb-1">
                     Usuarios que pueden ver este plan
@@ -331,7 +339,6 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                   </div>
                 </div>
               ) : (
-                // ✅ Modo Edición/Creación: MultiSelect
                 <>
                   <label className="block text-sm font-medium text-black mb-1">
                     Usuarios que pueden ver este plan
@@ -339,8 +346,8 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
 
                   <MultiSelect
                     options={userOptions}
-                    value={watch("allowedUserIds") || []}
-                    onChange={(value) => setValue("allowedUserIds", value)}
+                    value={watch('allowedUserIds') || []}
+                    onChange={(value) => setValue('allowedUserIds', value)}
                     placeholder="Seleccionar usuarios..."
                   />
 
@@ -350,11 +357,11 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                       onChange={(e) => {
                         if (e.target.checked) {
                           setValue(
-                            "allowedUserIds",
-                            userOptions.map((u:any) => u.value)
+                            'allowedUserIds',
+                            userOptions.map((u: any) => u.value)
                           );
                         } else {
-                          setValue("allowedUserIds", []);
+                          setValue('allowedUserIds', []);
                         }
                       }}
                     />
@@ -482,9 +489,9 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                   </label>
                   <p className="text-sm font-medium">
                     {plan.active ? (
-                      <span className="text-green-600">✓ Activo</span>
+                      <span className="text-green-600">Activo</span>
                     ) : (
-                      <span className="text-red-600">✗ Inactivo</span>
+                      <span className="text-red-600">Inactivo</span>
                     )}
                   </p>
                 </div>
@@ -519,7 +526,6 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
               </div>
             </div>
 
-            {/* Versiones */}
             {plan.versions && plan.versions.length > 0 && (
               <div className="bg-white p-4 rounded border">
                 <h2 className="text-lg font-semibold mb-4 text-black">Versiones</h2>
@@ -527,14 +533,16 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                   {plan.versions.map((version) => (
                     <div
                       key={version.id}
-                      className="border border-gray/30 rounded p-3"
+                      className="border border-gray/40 rounded p-3 bg-gray/5"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">Versión {version.version}</span>
+                          <span className="text-sm font-semibold">
+                            Versión {version.versionNumber}
+                          </span>
                           {version.isLatest && (
-                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">
-                              Actual
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-300">
+                              Última versión
                             </span>
                           )}
                         </div>
@@ -545,86 +553,22 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                       <p className="text-xs text-gray mb-2">
                         Creada por {version.createdBy.firstName} {version.createdBy.lastName}
                       </p>
-
-                      {/* Restricciones */}
-                      {(version.desdeMonto || version.hastaMonto || version.desdeCuota || version.hastaCuota) && (
-                        <div className="bg-gray/5 p-2 rounded text-xs mb-2">
-                          <p className="font-medium mb-1">Restricciones:</p>
-                          <div className="grid grid-cols-2 gap-2">
-                            {version.desdeMonto && <p>Monto desde: ${version.desdeMonto}</p>}
-                            {version.hastaMonto && <p>Monto hasta: ${version.hastaMonto}</p>}
-                            {version.desdeCuota && <p>Cuota desde: {version.desdeCuota}</p>}
-                            {version.hastaCuota && <p>Cuota hasta: {version.hastaCuota}</p>}
-                          </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="font-medium">Monto desde:</span>{' '}
+                          {version.desdeMonto ?? '-'}
                         </div>
-                      )}
-
-                      {/* Coeficientes detallados */}
-                      <div className="mt-3">
-                        <p className="font-medium text-sm mb-2">
-                          {version.coefficients.length} coeficiente(s):
-                        </p>
-
-                        <div className="space-y-2">
-                          {version.coefficients.map((coeff) => {
-                            // Filtramos los valores nulos o vacíos
-                            const hasCuotaBalon =
-                              coeff.cuotaBalon !== undefined &&
-                              coeff.cuotaBalon !== null &&
-                              coeff.cuotaBalon !== 0;
-
-                            const hasCuotaPromedio =
-                              coeff.cuotaPromedio !== undefined &&
-                              coeff.cuotaPromedio !== null &&
-                              coeff.cuotaPromedio !== 0;
-
-                            const hasQuebranto =
-                              coeff.quebrantoFinanciero !== undefined &&
-                              coeff.quebrantoFinanciero !== null &&
-                              coeff.quebrantoFinanciero !== 0;
-
-                            return (
-                              <div
-                                key={coeff.id}
-                                className="border border-gray/30 rounded p-3 bg-gray/5 text-sm"
-                              >
-                                {/* Primera línea: plazo, tna, coeficiente */}
-                                <div className="flex flex-wrap gap-4 mb-1 font-medium text-blue">
-                                  <span>Plazo: {coeff.plazo} meses</span>
-                                  <span>TNA: {coeff.tna}%</span>
-                                  <span>Coeficiente: {coeff.coeficiente}</span>
-                                </div>
-
-                                {/* Segunda línea: opcionales */}
-                                <div className="flex flex-wrap gap-4 text-gray-800 text-xs">
-                                  {hasQuebranto && (
-                                    <span>Quebranto: {coeff.quebrantoFinanciero}</span>
-                                  )}
-                                  {hasCuotaPromedio && (
-                                    <span>Cuota Promedio: {coeff.cuotaPromedio}</span>
-                                  )}
-
-                                  {/* Cuota Balón + meses juntos */}
-                                  {hasCuotaBalon && (
-                                    <span>
-                                      Cuota Balón: {coeff.cuotaBalon}
-                                      {coeff.cuotaBalonMonths?.length > 0 && (
-                                        <>
-                                          {' | '}
-                                          {coeff.cuotaBalonMonths.map((m, idx) => (
-                                            <span key={idx} className="text-blue">
-                                              Mes {m.month}
-                                              {idx < coeff.cuotaBalonMonths.length - 1 && ', '}
-                                            </span>
-                                          ))}
-                                        </>
-                                      )}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
+                        <div>
+                          <span className="font-medium">Monto hasta:</span>{' '}
+                          {version.hastaMonto ?? '-'}
+                        </div>
+                        <div>
+                          <span className="font-medium">Cuota desde:</span>{' '}
+                          {version.desdeCuota ?? '-'}
+                        </div>
+                        <div>
+                          <span className="font-medium">Cuota hasta:</span>{' '}
+                          {version.hastaCuota ?? '-'}
                         </div>
                       </div>
                     </div>
@@ -636,29 +580,23 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
         )}
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <p className="text-red-500 text-sm mt-2">
             {error}
-          </div>
+          </p>
         )}
 
         {!isView && (
-          <CustomButton type="submit" disabled={isCreating || isUpdating}>
-            {isEdit 
-              ? (isUpdating ? 'Actualizando...' : 'Actualizar') 
-              : (isCreating ? 'Creando...' : 'Crear')
-            }
-          </CustomButton>
-        )}
-
-        {isView && (
-          <CustomButton
-            type="button"
-            onClick={() => window.close()}
-          >
-            Cerrar
-          </CustomButton>
+          <div className="flex justify-end mt-4">
+            <CustomButton
+              type="submit"
+              disabled={isCreating || isUpdating}
+            >
+              {isEdit ? (isUpdating ? 'Guardando...' : 'Guardar cambios') : isCreating ? 'Creando...' : 'Crear Plan'}
+            </CustomButton>
+          </div>
         )}
       </form>
     </div>
   );
 }
+

@@ -172,8 +172,7 @@ export const getVersions = async (req: Request, res: Response) => {
     req.query,
     ALLOWED_SORT_FIELDS,
     "descrip"
-  );
-  console.log(req.query);
+  ); 
   const validate = getVehiclesQuerySchema.safeParse(req.query);
   if (!validate .success) {
     const errors = validate .error.issues.map((e) => e.message);
