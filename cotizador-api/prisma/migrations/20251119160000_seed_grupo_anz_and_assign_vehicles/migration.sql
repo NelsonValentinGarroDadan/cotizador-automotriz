@@ -12,8 +12,7 @@ VALUES (
 ON DUPLICATE KEY UPDATE
   `name` = VALUES(`name`);
 
--- 2) Crear usuario ADMIN para Grupo ANZ (email y password fijos)
--- Password: admin123 (bcrypt, mismo esquema que SUPER_ADMIN)
+-- 2) Crear usuario ADMIN para Grupo ANZ (email y password fijos) 
 INSERT INTO `users` (
   `id`,
   `email`,
@@ -29,7 +28,7 @@ VALUES (
   'admin@grupoanz.com',
   '$2b$10$dAsYOmGV.cEBX40qH9MT5O1vX0R30FBF5KembOYgyAwD5eMww3Om2',
   'Admin',
-  'Grupo ANZ',
+  'GrupoANZ',
   'ADMIN',
   NOW(),
   NOW()
