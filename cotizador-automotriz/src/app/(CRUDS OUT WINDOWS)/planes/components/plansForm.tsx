@@ -553,7 +553,7 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                       <p className="text-xs text-gray mb-2">
                         Creada por {version.createdBy.firstName} {version.createdBy.lastName}
                       </p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-3">
                         <div>
                           <span className="font-medium">Monto desde:</span>{' '}
                           {version.desdeMonto ?? '-'}
@@ -571,6 +571,43 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                           {version.hastaCuota ?? '-'}
                         </div>
                       </div>
+
+                      {version.coefficients?.length ? (
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full text-xs border border-gray/40 rounded">
+                            <thead className="bg-gray/10 text-gray-700">
+                              <tr>
+                                <th className="px-2 py-1 text-left">Plazo</th>
+                                <th className="px-2 py-1 text-left">TNA</th>
+                                <th className="px-2 py-1 text-left">Coef.</th>
+                                <th className="px-2 py-1 text-left">Quebranto</th>
+                                <th className="px-2 py-1 text-left">Cuota Balón</th>
+                                <th className="px-2 py-1 text-left">Meses Balón</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {[...(version.coefficients || [])]
+                                .sort((a, b) => a.plazo - b.plazo)
+                                .map((coeff) => (
+                                  <tr key={coeff.id} className="border-t border-gray/30">
+                                    <td className="px-2 py-1">{coeff.plazo} m</td>
+                                    <td className="px-2 py-1">{coeff.tna}%</td>
+                                    <td className="px-2 py-1">{coeff.coeficiente}</td>
+                                    <td className="px-2 py-1">{coeff.quebrantoFinanciero ?? '-'}</td>
+                                    <td className="px-2 py-1">{coeff.cuotaBalon ?? '-'}</td>
+                                    <td className="px-2 py-1">
+                                      {(coeff.cuotaBalonMonths || []).length
+                                        ? coeff.cuotaBalonMonths.map((m) => m.month).join(', ')
+                                        : '-'}
+                                    </td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray mt-2">Sin coeficientes cargados.</p>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -599,4 +636,3 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
     </div>
   );
 }
-
