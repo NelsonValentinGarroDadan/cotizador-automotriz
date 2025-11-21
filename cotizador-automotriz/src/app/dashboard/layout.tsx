@@ -39,7 +39,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             href: "/",
             action: "Crear cotizacion",
             urlAction: "/HC/create",
-            widtgAction: 900,
+            widtgAction: 1600,
           },
         ];
 

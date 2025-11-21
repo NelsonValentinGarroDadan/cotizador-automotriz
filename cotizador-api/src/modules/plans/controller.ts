@@ -15,7 +15,7 @@ export const getAllPlans = async (req: Request, res: Response) => {
   const { page, limit, sortBy, sortOrder } = getPaginationParams(
     req.query,
     ALLOWED_SORT_FIELDS,
-    "name"
+    "createdAt"
   );
 
   const filters: {

@@ -29,7 +29,7 @@ export const getAllPlans = async (
     page,
     limit,
     sortBy,
-    sortOrder,
+    sortOrder ,
     filters,
     user.role === Role.ADMIN,
     user.role === Role.SUPER_ADMIN

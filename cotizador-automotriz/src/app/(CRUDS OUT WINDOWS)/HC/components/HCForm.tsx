@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useDispatch } from 'react-redux';
@@ -35,9 +35,10 @@ export default function QuotationForm({
     planVersionId: string;
     plazo: number;
   } | null>(null);
+  const [showSoloAplicables, setShowSoloAplicables] = useState<boolean>(false);
 
   const { data: companiesData } = useGetAllCompaniesQuery({ page: 1, limit: 1000 });
-  const { data: plansData } = useGetAllPlansQuery({ page: 1, limit: 1000 });
+  const { data: plansData } = useGetAllPlansQuery({ page: 1, limit: 1000 , sortOrder: 'asc'});
   const [createQuotation, { isLoading: isCreating }] = useCreateQuotationMutation();
   const [updateQuotation] = useUpdateQuotationMutation();
   const [requestError, setRequestError] = useState<string | null>(null); 
@@ -338,21 +339,44 @@ export default function QuotationForm({
           <div className="bg-white p-4 rounded border">
             <h2 className="text-lg font-semibold mb-4 text-black">Planes Disponibles</h2>
 
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-sm">
-                <thead>
+            <div className="flex items-center justify-between mb-2 text-xs text-gray-700">
+              <span>
+                Monto ingresado: <strong>{formatMoney(monto)}</strong>
+              </span>
+              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={showSoloAplicables}
+                  onChange={(e) => setShowSoloAplicables(e.target.checked)}
+                  className="accent-gray"
+                  disabled={isView}
+                />
+                Mostrar solo planes aplicables
+              </label>
+            </div>
+
+            <div className="overflow-auto max-h-[60vh] relative">
+              <table className="relative w-full border-collapse text-sm min-w-[720px]">
+                <thead className='sticky top-0 z-10 bg-gray '>
                   <tr>
-                    <th className="bg-gray text-white px-3 py-2 text-center w-20">Sel.</th>
-                    <th className="bg-gray text-white px-3 py-2 text-left">Plan</th>
+                    <th className="text-white px-3 py-2 text-center w-20 sticky top-0 z-10">
+                      Sel.
+                    </th>
+                    <th className="text-white px-3 py-2 text-left sticky top-0 z-10 border-l border-white ">
+                      Plan
+                    </th>
                     {plazosUnicos.map((plazo) => (
-                      <th key={plazo} className="bg-gray text-white px-3 py-2 text-center">
-                        {plazo} cuotas
+                      <th
+                        key={plazo}
+                        className="text-white px-3 py-2 text-center sticky top-0 z-10 border-l  border-white"
+                      >
+                        {plazo} <br/>cuotas
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {plansToShow.map((plan) => {
+                  {plansToShow.map((plan, idx) => {
                     const version = plan.versions?.find((v) => v.isLatest);
                     if (!version) return null;
 
@@ -364,6 +388,7 @@ export default function QuotationForm({
                       .sort((a, b) => a - b);
 
                     const tieneAlgunaCuotaValida = plazosValidos.length > 0;
+                    const esPlanAplicable = montoValido && tieneAlgunaCuotaValida;
 
                     const desdeMonto = version.desdeMonto !== null && version.desdeMonto !== undefined
                       ? Number(version.desdeMonto)
@@ -395,104 +420,137 @@ export default function QuotationForm({
                       }
                     }
 
+                    if (showSoloAplicables && !esPlanAplicable) {
+                      return null;
+                    }
+
+                    if (!esPlanAplicable && reasonText) {
+                      return (
+                        <React.Fragment key={plan.id}>
+                          <tr className="bg-gray/30 ">
+                            <td className="border border-gray-300 p-2 text-center">
+                              <input
+                                type="radio"
+                                name="planSelect"
+                                checked={selectedPlan?.planId === plan.id}
+                                onChange={() => {}}
+                                disabled
+                              />
+                            </td>
+                            <td className="border border-gray-300 p-2 font-medium text-black">
+                              <div>{plan.name}</div>
+                            </td>
+                            <td
+                              className="border border-gray-300 px-3 py-2 text-xs text-gray-800 text-left"
+                              colSpan={plazosUnicos.length}
+                            >
+                              <span className="font-semibold">{plan.name}:</span> {reasonText}
+                            </td>
+                          </tr>
+                        </React.Fragment>
+                      );
+                    }
+
                     return (
-                      <tr key={plan.id}>
-                        {/* Radio */}
-                        <td className="border border-gray-300 p-2 text-center">
-                          <input
-                            type="radio"
-                            name="planSelect"
-                            checked={selectedPlan?.planId === plan.id}
-                            onChange={() => {
-                              if (!tieneAlgunaCuotaValida) return;
-                              const primerPlazo = plazosValidos[0];
-                              setSelectedPlan({
-                                planId: plan.id,
-                                planVersionId: version.id,
-                                plazo: primerPlazo,
-                              });
-                              setValue('planId', plan.id);
-                              setValue('planVersionId', version.id);
-                            }}
-                            disabled={isView || !tieneAlgunaCuotaValida}
-                          />
-                        </td>
+                      <React.Fragment key={plan.id}>
+                        <tr
+                          className={
+                            idx % 2 === 0
+                              ? 'bg-gray-50'
+                              : 'bg-white'
+                          }
+                        >
+                          {/* Radio */}
+                          <td className="border border-gray-300 p-2 text-center">
+                            <input
+                              type="radio"
+                              name="planSelect"
+                              checked={selectedPlan?.planId === plan.id}
+                              onChange={() => {
+                                const primerPlazo = plazosValidos[0];
+                                setSelectedPlan({
+                                  planId: plan.id,
+                                  planVersionId: version.id,
+                                  plazo: primerPlazo,
+                                });
+                                setValue('planId', plan.id);
+                                setValue('planVersionId', version.id);
+                              }}
+                              disabled={isView || !tieneAlgunaCuotaValida}
+                            />
+                          </td>
 
-                        {/* Nombre */}
-                        <td className="border border-gray-300 p-2 font-medium text-black">
-                          <div>{plan.name}</div>
-                          {reasonText && (
-                            <div className="text-xs text-red-600 mt-1">
-                              {reasonText}
-                            </div>
-                          )}
-                        </td>
+                          {/* Nombre */}
+                          <td className="border border-gray-300 p-2 font-medium text-black">
+                            <div>{plan.name}</div>
+                          </td>
 
-                        {/* Celdas de plazo */}
-                        {plazosUnicos.map((plazo) => {
-                          const c = version.coefficients.find((x) => x.plazo === plazo);
-                          const esPlanCheques = plan.name.toUpperCase().includes('CHEQUES');
-                          const cantidadCheques = plazo + 1;
+                          {/* Celdas de plazo */}
+                          {plazosUnicos.map((plazo) => {
+                            const c = version.coefficients.find((x) => x.plazo === plazo);
+                            const esPlanCheques = plan.name.toUpperCase().includes('CHEQUES');
+                            const cantidadCheques = plazo + 1;
 
-                          const plazoValido =
-                            !!c &&
-                            montoValido &&
-                            isPlazoWithinVersionRange(version, plazo);
+                            const plazoValido =
+                              !!c &&
+                              montoValido &&
+                              isPlazoWithinVersionRange(version, plazo);
 
-                          if (!plazoValido) {
+                            if (!plazoValido) {
+                              return (
+                                <td
+                                  key={`${plan.id}-${plazo}-na`}
+                                  className="border border-gray-300 p-2 text-center text-gray-400"
+                                >
+                                  -
+                                </td>
+                              );
+                            }
+
+                            const tnaMostrar = Math.ceil(Number(c.tna));
+                            const coef = Number(c.coeficiente);
+                            const cuotaFinal = monto * (coef / 10000);
+                            const quebrantoPorcentaje = Number(c.quebrantoFinanciero || 0) / 100;
+                            const factorQuebranto = 1.21;
+                            const quebranto = Math.ceil(monto * quebrantoPorcentaje * factorQuebranto);
+
+                            const cuotaBalon = Number(c.cuotaBalon || 0);
+                            const mesesBalon = c.cuotaBalonMonths?.map((m) => m.month) || [];
+
                             return (
                               <td
-                                key={plazo}
-                                className="border border-gray-300 p-2 text-center text-gray-400"
+                                key={`${plan.id}-${plazo}`}
+                                className="border border-gray-300 p-2 text-center cursor-pointer"
                               >
-                                -
+                                <div className="text-xs text-gray-600">T.N.A. {tnaMostrar}%</div>
+
+                                <div className="font-semibold text-green-700">
+                                  {formatMoney(Math.ceil(cuotaFinal))}
+                                </div>
+
+                                {esPlanCheques && (
+                                  <div className="text-xs text-blue-700 mt-1">
+                                    {cantidadCheques} cheques de {formatMoney(Math.ceil(cuotaFinal))},{' '}
+                                    (1ro Corriente)
+                                  </div>
+                                )}
+
+                                {!esPlanCheques && quebranto > 0 && (
+                                  <div className="text-xs text-gray-600 mt-1">
+                                    Quebranto: {formatMoney(quebranto)}
+                                  </div>
+                                )}
+
+                                {cuotaBalon > 0 && (
+                                  <div className="text-xs text-amber-700 mt-1">
+                                    Cuota Balon: {formatMoney(cuotaBalon)} meses: {mesesBalon.join(', ')}
+                                  </div>
+                                )}
                               </td>
                             );
-                          }
-
-                          const tnaMostrar = Math.ceil(Number(c.tna));
-                          const coef = Number(c.coeficiente);
-                          const cuotaFinal = monto * (coef / 10000);
-                          const quebrantoPorcentaje = Number(c.quebrantoFinanciero || 0) / 100;
-                          const factorQuebranto = 1.21;
-                          const quebranto = Math.ceil(monto * quebrantoPorcentaje * factorQuebranto);
-
-                          const cuotaBalon = Number(c.cuotaBalon || 0);
-                          const mesesBalon = c.cuotaBalonMonths?.map((m) => m.month) || [];
-
-                          return (
-                            <td
-                              key={plazo}
-                              className="border border-gray-300 p-2 text-center cursor-pointer"
-                            >
-                              <div className="text-xs text-gray-600">T.N.A. {tnaMostrar}%</div>
-
-                              <div className="font-semibold text-green-700">
-                                {formatMoney(Math.ceil(cuotaFinal))}
-                              </div>
-
-                              {esPlanCheques && (
-                                <div className="text-xs text-blue-700 mt-1">
-                                  {cantidadCheques} cheques de {formatMoney(Math.ceil(cuotaFinal))},{' '}
-                                  (1ro Corriente)
-                                </div>
-                              )}
-
-                              {!esPlanCheques && quebranto > 0 && (
-                                <div className="text-xs text-gray-600 mt-1">
-                                  Quebranto: {formatMoney(quebranto)}
-                                </div>
-                              )}
-
-                              {cuotaBalon > 0 && (
-                                <div className="text-xs text-amber-700 mt-1">
-                                  Cuota Balon: {formatMoney(cuotaBalon)} meses: {mesesBalon.join(', ')}
-                                </div>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
+                          })}
+                        </tr>
+                      </React.Fragment>
                     );
                   })}
                 </tbody>
