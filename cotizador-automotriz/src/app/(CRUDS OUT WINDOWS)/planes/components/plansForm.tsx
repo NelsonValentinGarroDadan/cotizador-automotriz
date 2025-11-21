@@ -583,6 +583,7 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                                 <th className="px-2 py-1 text-left">Quebranto(%)</th>
                                 <th className="px-2 py-1 text-left">Cuota Balón</th>
                                 <th className="px-2 py-1 text-left">Meses Balón</th>
+                                <th className="px-2 py-1 text-left">Cuota Prom.</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -600,6 +601,7 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                                         ? coeff.cuotaBalonMonths.map((m) => m.month).join(', ')
                                         : '-'}
                                     </td>
+                                    <td className="px-2 py-1">{coeff.cuotaPromedio ?? '-'}</td>
                                   </tr>
                                 ))}
                             </tbody>
