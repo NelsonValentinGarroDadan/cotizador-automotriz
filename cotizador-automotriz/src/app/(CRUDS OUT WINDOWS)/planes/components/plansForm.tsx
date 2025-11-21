@@ -580,7 +580,7 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                                 <th className="px-2 py-1 text-left">Plazo</th>
                                 <th className="px-2 py-1 text-left">TNA</th>
                                 <th className="px-2 py-1 text-left">Coef.</th>
-                                <th className="px-2 py-1 text-left">Quebranto</th>
+                                <th className="px-2 py-1 text-left">Quebranto(%)</th>
                                 <th className="px-2 py-1 text-left">Cuota Balón</th>
                                 <th className="px-2 py-1 text-left">Meses Balón</th>
                               </tr>
@@ -593,7 +593,7 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                                     <td className="px-2 py-1">{coeff.plazo} m</td>
                                     <td className="px-2 py-1">{coeff.tna}%</td>
                                     <td className="px-2 py-1">{coeff.coeficiente}</td>
-                                    <td className="px-2 py-1">{coeff.quebrantoFinanciero ?? '-'}</td>
+                                    <td className="px-2 py-1">{coeff.quebrantoFinanciero  ?coeff.quebrantoFinanciero+"%": '-'}</td>
                                     <td className="px-2 py-1">{coeff.cuotaBalon ?? '-'}</td>
                                     <td className="px-2 py-1">
                                       {(coeff.cuotaBalonMonths || []).length
