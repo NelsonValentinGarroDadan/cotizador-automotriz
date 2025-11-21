@@ -6,30 +6,34 @@ import {
   createVehicleVersionSchema,
   updateVehicleVersionSchema,
 } from "./schema";
+import { authorizeRole } from "../../core/middleware/authorizeRole";
+import { Role } from "../../core/types/role";
 
 const routerVehicules = Router();
 
-routerVehicules.get("/brands", catchAsync(controller.getBrands));
-routerVehicules.post("/brands", catchAsync(controller.createBrand));
-routerVehicules.put("/brands/:idmarca", catchAsync(controller.updateBrand));
-routerVehicules.delete("/brands/:idmarca", catchAsync(controller.deleteBrand));
-routerVehicules.get("/lines", catchAsync(controller.getLines));
-routerVehicules.post("/lines", catchAsync(controller.createLine));
-routerVehicules.put("/lines/:idlinea", catchAsync(controller.updateLine));
-routerVehicules.delete("/lines/:idlinea", catchAsync(controller.deleteLine));
-routerVehicules.get("/models", catchAsync(controller.getModels));
-routerVehicules.post("/models", catchAsync(controller.createModel));
-routerVehicules.put("/models/:idmodelo", catchAsync(controller.updateModel));
-routerVehicules.delete("/models/:idmodelo", catchAsync(controller.deleteModel));
+routerVehicules.get("/brands",authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]), catchAsync(controller.getBrands));
+routerVehicules.post("/brands", authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]),catchAsync(controller.createBrand));
+routerVehicules.put("/brands/:idmarca", authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]),catchAsync(controller.updateBrand));
+routerVehicules.delete("/brands/:idmarca", authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]),catchAsync(controller.deleteBrand));
+routerVehicules.get("/lines", authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]),catchAsync(controller.getLines));
+routerVehicules.post("/lines", authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]),catchAsync(controller.createLine));
+routerVehicules.put("/lines/:idlinea",authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]), catchAsync(controller.updateLine));
+routerVehicules.delete("/lines/:idlinea",authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]), catchAsync(controller.deleteLine));
+routerVehicules.get("/models",authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]), catchAsync(controller.getModels));
+routerVehicules.post("/models",authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]), catchAsync(controller.createModel));
+routerVehicules.put("/models/:idmodelo",authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]), catchAsync(controller.updateModel));
+routerVehicules.delete("/models/:idmodelo",authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]), catchAsync(controller.deleteModel));
 routerVehicules.get("/versions/:idversion", catchAsync(controller.getVersionById));
 routerVehicules.get("/versions", catchAsync(controller.getVersions));
 routerVehicules.post(
   "/versions",
+  authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]),
   validateRequest(createVehicleVersionSchema),
   catchAsync(controller.createVersion)
 );
 routerVehicules.put(
   "/versions/:idversion",
+  authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]),
   validateRequest(updateVehicleVersionSchema),
   catchAsync(controller.updateVersion)
 );

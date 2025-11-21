@@ -24,6 +24,6 @@ router.use('/plans',routerPlans);
 
 router.use('/quotations', quotationRoutes);
 
-router.use('/vehicules', authorizeRole([Role.ADMIN, Role.SUPER_ADMIN]), vehiculesRoutes);
+router.use('/vehicules',  vehiculesRoutes);
 
 export default router;
