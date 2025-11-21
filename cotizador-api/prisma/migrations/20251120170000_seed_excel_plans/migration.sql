@@ -7,33 +7,80 @@ SET FOREIGN_KEY_CHECKS = 0;
 SET @company_id := '11111111-1111-4111-8111-111111111111';
 SET @admin_id   := '22222222-2222-4222-8222-222222222222';
 
--- Planes y versiones a reemplazar
-SET @plan_ids := (
-  '8ae36e24-5300-5bf8-af04-aa7978dad91c','44d723c3-dd39-5cc7-9238-c71c2a07ae6a','bc14f07c-b9c9-57dd-a74b-ab11cf2ca598',
-  '338ab364-cb13-5bd8-a146-681119788a72','f59bed60-1667-5782-aa31-5624a4e65ce0','06e46dec-258d-5712-96f7-60fdffacff23',
-  'ea06d164-f594-5a0b-86f3-5401d31fcf84','ad29af63-50c8-57e2-81a3-02752013d1be','a3bf0976-a475-5ab4-916f-82c8e19b00de',
-  '3cf4625d-2cc8-5e04-9d4c-95ec075ba71a','9183d25f-e957-5552-8e3e-a636de784ece','9a3fd7fd-a89d-5442-bf5f-d9599549f3e9',
-  '5155cdb2-d09d-571b-9d7f-5b53670ce1ee','26985618-94b2-54a3-b6e8-d61043f10f5f','bd03af35-f2b1-538d-9ff0-9f46bb740730',
-  'c917d257-ee1c-5d1f-9e26-717142ae7488','90d6b597-fd9c-5582-bbbe-68a39288631d','45d53036-f2b3-5f34-a9f2-8f287e5507e6',
-  '7bfa4e6e-f94c-530c-a51f-b3dd26704304','020729b9-21eb-554d-b88d-4d81ce50b68a','000768ac-6f3d-5f4c-8a80-d8d2e86bdd50',
-  'c2be02cf-b93e-5bea-8fdb-62d174a24c07','9dc0db70-174f-58ee-8cb5-1ce0148c1f74','5dbdda7b-6c71-5c6f-a00c-1a0d5e74f469',
-  '34b4bc07-4e18-59a0-8396-1774e93dcb11','8fe46207-840a-5517-8be9-e431cd247113','ed728090-382d-50ae-8280-0f5c4d39831c',
-  'e9532a99-ab6f-554a-9704-053ed600ce2d','3319f958-a610-5a91-9acd-0a6d6b0e17ac','aced1e93-7575-5df1-9d10-14f15f81d40c',
-  '7b4ffa03-1b34-55d2-9530-e5d850a49ae7','1f2e4852-932a-5f9e-9fe1-be4a871c93f8','049e984e-4e1a-580a-8fed-ef50891d924c',
-  '6da33639-8b50-53c1-b8ed-299fccabeb61','8f6a173f-52aa-58c1-a15d-7c81f04c2861','1292e300-43a1-57ac-9602-979373367cfc',
-  '426b7f4d-7ae7-555b-9977-81338f24fa2c','a067cc38-7d96-5caf-a23a-fa32432b0665','016cd6c1-9849-5b79-aeb5-2c98bbcf9b94',
-  '924f91c6-a6e7-5d1f-81ce-835ffc45fffd','2d53b2ad-220d-5a74-aa26-f78cd21cee6e','fe18f367-9869-5624-bf8e-24f7e9eae421',
-  '9f10f9a4-0505-5688-8b40-83789b22b1c4','eb849a93-a278-5d6c-8487-7cee22966329','7ebbf2ff-f1e9-56f0-a8f7-c1606a9a6d01',
-  '24973838-9983-5ffe-a669-39ca07eedd65'
+-- Tabla temporal con los ids de planes a sembrar
+CREATE TEMPORARY TABLE IF NOT EXISTS _tmp_plan_ids (
+  id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci PRIMARY KEY
 );
+DELETE FROM _tmp_plan_ids;
+INSERT INTO _tmp_plan_ids (id) VALUES
+('8ae36e24-5300-5bf8-af04-aa7978dad91c'),('44d723c3-dd39-5cc7-9238-c71c2a07ae6a'),('bc14f07c-b9c9-57dd-a74b-ab11cf2ca598'),
+('338ab364-cb13-5bd8-a146-681119788a72'),('f59bed60-1667-5782-aa31-5624a4e65ce0'),('06e46dec-258d-5712-96f7-60fdffacff23'),
+('ea06d164-f594-5a0b-86f3-5401d31fcf84'),('ad29af63-50c8-57e2-81a3-02752013d1be'),('a3bf0976-a475-5ab4-916f-82c8e19b00de'),
+('3cf4625d-2cc8-5e04-9d4c-95ec075ba71a'),('9183d25f-e957-5552-8e3e-a636de784ece'),('9a3fd7fd-a89d-5442-bf5f-d9599549f3e9'),
+('5155cdb2-d09d-571b-9d7f-5b53670ce1ee'),('26985618-94b2-54a3-b6e8-d61043f10f5f'),('bd03af35-f2b1-538d-9ff0-9f46bb740730'),
+('c917d257-ee1c-5d1f-9e26-717142ae7488'),('90d6b597-fd9c-5582-bbbe-68a39288631d'),('45d53036-f2b3-5f34-a9f2-8f287e5507e6'),
+('7bfa4e6e-f94c-530c-a51f-b3dd26704304'),('020729b9-21eb-554d-b88d-4d81ce50b68a'),('000768ac-6f3d-5f4c-8a80-d8d2e86bdd50'),
+('c2be02cf-b93e-5bea-8fdb-62d174a24c07'),('9dc0db70-174f-58ee-8cb5-1ce0148c1f74'),('5dbdda7b-6c71-5c6f-a00c-1a0d5e74f469'),
+('34b4bc07-4e18-59a0-8396-1774e93dcb11'),('8fe46207-840a-5517-8be9-e431cd247113'),('ed728090-382d-50ae-8280-0f5c4d39831c'),
+('e9532a99-ab6f-554a-9704-053ed600ce2d'),('3319f958-a610-5a91-9acd-0a6d6b0e17ac'),('aced1e93-7575-5df1-9d10-14f15f81d40c'),
+('7b4ffa03-1b34-55d2-9530-e5d850a49ae7'),('1f2e4852-932a-5f9e-9fe1-be4a871c93f8'),('049e984e-4e1a-580a-8fed-ef50891d924c'),
+('6da33639-8b50-53c1-b8ed-299fccabeb61'),('8f6a173f-52aa-58c1-a15d-7c81f04c2861'),('1292e300-43a1-57ac-9602-979373367cfc'),
+('426b7f4d-7ae7-555b-9977-81338f24fa2c'),('a067cc38-7d96-5caf-a23a-fa32432b0665'),('016cd6c1-9849-5b79-aeb5-2c98bbcf9b94'),
+('924f91c6-a6e7-5d1f-81ce-835ffc45fffd'),('2d53b2ad-220d-5a74-aa26-f78cd21cee6e'),('fe18f367-9869-5624-bf8e-24f7e9eae421'),
+('9f10f9a4-0505-5688-8b40-83789b22b1c4'),('eb849a93-a278-5d6c-8487-7cee22966329'),('7ebbf2ff-f1e9-56f0-a8f7-c1606a9a6d01'),
+('24973838-9983-5ffe-a669-39ca07eedd65');
 
+-- Tabla temporal con los ids de usuarios a sembrar
+CREATE TEMPORARY TABLE IF NOT EXISTS _tmp_user_ids (
+  id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci PRIMARY KEY
+);
+DELETE FROM _tmp_user_ids;
+INSERT INTO _tmp_user_ids (id) VALUES
+('91aec685-7dd8-511a-9a00-4d9fe5d7165e'),('a5c0148f-5827-5a95-b48b-1038d78b613b'),('a9b77273-e0a3-5916-96cf-45e7c47cbb67'),
+('05ffd14f-50f1-5a5d-b07f-07bccbe007da'),('229effbd-bb15-554f-b46d-0de3401b88ac'),('73886938-34f2-56bf-9372-1db71b9c94c0'),
+('dfea1a8c-6e62-5f03-a1d3-a725b26a0a28'),('574fed38-3aae-572c-b579-70a0b04f9257'),('088db505-6a6a-5503-9423-01a0eb3433fb'),
+('a48883fc-19d3-51a6-951e-915ccb63b1aa'),('7477f13e-f6e7-5c9a-b520-982c7a3569c3'),('6b98a819-90ae-52fc-a744-cd7d9ec8e818'),
+('11e3e87a-c279-58bd-889e-db91b12e2576'),('c406801d-c643-56ac-b679-4f8d0ce40433'),('0e1468d8-01ae-5bf5-86e4-b11033d49a3e'),
+('18ab1ad0-a77b-55c9-9746-0abc6d812492'),('37eadadd-db62-5a26-b384-a8c3a21b4cb4'),('4f13d0d5-c2ab-5219-b2c0-c480e42a81cf'),
+('868d2b7b-28f9-5a26-a756-b79ef52289e2'),('feebe72e-8b2b-550b-8e13-521658e00e62'),('f4994e12-d61d-53cf-9c5f-4db579d7cbf9');
+
+-- Tabla temporal con plan ids permitidos a usuarios (24 planes)
+CREATE TEMPORARY TABLE IF NOT EXISTS _tmp_allowed_plan_ids (
+  id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci PRIMARY KEY
+);
+DELETE FROM _tmp_allowed_plan_ids;
+INSERT INTO _tmp_allowed_plan_ids (id) VALUES
+('9dc0db70-174f-58ee-8cb5-1ce0148c1f74'), -- BNA +AUTOS
+('5dbdda7b-6c71-5c6f-a00c-1a0d5e74f469'), -- BNA CONECTA
+('45d53036-f2b3-5f34-a9f2-8f287e5507e6'), -- CREDICOOP Acuerdo Especial
+('ed728090-382d-50ae-8280-0f5c4d39831c'), -- LEASING COMAFI 100%
+('3319f958-a610-5a91-9acd-0a6d6b0e17ac'), -- LEASING COMAFI TAMAR
+('e9532a99-ab6f-554a-9704-053ed600ce2d'), -- LEASING COMAFI U$D
+('8fe46207-840a-5517-8be9-e431cd247113'), -- PLAN CHEQUES ANZ
+('3cf4625d-2cc8-5e04-9d4c-95ec075ba71a'), -- TARJETA DE CREDITO via MP
+('8ae36e24-5300-5bf8-af04-aa7978dad91c'), -- TCFA 0Km TASA 0%
+('44d723c3-dd39-5cc7-9238-c71c2a07ae6a'), -- TCFA AGRO
+('338ab364-cb13-5bd8-a146-681119788a72'), -- TCFA CICLO FLAT
+('34b4bc07-4e18-59a0-8396-1774e93dcb11'), -- TCFA OKM TASA 9,9%
+('9a3fd7fd-a89d-5442-bf5f-d9599549f3e9'), -- TCFA PLAN 32 %
+('9183d25f-e957-5552-8e3e-a636de784ece'), -- TCFA PLAN 39,9%
+('016cd6c1-9849-5b79-aeb5-2c98bbcf9b94'), -- TCFA PLAN PROMO HILUX HIACE
+('5155cdb2-d09d-571b-9d7f-5b53670ce1ee'), -- TCFA PLAN UVA TASA 0%
+('26985618-94b2-54a3-b6e8-d61043f10f5f'), -- TCFA PLAN UVA TRADICIONAL
+('bd03af35-f2b1-538d-9ff0-9f46bb740730'), -- TCFA PLAN UVA USADOS
+('06e46dec-258d-5712-96f7-60fdffacff23'), -- TCFA TNA ESCALONADA
+('ea06d164-f594-5a0b-86f3-5401d31fcf84'), -- TCFA TNA REDUCIDA
+('ad29af63-50c8-57e2-81a3-02752013d1be'), -- TCFA TRADICIONAL 0Km
+('7bfa4e6e-f94c-530c-a51f-b3dd26704304'), -- TCFA USADOS 0%
+('000768ac-6f3d-5f4c-8a80-d8d2e86bdd50'), -- TCFA USADOS TASA 9,9%
+('90d6b597-fd9c-5582-bbbe-68a39288631d'); -- TCFA USADOS TRADICIONAL
 DELETE FROM cuota_balon_months WHERE planCoefficientId IN (
-  SELECT id FROM plan_coefficients WHERE planVersionId IN (
-    SELECT id FROM plan_versions WHERE planId IN (@plan_ids)
+  SELECT id FROM PlanCoefficient WHERE planVersionId IN (
+    SELECT id FROM plan_versions WHERE planId IN (SELECT id FROM _tmp_plan_ids)
   )
 );
-DELETE FROM plan_coefficients WHERE planVersionId IN (SELECT id FROM plan_versions WHERE planId IN (@plan_ids));
-DELETE FROM plan_versions WHERE planId IN (@plan_ids);
+DELETE FROM PlanCoefficient WHERE planVersionId IN (SELECT id FROM plan_versions WHERE planId IN (SELECT id FROM _tmp_plan_ids));
+DELETE FROM plan_versions WHERE planId IN (SELECT id FROM _tmp_plan_ids);
 
 -- Planes
 INSERT INTO plans (id, name, description, logo, createdById, active, createdAt, updatedAt) VALUES
@@ -113,7 +160,7 @@ INSERT IGNORE INTO `_PlanCompanies` (`A`,`B`) VALUES
 
 -- Versión 1 de cada plan (isLatest=true)
 INSERT INTO plan_versions (id, planId, version, isLatest, createdAt, createdById, desdeMonto, hastaMonto, desdeCuota, hastaCuota) VALUES
-('5f641215-1f21-50c7-a4a4-fab3574f69f7','8ae36e24-5300-5bf8-af04-aa7978dad91c',1,TRUE,NOW(),@admin_id,NULL,20000000,NULL,NULL),
+('5f641215-1f21-50c7-a4a4-fab3574f69f7','8ae36e24-5300-5bf8-af04-aa7978dad91c',1,TRUE,NOW(),@admin_id,NULL,NULL,NULL,NULL),
 ('530b1519-ee63-5345-9839-601241d80323','44d723c3-dd39-5cc7-9238-c71c2a07ae6a',1,TRUE,NOW(),@admin_id,2500000,NULL,NULL,NULL),
 ('edec3b26-b597-50db-a4e7-e2a5c16e6053','bc14f07c-b9c9-57dd-a74b-ab11cf2ca598',1,TRUE,NOW(),@admin_id,NULL,NULL,NULL,NULL),
 ('f05838f0-36b2-50a6-8940-ee8f9ea42a2e','338ab364-cb13-5bd8-a146-681119788a72',1,TRUE,NOW(),@admin_id,NULL,NULL,NULL,NULL),
@@ -121,7 +168,7 @@ INSERT INTO plan_versions (id, planId, version, isLatest, createdAt, createdById
 ('90e3356b-2dc1-5848-b992-f88bca0478dd','06e46dec-258d-5712-96f7-60fdffacff23',1,TRUE,NOW(),@admin_id,NULL,NULL,NULL,NULL),
 ('5cb97b66-275d-558b-bde2-555562fa4d27','ea06d164-f594-5a0b-86f3-5401d31fcf84',1,TRUE,NOW(),@admin_id,NULL,NULL,NULL,NULL),
 ('e4ba41ac-94cd-57ae-9bc0-9b6fdb3b8d16','ad29af63-50c8-57e2-81a3-02752013d1be',1,TRUE,NOW(),@admin_id,NULL,NULL,NULL,NULL),
-('b63923ae-054c-520b-9053-e200af8b0c73','a3bf0976-a475-5ab4-916f-82c8e19b00de',1,TRUE,NOW(),@admin_id,NULL,20000000,NULL,NULL),
+('b63923ae-054c-520b-9053-e200af8b0c73','a3bf0976-a475-5ab4-916f-82c8e19b00de',1,TRUE,NOW(),@admin_id,NULL,NULL,NULL,NULL),
 ('849b7728-e909-5b59-a41a-6524379e1cf7','3cf4625d-2cc8-5e04-9d4c-95ec075ba71a',1,TRUE,NOW(),@admin_id,NULL,NULL,NULL,NULL),
 ('c06dcc78-2644-562e-ba51-71a856a6a9e1','9183d25f-e957-5552-8e3e-a636de784ece',1,TRUE,NOW(),@admin_id,NULL,NULL,NULL,NULL),
 ('1edad88c-e517-5c32-b8ec-171e2e1c8c2f','9a3fd7fd-a89d-5442-bf5f-d9599549f3e9',1,TRUE,NOW(),@admin_id,NULL,NULL,NULL,NULL),
@@ -161,8 +208,27 @@ INSERT INTO plan_versions (id, planId, version, isLatest, createdAt, createdById
 ('f838d570-23b7-55db-84d3-050fabb5a4da','24973838-9983-5ffe-a669-39ca07eedd65',1,TRUE,NOW(),@admin_id,NULL,NULL,NULL,NULL)
 ON DUPLICATE KEY UPDATE isLatest=VALUES(isLatest), desdeMonto=VALUES(desdeMonto), hastaMonto=VALUES(hastaMonto), desdeCuota=VALUES(desdeCuota), hastaCuota=VALUES(hastaCuota), createdById=VALUES(createdById);
 
+-- Reglas de restricciones:
+-- 1) Todos los planes que comienzan con "TCFA" tienen desdeMonto = 2.500.000
+UPDATE plan_versions pv
+JOIN plans p ON p.id = pv.planId
+SET pv.desdeMonto = 2500000
+WHERE p.name LIKE 'TCFA%';
+
+-- 2) Plan específico: TCFA PLAN PROMO HILUX con hastaMonto = 20.000.000
+UPDATE plan_versions pv
+JOIN plans p ON p.id = pv.planId
+SET pv.hastaMonto = 20000000
+WHERE p.name LIKE '%TCFA%PLAN PROMO HILUX%';
+
+-- 3) Planes que contienen "TCFA - GALICIA" con desdeCuota = 13
+UPDATE plan_versions pv
+JOIN plans p ON p.id = pv.planId
+SET pv.desdeCuota = 13
+WHERE p.name LIKE '%TCFA - GALICIA%';
+
 -- Coeficientes
-INSERT INTO plan_coefficients (id, planVersionId, plazo, tna, coeficiente, quebrantoFinanciero, cuotaBalon, cuotaPromedio) VALUES
+INSERT INTO PlanCoefficient (id, planVersionId, plazo, tna, coeficiente, quebrantoFinanciero, cuotaBalon, cuotaPromedio) VALUES
 ('421e850c-8877-49f8-aa6d-49bd9a577b97','5f641215-1f21-50c7-a4a4-fab3574f69f7',6,0.000,0.0000,0.0000,NULL,NULL),
 ('a100aa10-85ff-4408-b066-492c04596df5','5f641215-1f21-50c7-a4a4-fab3574f69f7',12,0.000,834.0000,0.2470,NULL,NULL),
 ('d53a8d13-b18b-4d41-95f3-95de08f166f2','5f641215-1f21-50c7-a4a4-fab3574f69f7',18,0.000,556.0000,0.3329,NULL,NULL),
@@ -175,9 +241,9 @@ INSERT INTO plan_coefficients (id, planVersionId, plazo, tna, coeficiente, quebr
 ('c739bb4f-9ece-4a26-9d38-150882bc5376','530b1519-ee63-5345-9839-601241d80323',48,0.599,392.0000,0.0000,1313.00,NULL),
 ('83e0b090-9ef5-4426-ab7c-6a0b68554809','edec3b26-b597-50db-a4e7-e2a5c16e6053',36,0.569,620.0000,0.0000,5521.00,NULL),
 ('583912fd-3aa0-4c1d-ba7f-a5729353130e','f05838f0-36b2-50a6-8940-ee8f9ea42a2e',36,0.569,649.0000,0.0000,NULL,NULL),
-('b15bde02-b9f9-4cbd-ae05-dbee4257ec3a','a6413082-2a01-5fd7-85de-0e2768db9af8',12,0.110,894.0000,0.2015,NULL,NULL),
-('877445e8-e232-432d-83d6-78d52a117e5e','a6413082-2a01-5fd7-85de-0e2768db9af8',18,0.201,667.0000,0.2015,NULL,NULL),
-('35c6fae8-5bbd-4061-890b-6d2de6ffd695','a6413082-2a01-5fd7-85de-0e2768db9af8',24,0.310,598.0000,0.2015,NULL,NULL),
+('b15bde02-b9f9-4cbd-ae05-dbee4257ec3a','a6413082-2a01-5fd7-85de-0e2768db9af8',12,10.970,894.0000,0.2015,NULL,NULL),
+('877445e8-e232-432d-83d6-78d52a117e5e','a6413082-2a01-5fd7-85de-0e2768db9af8',18,20.080,667.0000,0.2015,NULL,NULL),
+('35c6fae8-5bbd-4061-890b-6d2de6ffd695','a6413082-2a01-5fd7-85de-0e2768db9af8',24,31.050,598.0000,0.2015,NULL,NULL),
 ('381e9281-743e-48af-8d52-a9870cbf024b','90e3356b-2dc1-5848-b992-f88bca0478dd',12,0.290,999.0000,0.1400,NULL,NULL),
 ('135de161-bbbf-4bd2-8628-8bdcc09105ec','90e3356b-2dc1-5848-b992-f88bca0478dd',18,0.377,774.0000,0.1400,NULL,NULL),
 ('7ad8f852-54c2-4701-8b33-dcce584149d6','90e3356b-2dc1-5848-b992-f88bca0478dd',24,0.420,666.0000,0.1400,NULL,NULL),
@@ -224,7 +290,7 @@ INSERT INTO plan_coefficients (id, planVersionId, plazo, tna, coeficiente, quebr
 ('db07db9d-6501-46bb-b759-cb79937e7685','8ef950d1-8ff2-5d17-ba12-d3e124df9683',18,0.279,714.0000,0.0000,NULL,NULL),
 ('edf52fb0-5e4b-4e36-8a92-7c3bd2d063f1','8ef950d1-8ff2-5d17-ba12-d3e124df9683',24,0.279,576.0000,0.0000,NULL,NULL),
 ('db9058c5-dfbc-4187-aef5-35c482ed02b9','8ef950d1-8ff2-5d17-ba12-d3e124df9683',36,0.279,442.0000,0.0000,NULL,NULL),
-('59f402dc-552e-4947-9c95-2b6e7349d346','a3c9ecd3-f415-5ba2-a13f-be5e52a47b0a',6,0.349,1877.0000,0.0000,NULL,NULL),
+('59f402dc-552e-4947-9c95-2b6e7349d346','a3c9ecd3-f415-5ba2-a13f-be5e52a47b0a',6,0.349,1877.0000,0.0681,NULL,NULL),
 ('921d62cf-0dea-4f1d-88b5-3e182699e178','a3c9ecd3-f415-5ba2-a13f-be5e52a47b0a',12,0.349,1034.0000,0.1182,NULL,NULL),
 ('99042acf-1357-44da-962c-16a4e58663fd','a3c9ecd3-f415-5ba2-a13f-be5e52a47b0a',18,0.359,763.0000,0.1556,NULL,NULL),
 ('1b4beee5-245a-4fc0-ba32-18d14c257fa9','a3c9ecd3-f415-5ba2-a13f-be5e52a47b0a',24,0.429,672.0000,0.1919,NULL,NULL),
@@ -232,7 +298,7 @@ INSERT INTO plan_coefficients (id, planVersionId, plazo, tna, coeficiente, quebr
 ('bbd2395e-f983-4b02-8242-284c9d65b1ec','57c77611-fed5-5c7f-8739-2fdff4dc31b8',6,0.609,2039.0000,0.0000,NULL,NULL),
 ('733dbf87-f330-4a97-99d7-31b2a5295546','57c77611-fed5-5c7f-8739-2fdff4dc31b8',12,0.609,1195.0000,0.0000,NULL,NULL),
 ('6de5ca17-34ed-417f-840e-36c5ec89a57a','57c77611-fed5-5c7f-8739-2fdff4dc31b8',18,0.609,924.0000,0.0000,NULL,NULL),
-('4f63e1a5-5b91-4462-aa06-bdca32418d4f','57c77611-fed5-5c7f-8739-2fdff4dc31b8',24,0.609,729.0000,0.0000,NULL,NULL),
+('4f63e1a5-5b91-4462-aa06-bdca32418d4f','57c77611-fed5-5c7f-8739-2fdff4dc31b8',24,0.609,795.0000,0.0000,NULL,NULL),
 ('06474d3a-2f13-4a95-8696-8e5bc707d68e','57c77611-fed5-5c7f-8739-2fdff4dc31b8',36,0.609,649.0000,0.0000,NULL,NULL),
 ('dfdf74db-3efd-4810-a71f-8e878798c238','57c77611-fed5-5c7f-8739-2fdff4dc31b8',48,0.609,680.0000,0.0000,NULL,NULL),
 ('1eb2076e-63cb-47bf-b96e-2a1e7b1194e4','c8f3a188-ecec-513a-89d4-78bd59cb7907',6,0.120,1750.0000,0.0600,NULL,NULL),
@@ -242,24 +308,24 @@ INSERT INTO plan_coefficients (id, planVersionId, plazo, tna, coeficiente, quebr
 ('465931e9-c2d8-464e-b242-07bbc07b594d','0adc6464-d6ca-5863-95b4-9fda6f575f01',18,0.000,556.0000,0.3240,NULL,NULL),
 ('6c0229a8-6556-48e4-89b0-af5505d0ab6e','0adc6464-d6ca-5863-95b4-9fda6f575f01',24,0.000,417.0000,0.3955,NULL,NULL),
 ('ea276cad-5616-4818-a8b7-b2c7c0ba1631','0adc6464-d6ca-5863-95b4-9fda6f575f01',36,0.000,278.0000,0.5087,NULL,NULL),
-('335597e8-522d-4d55-967f-a9e92d2d87c9','256201e3-f611-5041-8a51-0c99d1e001f6',6,0.432,1930.0000,0.0000,NULL,NULL),
-('1f8664a8-68f1-4366-95ab-c381604fadd3','256201e3-f611-5041-8a51-0c99d1e001f6',12,0.432,1085.0000,0.0000,NULL,NULL),
-('d9618d45-461b-4d2d-8ac6-34eace142402','256201e3-f611-5041-8a51-0c99d1e001f6',18,0.432,809.0000,0.0000,NULL,NULL),
-('74275cf8-f5a4-4109-a7b2-7ea847db1931','256201e3-f611-5041-8a51-0c99d1e001f6',24,0.432,675.0000,0.0000,NULL,NULL),
-('7cce3a8c-72e6-4b68-a958-c231a4c6f4bd','256201e3-f611-5041-8a51-0c99d1e001f6',36,0.432,547.0000,0.0000,NULL,NULL),
-('418e00dd-8e74-483f-b66b-92f38be0c098','256201e3-f611-5041-8a51-0c99d1e001f6',48,0.432,490.0000,0.0000,NULL,NULL),
-('f667dabc-d23c-4096-8f01-503b2fb453fe','256201e3-f611-5041-8a51-0c99d1e001f6',60,0.432,460.0000,0.0000,NULL,NULL),
+('335597e8-522d-4d55-967f-a9e92d2d87c9','256201e3-f611-5041-8a51-0c99d1e001f6',6,43.240,1930.0000,0.0000,NULL,NULL),
+('1f8664a8-68f1-4366-95ab-c381604fadd3','256201e3-f611-5041-8a51-0c99d1e001f6',12,43.240,1085.0000,0.0000,NULL,NULL),
+('d9618d45-461b-4d2d-8ac6-34eace142402','256201e3-f611-5041-8a51-0c99d1e001f6',18,43.240,809.0000,0.0000,NULL,NULL),
+('74275cf8-f5a4-4109-a7b2-7ea847db1931','256201e3-f611-5041-8a51-0c99d1e001f6',24,43.240,675.0000,0.0000,NULL,NULL),
+('7cce3a8c-72e6-4b68-a958-c231a4c6f4bd','256201e3-f611-5041-8a51-0c99d1e001f6',36,43.240,547.0000,0.0000,NULL,NULL),
+('418e00dd-8e74-483f-b66b-92f38be0c098','256201e3-f611-5041-8a51-0c99d1e001f6',48,43.240,490.0000,0.0000,NULL,NULL),
+('f667dabc-d23c-4096-8f01-503b2fb453fe','256201e3-f611-5041-8a51-0c99d1e001f6',60,43.240,460.0000,0.0000,NULL,NULL),
 ('1f805d5c-f7c5-49e8-af94-3fe37d286580','771c08a9-3db1-5c92-9ee0-83348f3b3822',12,0.099,889.0000,0.2245,NULL,NULL),
 ('d080cb6c-5e7d-4e13-b3e0-61196ceddc65','771c08a9-3db1-5c92-9ee0-83348f3b3822',18,0.099,610.0000,0.3026,NULL,NULL),
 ('2451d2cc-608c-4bb7-a529-1a76dd6647ac','771c08a9-3db1-5c92-9ee0-83348f3b3822',24,0.099,470.0000,0.3685,NULL,NULL),
 ('f04a67ee-e381-4f2e-9c11-ecf1744de359','771c08a9-3db1-5c92-9ee0-83348f3b3822',36,0.099,332.0000,0.4720,NULL,NULL),
-('1bec2e50-520d-4bc0-b830-5399b619b035','dfe756e3-7826-5b61-98ef-ce66c44b4260',6,0.549,1979.0000,0.0000,NULL,NULL),
-('ea1fca20-a5ab-4941-af88-33ce127eb074','dfe756e3-7826-5b61-98ef-ce66c44b4260',12,0.549,1135.0000,0.0000,NULL,NULL),
-('dee1fa9d-fe04-432a-9210-25157ada1fee','dfe756e3-7826-5b61-98ef-ce66c44b4260',18,0.549,861.0000,0.0000,NULL,NULL),
-('88ce45a7-74e7-42b1-92f8-06840cdfc229','dfe756e3-7826-5b61-98ef-ce66c44b4260',24,0.549,729.0000,0.0000,NULL,NULL),
-('c3a4b852-165b-42aa-bf6a-2ab7603e58d7','dfe756e3-7826-5b61-98ef-ce66c44b4260',36,0.549,606.0000,0.0000,NULL,NULL),
-('d7351b61-d3c6-472e-b0f1-c6dcdbd4ef79','dfe756e3-7826-5b61-98ef-ce66c44b4260',48,0.549,554.0000,0.0000,NULL,NULL),
-('a9eb9cd3-e511-4868-91df-0f9946c01232','dfe756e3-7826-5b61-98ef-ce66c44b4260',60,0.549,528.0000,0.0000,NULL,NULL),
+('1bec2e50-520d-4bc0-b830-5399b619b035','dfe756e3-7826-5b61-98ef-ce66c44b4260',6,54.880,1979.0000,0.0000,NULL,NULL),
+('ea1fca20-a5ab-4941-af88-33ce127eb074','dfe756e3-7826-5b61-98ef-ce66c44b4260',12,54.880,1135.0000,0.0000,NULL,NULL),
+('dee1fa9d-fe04-432a-9210-25157ada1fee','dfe756e3-7826-5b61-98ef-ce66c44b4260',18,54.880,861.0000,0.0000,NULL,NULL),
+('88ce45a7-74e7-42b1-92f8-06840cdfc229','dfe756e3-7826-5b61-98ef-ce66c44b4260',24,54.880,729.0000,0.0000,NULL,NULL),
+('c3a4b852-165b-42aa-bf6a-2ab7603e58d7','dfe756e3-7826-5b61-98ef-ce66c44b4260',36,54.880,606.0000,0.0000,NULL,NULL),
+('d7351b61-d3c6-472e-b0f1-c6dcdbd4ef79','dfe756e3-7826-5b61-98ef-ce66c44b4260',48,54.880,554.0000,0.0000,NULL,NULL),
+('a9eb9cd3-e511-4868-91df-0f9946c01232','dfe756e3-7826-5b61-98ef-ce66c44b4260',60,54.880,528.0000,0.0000,NULL,NULL),
 ('f0749238-6ee5-4476-b1da-1ef270e2bc61','bfa86830-1f9e-59eb-bc37-779bb8dbfd27',12,0.500,1164.0000,0.0000,NULL,NULL),
 ('9045252f-ad11-432b-8acd-96476e3a9abb','bfa86830-1f9e-59eb-bc37-779bb8dbfd27',18,0.500,889.0000,0.0000,NULL,NULL),
 ('f8cb3ddf-ba1e-4409-8f2b-723091b5be09','bfa86830-1f9e-59eb-bc37-779bb8dbfd27',24,0.500,755.0000,0.0000,NULL,NULL),
@@ -303,7 +369,7 @@ INSERT INTO plan_coefficients (id, planVersionId, plazo, tna, coeficiente, quebr
 ('4ee8b329-7ab0-4cd6-9e6f-0b715215d2fd','b5702d9f-0dc0-5ff3-8af2-bb55140748cd',36,0.600,674.0000,0.0000,NULL,NULL),
 ('5d8109a0-49e1-4e49-84c4-0d6fe7165086','b5702d9f-0dc0-5ff3-8af2-bb55140748cd',48,0.600,626.0000,0.0000,NULL,NULL),
 ('63ae2697-e4ee-4f35-af88-645275c64d59','32eb3c7f-f575-5136-814c-2b9cae02ba67',60,0.509,561.0000,0.0000,NULL,NULL),
-('5d0c037a-a6f8-45f6-b14b-84a92dd9c837','36a1fb0a-4e02-5734-a381-637f10349006',18,0.248,714.0000,0.0661,NULL,NULL),
+('5d0c037a-a6f8-45f6-b14b-84a92dd9c837','36a1fb0a-4e02-5734-a381-637f10349006',18,24.850,714.0000,0.0661,NULL,NULL),
 ('86c0460a-d416-425e-80b5-eb9db40af6c6','ec6bd972-aa0a-5b9a-ad65-7e00c8acdb40',12,0.000,833.0000,0.1552,NULL,NULL),
 ('20cab9da-44bb-44ba-a98d-64e4a60ebb35','090c39ce-6c46-5792-b625-89d8e3e6fd44',31,0.499,779.0000,0.1000,NULL,NULL),
 ('a5451863-746a-4ad8-b21c-b1ecc85453aa','090c39ce-6c46-5792-b625-89d8e3e6fd44',36,0.499,738.0000,0.1000,NULL,NULL),
@@ -340,28 +406,35 @@ INSERT INTO plan_coefficients (id, planVersionId, plazo, tna, coeficiente, quebr
 ('53252a54-64c8-46df-bf47-66cd300e69f4','3352b980-0f3f-5b4f-b8e1-fcc2560b4fe7',24,0.000,838.0000,0.0000,NULL,NULL),
 ('b5098d0e-9848-436a-a03c-117768f2faa0','3352b980-0f3f-5b4f-b8e1-fcc2560b4fe7',30,0.000,770.1000,0.0000,NULL,NULL),
 ('71becc44-2ce6-4a50-8337-fcedfb4ea02a','3352b980-0f3f-5b4f-b8e1-fcc2560b4fe7',36,0.000,729.6000,0.0000,NULL,NULL),
-('4ca406a8-ec72-412b-8ff4-0f4749fa199f','f838d570-23b7-55db-84d3-050fabb5a4da',36,0.460,586.0000,0.0000,NULL,NULL),
-('aebe04ee-cbaa-4b6a-8bc6-7ab95c69e29c','f838d570-23b7-55db-84d3-050fabb5a4da',48,0.455,542.0000,0.0000,NULL,NULL);
+('4ca406a8-ec72-412b-8ff4-0f4749fa199f','f838d570-23b7-55db-84d3-050fabb5a4da',36,0.460,586.0000,0.0000,NULL,404.0000),
+('aebe04ee-cbaa-4b6a-8bc6-7ab95c69e29c','f838d570-23b7-55db-84d3-050fabb5a4da',48,0.455,542.0000,0.0000,NULL,404.0000);
 
 -- Meses de cuota balón
 INSERT INTO cuota_balon_months (id, planCoefficientId, month) VALUES
-('b45cf85f-9362-483e-8ddd-d046c7f7b15b','d58eb979-93ed-4a38-951d-c7b66be684bb',6),
-('45d1adbb-3d45-4dad-9e67-b58e4500fab9','d58eb979-93ed-4a38-951d-c7b66be684bb',12),
-('48430e00-a667-4927-8426-7e4f8ad4000d','c0e16cb8-94a2-48ab-b245-e06bb8f4bef2',6),
-('d42a83ae-a084-47d1-81b3-2768ef71c616','c0e16cb8-94a2-48ab-b245-e06bb8f4bef2',12),
-('e15c0b73-3ca7-4d6c-aada-a8da5b77988a','c0e16cb8-94a2-48ab-b245-e06bb8f4bef2',18),
-('30281f0f-6e9a-4c1a-b971-9cd0c28168f7','30655afe-6a11-44c9-a461-f0ca9a7ddc79',6),
-('b7b30b8d-5859-4eb8-a356-44e3cf98d370','30655afe-6a11-44c9-a461-f0ca9a7ddc79',12),
-('7ac68caf-e8c0-401f-a195-2c7c9e1fff65','30655afe-6a11-44c9-a461-f0ca9a7ddc79',18),
-('c31baf98-5231-454e-bb9b-51bafff60f33','30655afe-6a11-44c9-a461-f0ca9a7ddc79',24),
-('34ccec1c-92ad-4fa4-aa0e-e9df0f02d32f','3e9ed6d2-64ab-46b2-a3e4-c39cca2eec10',6),
-('6049da35-6068-4f80-9572-4fef5556ec0d','3e9ed6d2-64ab-46b2-a3e4-c39cca2eec10',12),
-('14b379d1-dcb7-413c-8709-f111c467e1ef','3e9ed6d2-64ab-46b2-a3e4-c39cca2eec10',18),
-('6127f84d-c665-4e5b-9383-4914f9edfedc','3e9ed6d2-64ab-46b2-a3e4-c39cca2eec10',24),
-('97aeb7ec-3f45-447b-baa2-2ceea25be70e','c739bb4f-9ece-4a26-9d38-150882bc5376',6),
-('a80a171b-00aa-4e07-8303-c832777d3dc6','c739bb4f-9ece-4a26-9d38-150882bc5376',12),
-('7f900330-c807-4bc2-ab27-cdc2811568cb','c739bb4f-9ece-4a26-9d38-150882bc5376',18),
-('918422e4-20b8-428c-ac8d-966d67d25628','c739bb4f-9ece-4a26-9d38-150882bc5376',24);
+('0a1f0c9e-4b5e-4cde-927a-7cfa0f9d0e01','d58eb979-93ed-4a38-951d-c7b66be684bb',6),
+('435c9d71-dbf8-4f97-8e68-0606f6f1b043','d58eb979-93ed-4a38-951d-c7b66be684bb',12),
+('0c5c8381-1d7b-4fa6-81ce-bc4ffcb2b2e4','c0e16cb8-94a2-48ab-b245-e06bb8f4bef2',6),
+('7b2d3c41-04be-4ff7-974c-7d5cd9d6e6ef','c0e16cb8-94a2-48ab-b245-e06bb8f4bef2',12),
+('0e2e5d0f-ebb2-4aaa-8f1f-b5e94d10c608','c0e16cb8-94a2-48ab-b245-e06bb8f4bef2',18),
+('7d3d80f4-1d96-4f14-a602-5e1aa7ca6b3f','30655afe-6a11-44c9-a461-f0ca9a7ddc79',6),
+('f4d0bc74-3bb1-4f1c-8d82-dead8082cd43','30655afe-6a11-44c9-a461-f0ca9a7ddc79',12),
+('8a763b21-8a28-4811-8a8f-f6618b8f4374','30655afe-6a11-44c9-a461-f0ca9a7ddc79',18),
+('a36a8d2e-f354-4ea5-9885-f27400b0f4e5','30655afe-6a11-44c9-a461-f0ca9a7ddc79',24),
+('17b437a3-24f2-4d14-9740-311f4c8d1001','3e9ed6d2-64ab-46b2-a3e4-c39cca2eec10',6),
+('45315a7d-01d5-4f2b-a526-6cbb9ccf8386','3e9ed6d2-64ab-46b2-a3e4-c39cca2eec10',12),
+('0cdb2ce8-6d80-4fc8-942f-31099e4f12ce','3e9ed6d2-64ab-46b2-a3e4-c39cca2eec10',18),
+('f55c7b38-3d20-4735-b0ae-4b5d17f330f0','3e9ed6d2-64ab-46b2-a3e4-c39cca2eec10',24),
+('c0208841-21b0-45d8-bf11-0cce502ff30a','3e9ed6d2-64ab-46b2-a3e4-c39cca2eec10',30),
+('4a0c7212-28b3-4ee2-a057-09d8f86724e3','3e9ed6d2-64ab-46b2-a3e4-c39cca2eec10',36),
+('cbd1be13-32c1-4987-8f1d-2a36c43179b4','c739bb4f-9ece-4a26-9d38-150882bc5376',6),
+('b85f8c54-d793-4d59-a666-d4250b9a63d1','c739bb4f-9ece-4a26-9d38-150882bc5376',12),
+('3bf6c17c-39db-4aee-a32c-33f12ba79886','c739bb4f-9ece-4a26-9d38-150882bc5376',18),
+('e139f285-fb5b-4b29-b178-58bef64015f8','c739bb4f-9ece-4a26-9d38-150882bc5376',24),
+('e5b5cb97-fe47-4aa9-abe7-9d9e694ff3de','c739bb4f-9ece-4a26-9d38-150882bc5376',30),
+('9a2f438b-e11e-45f3-9883-82527702d5dd','c739bb4f-9ece-4a26-9d38-150882bc5376',36),
+('8eb412a7-5ada-4718-8bfe-3811a95e5bb3','c739bb4f-9ece-4a26-9d38-150882bc5376',42),
+('5f3f5c63-b6ae-4b8e-8897-dc41db9ce8ed','c739bb4f-9ece-4a26-9d38-150882bc5376',48),
+('a87048be-e31b-4a3b-81f5-90f9a7cb1b28','83e0b090-9ef5-4426-ab7c-6a0b68554809',36);
 
 -- Usuarios (hashed con bcrypt costo 10, password = apellido en minúscula + 123)
 INSERT INTO users (id, email, password, firstName, lastName, role, createdAt, updatedAt) VALUES
@@ -414,27 +487,29 @@ INSERT IGNORE INTO user_companies (id, userId, companyId, createdAt) VALUES
 
 -- AllowedPlans: admin ve todos los planes
 INSERT IGNORE INTO `_AllowedPlans` (`A`,`B`)
-SELECT id, @admin_id FROM plans WHERE id IN (@plan_ids);
+SELECT id, @admin_id FROM plans WHERE id IN (SELECT id FROM _tmp_plan_ids);
 
 -- AllowedPlans para asesores (todas las hojas comparten la misma lista de 24 planes)
 INSERT IGNORE INTO `_AllowedPlans` (`A`,`B`)
-SELECT p.id, u.id
-FROM plans p
-JOIN users u ON u.id IN (
-  '91aec685-7dd8-511a-9a00-4d9fe5d7165e','a5c0148f-5827-5a95-b48b-1038d78b613b','a9b77273-e0a3-5916-96cf-45e7c47cbb67',
-  '05ffd14f-50f1-5a5d-b07f-07bccbe007da','229effbd-bb15-554f-b46d-0de3401b88ac','73886938-34f2-56bf-9372-1db71b9c94c0',
-  'dfea1a8c-6e62-5f03-a1d3-a725b26a0a28','574fed38-3aae-572c-b579-70a0b04f9257','088db505-6a6a-5503-9423-01a0eb3433fb',
-  'a48883fc-19d3-51a6-951e-915ccb63b1aa','7477f13e-f6e7-5c9a-b520-982c7a3569c3','6b98a819-90ae-52fc-a744-cd7d9ec8e818',
-  '11e3e87a-c279-58bd-889e-db91b12e2576','c406801d-c643-56ac-b679-4f8d0ce40433','0e1468d8-01ae-5bf5-86e4-b11033d49a3e',
-  '18ab1ad0-a77b-55c9-9746-0abc6d812492','37eadadd-db62-5a26-b384-a8c3a21b4cb4','4f13d0d5-c2ab-5219-b2c0-c480e42a81cf',
-  '868d2b7b-28f9-5a26-a756-b79ef52289e2','feebe72e-8b2b-550b-8e13-521658e00e62','f4994e12-d61d-53cf-9c5f-4db579d7cbf9'
-)
-WHERE p.name IN (
-  'BNA +AUTOS','BNA CONECTA','CREDICOOP Acuerdo Especial','LEASING COMAFI 100%','LEASING COMAFI TAMAR','LEASING COMAFI U$D',
-  'PLAN CHEQUES ANZ','TARJETA DE CREDITO via MP','TCFA 0Km TASA 0%','TCFA AGRO','TCFA CICLO FLAT','TCFA OKM TASA 9,9%',
-  'TCFA PLAN 32 %','TCFA PLAN 39,9%','TCFA PLAN PROMO HILUX HIACE','TCFA PLAN UVA TASA 0%','TCFA PLAN UVA TRADICIONAL',
-  'TCFA PLAN UVA USADOS','TCFA TNA ESCALONADA','TCFA TNA REDUCIDA','TCFA TRADICIONAL 0Km','TCFA USADOS 0%','TCFA USADOS TASA 9,9%',
-  'TCFA USADOS TRADICIONAL'
-);
+SELECT ap.id, u.id
+FROM _tmp_allowed_plan_ids ap
+CROSS JOIN _tmp_user_ids u;
+
+-- Ajuste de escala: las TNA vienen en fracción -> multiplicamos por 100 los valores menores a 1
+UPDATE PlanCoefficient pc
+JOIN plan_versions pv ON pv.id = pc.planVersionId
+SET pc.tna = pc.tna * 100
+WHERE pv.planId IN (SELECT id FROM _tmp_plan_ids)
+  AND pc.tna < 1;
+
+-- Ajuste de escala: los quebrantos vienen en porcentaje -> multiplicamos por 100 los valores menores a 1
+UPDATE PlanCoefficient pc
+JOIN plan_versions pv ON pv.id = pc.planVersionId
+SET pc.quebrantoFinanciero = pc.quebrantoFinanciero * 100
+WHERE pv.planId IN (SELECT id FROM _tmp_plan_ids)
+  AND pc.quebrantoFinanciero < 1;
 
 SET FOREIGN_KEY_CHECKS = 1;
+DROP TEMPORARY TABLE IF EXISTS _tmp_plan_ids;
+DROP TEMPORARY TABLE IF EXISTS _tmp_user_ids;
+DROP TEMPORARY TABLE IF EXISTS _tmp_allowed_plan_ids;
