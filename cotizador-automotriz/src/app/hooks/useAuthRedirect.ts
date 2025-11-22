@@ -23,7 +23,7 @@ const isTokenExpired = (token: string): boolean => {
 
 export const useAuthRedirect = (allowedRoles?: Role[]) => {
   const router = useRouter();
-  const { isAuthenticated, token, hydrated } = useAuthStore();
+  const { isAuthenticated, token, hydrated, logout } = useAuthStore();
 
   const isPopup = typeof window !== 'undefined' && window.opener;
 
@@ -32,6 +32,7 @@ export const useAuthRedirect = (allowedRoles?: Role[]) => {
 
     // 1) No autenticado, sin token o token expirado: solo redirigir
     if (!isAuthenticated || !token || isTokenExpired(token)) {
+      logout();
       if (isPopup) {
         window.opener?.postMessage({ unauthorized: true }, window.location.origin);
         window.close();
@@ -58,6 +59,5 @@ export const useAuthRedirect = (allowedRoles?: Role[]) => {
         return;
       }
     }
-  }, [hydrated, isAuthenticated, token]);
+  }, [hydrated, isAuthenticated, token, allowedRoles, logout, router, isPopup]);
 };
-
