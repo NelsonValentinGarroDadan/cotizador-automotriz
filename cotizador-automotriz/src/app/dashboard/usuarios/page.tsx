@@ -65,7 +65,7 @@ export default function Page() {
     showCompanyFilter,
   });
   return (
-    <section className='w-full border-l border-gray  px-5 min-h-screen'> 
+    <section className='w-full border-l border-gray px-1 md:px-5 min-h-screen'> 
       <CustomTable
         store={useUsersTableStore}
         columns={columns}

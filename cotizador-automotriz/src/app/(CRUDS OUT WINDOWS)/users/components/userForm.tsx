@@ -167,7 +167,7 @@ export default function UserForm({ entity, readOnly = false }: UserFormProps) {
   }
 
   return (
-    <div className="w-[90%] h-[90%] border rounded shadow bg-blue-light-ligth overflow-y-auto">
+    <div className="p-1 md:p-0 w-full h-full md:w-[90%] md:h-[90%] border rounded shadow bg-blue-light-ligth overflow-y-auto">
       <h1 className="text-xl font-bold mb-4 text-white bg-gray py-2 px-4">
         {isView ? 'Ver Usuario' : isEdit ? 'Editar Usuario' : 'Crear Usuario'}
       </h1>

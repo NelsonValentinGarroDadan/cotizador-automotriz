@@ -22,7 +22,7 @@ export default function Header(){
     const formattedDateCapitalized = capitalizeWords(formattedDate);
     if(pathname === "/dashboard") return null;
     return (
-        <header className="bg-white py-3 h-auto md:h-[10vh] md:py-3 gap-3 flex flex-col xl:flex-row items-center justify-between w-full shadow-[2px_0_5px_rgba(0,0,0,1)] px-5">
+        <header className="hidden md:flex bg-white py-3 h-auto md:h-[10vh] md:py-3 gap-3 flex-col xl:flex-row items-center justify-between w-full shadow-[2px_0_5px_rgba(0,0,0,1)] px-5">
             
             <Link href={home} className="flex items-center justify-center gap-4">
                 <Image

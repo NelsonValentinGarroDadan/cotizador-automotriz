@@ -2,12 +2,13 @@
 'use client';
 
 import { Controller, useForm } from 'react-hook-form';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FilterConfig, PaginationData, TableColumn } from '@/app/types/table';
 import { SelectSearch } from '@/app/components/ui/selectSearch';
 import PageHeader from '@/app/components/ui/pageHeader';
 import CustomButton from './customButton';
 import MultiSelectFilter from './multiSelectFilter';
+import { X } from 'lucide-react';
 
 interface CustomTableProps {
   store: ReturnType<typeof import('@/app/store/useTableStore').createTableStore>;
@@ -65,6 +66,16 @@ export function CustomTable({
     resetFilters();
     onFilter?.({});
   };
+
+  const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
+
+  const mobileHandleSubmit = handleSubmit((data: Record<string, any>) => {
+    handleFilterSubmit(data);
+    setIsFiltersModalOpen(false);
+  });
+
+  const handleOpenFilters = () => setIsFiltersModalOpen(true);
+  const handleCloseFilters = () => setIsFiltersModalOpen(false);
 
   const handlePageChange = (newPage: number) => {
     setPagination(newPage, savedPagination.limit);
@@ -166,7 +177,7 @@ export function CustomTable({
 
   return (
     <div className="w-full flex flex-col h-full py-1"> 
-      <div className="sticky top-15 z-50 bg-white shadow-sm">
+      <div className="sticky top-20 md:top-15 z-50 bg-white shadow-sm">
           {/* HEADER */}
           {title && (
             <PageHeader
@@ -178,41 +189,116 @@ export function CustomTable({
 
           {/* FILTROS */}
           {filters.length > 0 && (
-            <form
-              onSubmit={handleSubmit(handleFilterSubmit)}
-              className="py-4 flex items-center justify-between gap-3"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filters.map((f) => (
-                  <div key={f.name}>
-                    <label className="block text-sm font-medium text-gray mb-1">
-                      {f.label}
-                    </label>
-                    {renderFilter(f)}
-                  </div>
-                ))}
-              </div>
-              <div  className='flex gap-3'>
-                <CustomButton
-                  type="submit" 
-                >
-                  Filtrar
-                </CustomButton>
+            <>
+              <form
+                onSubmit={handleSubmit(handleFilterSubmit)}
+                className="py-4 items-center justify-between gap-3 hidden md:flex"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {filters.map((f) => (
+                    <div key={f.name}>
+                      <label className="block text-sm font-medium text-gray mb-1">
+                        {f.label}
+                      </label>
+                      {renderFilter(f)}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-3">
+                  <CustomButton type="submit">
+                    Filtrar
+                  </CustomButton>
+                  <CustomButton
+                    type="button"
+                    onClick={handleResetFilters}
+                    disabled={!hasActiveFilters}
+                  >
+                    Limpiar
+                  </CustomButton>
+                </div>
+              </form>
+              <div className="md:hidden flex flex-col gap-3 px-1">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-600">
+                    {hasActiveFilters
+                      ? 'Estás filtrando los resultados'
+                      : 'Filtra la lista para encontrar lo que buscás'}
+                  </p>
+                  <CustomButton
+                    type="button"
+                    onClick={handleOpenFilters}
+                    className="text-sm px-4 py-2"
+                  >
+                    Filtrar
+                  </CustomButton>
+                </div>
                 <CustomButton
                   type="button"
                   onClick={handleResetFilters}
-                  disabled={!hasActiveFilters} 
+                  disabled={!hasActiveFilters}
+                  className="text-sm px-4 py-2"
                 >
                   Limpiar
                 </CustomButton>
               </div>
-            </form>
+            </>
+          )}
+          {isFiltersModalOpen && (
+            <div className="mt-18 fixed inset-0 z-1100 flex items-center justify-center bg-black/40 px-4 py-6 md:hidden">
+              <div className="bg-white w-full max-w-lg h-full rounded-3xl shadow-xl overflow-auto flex flex-col">
+                <div className="flex items-start justify-between border-b px-5 py-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                      Filtrando
+                    </p>
+                    <p className="text-sm text-gray-900">
+                      {hasActiveFilters
+                        ? 'Hay filtros activos'
+                        : 'Seleccioná filtros para refinar la tabla'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCloseFilters}
+                    className="text-gray-500"
+                    aria-label="Cerrar filtros"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <form onSubmit={mobileHandleSubmit} className="p-5 flex flex-col gap-4 flex-1">
+                  <div className="grid grid-cols-1 gap-4">
+                    {filters.map((f) => (
+                      <div key={f.name}>
+                        <label className="block text-sm font-medium text-gray mb-1">
+                          {f.label}
+                        </label>
+                        {renderFilter(f)}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-3">
+                    <CustomButton type="submit" className="flex-1">
+                      Aplicar filtros
+                    </CustomButton>
+                    <CustomButton
+                      type="button"
+                      className="flex-1"
+                      onClick={handleResetFilters}
+                      disabled={!hasActiveFilters}
+                    >
+                      Limpiar
+                    </CustomButton>
+                  </div>
+                </form>
+              </div>
+            </div>
           )}
 
           {/* PAGINADO */}
           {pagination && (
-            <div className="flex items-center justify-between pb-4">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-3 pb-4">
+              <div className="flex flex-wrap items-center gap-2 text-sm">
                 <span className="text-sm text-gray">Mostrar:</span>
                 <select
                   value={savedPagination.limit}
@@ -228,22 +314,26 @@ export function CustomTable({
                   registros ({pagination.totalItems} total)
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <CustomButton
-                  onClick={() => handlePageChange(savedPagination.page - 1)}
-                  disabled={savedPagination.page === 1} 
-                >
-                  Anterior
-                </CustomButton>
-                <span className="text-sm text-gray">
+              <div className="flex flex-col gap-2 md:flex-row md:items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CustomButton
+                    onClick={() => handlePageChange(savedPagination.page - 1)}
+                    disabled={savedPagination.page === 1}
+                    className="flex-1 md:flex-auto text-sm"
+                  >
+                    Anterior
+                  </CustomButton>
+                  <CustomButton
+                    onClick={() => handlePageChange(savedPagination.page + 1)}
+                    disabled={savedPagination.page === pagination.totalPages}
+                    className="flex-1 md:flex-auto text-sm"
+                  >
+                    Siguiente
+                  </CustomButton>
+                </div>
+                <span className="text-sm text-gray text-center">
                   Página {savedPagination.page} de {pagination.totalPages}
                 </span>
-                <CustomButton
-                  onClick={() => handlePageChange(savedPagination.page + 1)}
-                  disabled={savedPagination.page === pagination.totalPages} 
-                >
-                  Siguiente
-                </CustomButton>
               </div>
             </div>
           )}
@@ -255,9 +345,9 @@ export function CustomTable({
                 {columns.map((col) => (
                   <th
                     key={col.key}
-                    className={`px-4 py-3 text-left text-sm font-medium border border-blue-light-ligth ${
+                    className={`md:px-4 py-3 text-center md:text-left text-sm font-medium border border-blue-light-ligth ${
                       col.sortable ? 'cursor-pointer select-none' : ''
-                    }`}
+                    } ${col.className ?? ''}`}
                     onClick={() => col.sortable && handleSort(col.key)}
                   >
                     {col.label}
@@ -303,7 +393,7 @@ export function CustomTable({
                 {columns.map((col) => (
                   <td
                     key={col.key}
-                    className="px-4 py-3 text-sm border-l border-gray/20"
+                    className={`px-4 py-3 text-sm border-l border-gray/20 ${col.className ?? ''}`}
                   >
                     {col.render ? col.render(row[col.key], row) : row[col.key]}
                   </td>

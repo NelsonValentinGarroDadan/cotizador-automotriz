@@ -21,11 +21,13 @@ export default function userColumns({
       key: "email",
       label: "Email",
       sortable: true,
+      className: "hidden md:table-cell",
     },
     {
       key: "allowedPlans",
       label: "Planes Permitidos",
       sortable: false,
+      className: "hidden md:table-cell",
       render: (value: any) => value.length
     },
     {

@@ -11,9 +11,19 @@ interface WindowFormButtonProps {
   title?: string;
   width?:number;
   height?:number;
+  onClick?: () => void;
 }
 
-export default function WindowFormButton ({ formUrl, onCreated, buttonText, className,title, height=700, width=600 }:WindowFormButtonProps) {
+export default function WindowFormButton ({
+  formUrl,
+  onCreated,
+  buttonText,
+  className,
+  title,
+  height=700,
+  width=600,
+  onClick,
+}:WindowFormButtonProps) {
   const handleClick = () => {
     const newWindow = window.open(formUrl, 'Form', `width=${width},height=${height}`);
     if (!newWindow) return;
@@ -28,6 +38,7 @@ export default function WindowFormButton ({ formUrl, onCreated, buttonText, clas
     };
 
     window.addEventListener('message', handleMessage);
+    onClick?.();
   };
 
   return (

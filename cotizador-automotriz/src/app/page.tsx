@@ -48,11 +48,10 @@ export default function Home() {
   };
   useEffect(() => {
     if (isAuthenticated) router.push("/dashboard");
-  }, [isAuthenticated, router]);
-
+  }, [isAuthenticated, router]); 
   return (
-    <section className="min-h-[70vh] flex-row! container pt-20">
-      <div className="w-full h-[70vh] flex-col items-center justify-start hidden md:flex">
+    <section className="h-screen md:min-h-[70vh] max-w-[1440px] w-full mx-auto flex  flex-col md:flex-row items-center justify-center md:justify-start gap-3  pt-20">
+      <div className="w-full md:h-[70vh] flex-col items-center justify-start  flex">
         <Image
           src="/imgs/logo_dms.jpeg"
           alt="Logo CMDS"
@@ -60,11 +59,11 @@ export default function Home() {
           height={1000}
           className="w-50 h-10 object-contain mb-5"
         />
-        <h1 className="text-2xl font-extrabold w-[60%]">
+        <h1 className="text-2xl font-extrabold w-[60%] ">
           Sistema Integral <br /> para Concesionarios
         </h1>
         {checksCharacteristics.map((check) => (
-          <div key={check.title} className="flex items-start justify-center w-[60%] mt-1 p-4 gap-5">
+          <div key={check.title} className="items-start justify-center w-[60%] mt-1 p-4 gap-5 hidden md:flex">
             <Check className="h-8 w-8 text-blue" />
             <div className="w-full flex flex-col items-start justify-start gap-3">
               <h2 className="text-sm text-black">{check.title}</h2>
@@ -74,7 +73,7 @@ export default function Home() {
         ))}
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full h-[70vh] flex flex-col items-center justify-center gap-5 px-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full py-20 md:py-0 md:h-[70vh] flex flex-col items-center justify-center gap-5 px-5">
         <CustomInput
           label="Email"
           type="text"

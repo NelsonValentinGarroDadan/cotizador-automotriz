@@ -5,10 +5,10 @@ import { Role } from "@/app/types";
 
 export default function quotationColumns({
   onCreated,
-  role
+  role,
 }: {
   onCreated: () => void;
-  role:Role
+  role: Role;
 }): TableColumn[] {
   return [
     {
@@ -19,33 +19,39 @@ export default function quotationColumns({
     },
     {
       key: "company",
-      label: "Compañía / Usuario",
+      label: "Compa����a / Usuario",
       sortable: false,
+      className: "hidden md:table-cell",
       render: (_, row: Quotation) => {
         const company = row.company.name ?? "-";
-        const user = row.user.firstName && row.user.lastName ? row.user.firstName + " " + row.user.lastName : "-";
+        const user =
+          row.user.firstName && row.user.lastName
+            ? row.user.firstName + " " + row.user.lastName
+            : "-";
 
-        return company + " / "+ user
+        return company + " / " + user;
       },
     },
     {
       key: "planVersion",
-      label: "Plan / Versión",
+      label: "Plan / Versi��n",
       sortable: false,
-      render: (_, row ) =>
-        `${row.planVersion?.plan.name ?? "—"} (v${row.planVersion?.version})`,
+      className: "hidden md:table-cell",
+      render: (_, row) =>
+        `${row.planVersion?.plan.name ?? "??"} (v${row.planVersion?.version})`,
     },
     {
       key: "totalValue",
       label: "Valor total",
       sortable: true,
       render: (value: number) =>
-        value ? `$${value.toLocaleString("es-AR")}` : "—",
+        value ? `$${value.toLocaleString("es-AR")}` : "??",
     },
     {
       key: "createdAt",
-      label: "Fecha de creación",
+      label: "Fecha de creaci��n",
       sortable: true,
+      className: "hidden md:table-cell",
       render: (value: string) =>
         new Date(value).toLocaleDateString("es-AR", {
           year: "numeric",
@@ -54,7 +60,7 @@ export default function quotationColumns({
         }),
     },
     {
-      sortable:false,
+      sortable: false,
       key: "id",
       label: "Acciones",
       render: (value: string) => (
@@ -65,7 +71,6 @@ export default function quotationColumns({
           showDelete={role === Role.ADMIN}
           width={1100}
           showPdf={true}
-  
         />
       ),
     },

@@ -20,6 +20,7 @@ export default function adminsColumns({
       key: "email",
       label: "Email",
       sortable: true,
+      className: "hidden md:table-cell",
     },
     {
       key: "companies",

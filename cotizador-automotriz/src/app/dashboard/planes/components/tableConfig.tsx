@@ -23,10 +23,11 @@ export default function planColumns({
       label: "Nombre",
       sortable: true,
     },
-    {
-      key: "logo",
-      label: "Logo",
-      sortable: false,
+  {
+    key: "logo",
+    label: "Logo",
+    className: "hidden md:table-cell",
+    sortable: false,
       render: (value: string) =>
         value ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -83,10 +84,11 @@ export default function planColumns({
         ),
     },
     {
-      key: "createdAt",
-      label: "Fecha de creación",
-      sortable: true,
-      render: (value: string) =>
+    key: "createdAt",
+    label: "Fecha de creación",
+    sortable: true,
+    className: "hidden md:table-cell",
+    render: (value: string) =>
         new Date(value).toLocaleDateString("es-AR"),
     },
     {
@@ -109,4 +111,3 @@ export default function planColumns({
 
   return columns;
 }
-

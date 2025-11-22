@@ -20,6 +20,7 @@ export interface TableColumn {
   key: string;
   label: string;
   sortable:boolean;
+  className?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render?: (value: any, row: any) => React.ReactNode;
 }

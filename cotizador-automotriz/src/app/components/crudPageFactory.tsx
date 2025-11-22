@@ -66,7 +66,7 @@ export function CrudPageFactory<T>({
     return (
       <ReduxProvider>
         <section className="flex flex-col items-center justify-center h-screen w-screen bg-blue-light-ligth">
-          <div className="w-[90%] max-w-2xl border rounded shadow bg-white p-4">
+          <div className="w-[90%] max-w-2xl border rounded shadow bg-white p-1 md:p-4">
             <h1 className="text-xl font-bold mb-6 text-black text-center">
               ¿Seguro que querés eliminar este {entityName.toLowerCase()}?
             </h1>

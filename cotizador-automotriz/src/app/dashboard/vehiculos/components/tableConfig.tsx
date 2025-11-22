@@ -24,18 +24,21 @@ export default function vehiculeColumns({
       key: "idmarca",
       label: "Marca",
       sortable: true,
+      className: "hidden md:table-cell",
       render: (_, row: VehiculeVersion) => row.marca?.descrip ?? "-",
     },
     {
       key: "idmodelo",
       label: "Modelo",
       sortable: true,
+      className: "hidden md:table-cell",
       render: (_, row: VehiculeVersion) => row.modelo?.descrip ?? "-",
     },
     {
       key: "idlinea",
       label: "Linea",
       sortable: true,
+      className: "hidden md:table-cell",
       render: (_, row: VehiculeVersion) => row.modelo?.linea?.descrip ?? "-",
     },
   ];
@@ -87,4 +90,3 @@ export default function vehiculeColumns({
 
   return columns;
 }
-
