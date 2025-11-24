@@ -5,7 +5,7 @@ INSERT INTO `companies` (`id`, `name`, `logo`, `createdAt`, `updatedAt`)
 VALUES (
   '11111111-1111-4111-8111-111111111111',
   'Grupo ANZ',
-  NULL,
+  '/uploads/companies/1763993005628-720498653.webp',
   NOW(),
   NOW()
 )

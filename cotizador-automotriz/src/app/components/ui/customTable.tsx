@@ -297,7 +297,7 @@ export function CustomTable({
 
           {/* PAGINADO */}
           {pagination && (
-            <div className="flex flex-col gap-3 pb-4">
+            <div className="flex flex-col md:flex-row md:justify-between gap-3 pb-4">
               <div className="flex flex-wrap items-center gap-2 text-sm">
                 <span className="text-sm text-gray">Mostrar:</span>
                 <select
