@@ -95,7 +95,7 @@ export default function Page() {
   });
 
   return (
-    <section className="w-full border-l border-gray px-1 md:px-5 min-h-screen">
+    <section className="w-full border-l border-gray px-1 md:px-5 min-h-[70vh]">
       <CustomTable
         store={usePlansTableStore}
         columns={columns}

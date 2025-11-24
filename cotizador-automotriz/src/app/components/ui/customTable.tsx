@@ -49,6 +49,8 @@ export function CustomTable({
   } = store();
 
   const isManualReset = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const didMount = useRef(false);
 
   useEffect(() => {
     if (!isManualReset.current) reset(savedFilters);
@@ -68,6 +70,7 @@ export function CustomTable({
   };
 
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
+  const [showDesktopFilters, setShowDesktopFilters] = useState(true);
 
   const mobileHandleSubmit = handleSubmit((data: Record<string, any>) => {
     handleFilterSubmit(data);
@@ -175,9 +178,21 @@ export function CustomTable({
 
   const hasActiveFilters = Object.values(savedFilters).some(v => v !== '' && v !== undefined);
 
+  // Auto-scroll al inicio de la tabla cuando cambian página/datos
+  useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true;
+      return;
+    }
+    if (containerRef.current) {
+      const top = containerRef.current.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  }, [data, savedPagination.page]);
+
   return (
-    <div className="w-full flex flex-col h-full py-1"> 
-      <div className="sticky top-20 md:top-15 z-50 bg-white shadow-sm">
+    <div ref={containerRef} className="w-full flex flex-col h-full py-1"> 
+      <div className="sticky top-20 md:top-15 z-50 bg-white shadow-sm border-b">
           {/* HEADER */}
           {title && (
             <PageHeader
@@ -190,33 +205,36 @@ export function CustomTable({
           {/* FILTROS */}
           {filters.length > 0 && (
             <>
-              <form
-                onSubmit={handleSubmit(handleFilterSubmit)}
-                className="py-4 items-center justify-between gap-3 hidden md:flex"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {filters.map((f) => (
-                    <div key={f.name}>
-                      <label className="block text-sm font-medium text-gray mb-1">
-                        {f.label}
-                      </label>
-                      {renderFilter(f)}
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-3">
-                  <CustomButton type="submit">
-                    Filtrar
-                  </CustomButton>
-                  <CustomButton
-                    type="button"
-                    onClick={handleResetFilters}
-                    disabled={!hasActiveFilters}
-                  >
-                    Limpiar
-                  </CustomButton>
-                </div>
-              </form>
+              
+              {showDesktopFilters && (
+                <form
+                  onSubmit={handleSubmit(handleFilterSubmit)}
+                  className="py-4 items-center justify-between gap-3 hidden md:flex"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {filters.map((f) => (
+                      <div key={f.name}>
+                        <label className="block text-sm font-medium text-gray mb-1">
+                          {f.label}
+                        </label>
+                        {renderFilter(f)}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-3">
+                    <CustomButton type="submit">
+                      Filtrar
+                    </CustomButton>
+                    <CustomButton
+                      type="button"
+                      onClick={handleResetFilters}
+                      disabled={!hasActiveFilters}
+                    >
+                      Limpiar
+                    </CustomButton>
+                  </div>
+                </form>
+              )} 
               <div className="md:hidden flex flex-col gap-3 px-1">
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-gray-600">
@@ -297,43 +315,94 @@ export function CustomTable({
 
           {/* PAGINADO */}
           {pagination && (
-            <div className="flex flex-col md:flex-row md:justify-between gap-3 pb-4">
-              <div className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-sm text-gray">Mostrar:</span>
-                <select
-                  value={savedPagination.limit}
-                  onChange={(e) => handleLimitChange(Number(e.target.value))}
-                  className="border border-gray/50 px-3 py-1.5 rounded text-sm outline-none focus:ring-2 focus:ring-blue/60"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                  <option value={50}>50</option>
-                </select>
-                <span className="text-sm text-gray">
-                  registros ({pagination.totalItems} total)
-                </span>
-              </div>
-              <div className="flex flex-col gap-2 md:flex-row md:items-center justify-between">
-                <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-3 pb-4">
+              {/* Desktop inline layout */}
+              <div className="hidden md:flex md:justify-between items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-gray">Mostrar:</span>
+                  <select
+                    value={savedPagination.limit}
+                    onChange={(e) => handleLimitChange(Number(e.target.value))}
+                    className="border border-gray/50 px-3 py-1.5 rounded text-sm outline-none focus:ring-2 focus:ring-blue/60"
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                  <span className="text-sm text-gray">
+                    registros ({pagination.totalItems} total)
+                  </span> 
+                </div>
+                <div className='flex items-center gap-4'>
                   <CustomButton
                     onClick={() => handlePageChange(savedPagination.page - 1)}
                     disabled={savedPagination.page === 1}
-                    className="flex-1 md:flex-auto text-sm"
+                    className="text-sm"
                   >
                     Anterior
                   </CustomButton>
+                  <span className="text-sm text-gray text-center">
+                    Página {savedPagination.page} de {pagination.totalPages}
+                  </span>
                   <CustomButton
                     onClick={() => handlePageChange(savedPagination.page + 1)}
                     disabled={savedPagination.page === pagination.totalPages}
-                    className="flex-1 md:flex-auto text-sm"
+                    className="text-sm"
+                  >
+                    Siguiente
+                  </CustomButton> 
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm text-yellow-500">{hasActiveFilters &&  "Filtros activos" }</p> 
+                  <CustomButton
+                    type="button"
+                    className="text-sm px-4 py-2 bg-transparent! text-black/80! hover:text-black! underline "
+                    onClick={() => setShowDesktopFilters((prev) => !prev)}
+                  >
+                    {showDesktopFilters ? 'Ocultar filtros' : 'Mostrar filtros'}
+                  </CustomButton>
+                </div>
+              </div>
+
+              {/* Mobile layout unchanged */}
+              <div className="flex flex-col gap-2 md:hidden">
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="text-sm text-gray">Mostrar:</span>
+                  <select
+                    value={savedPagination.limit}
+                    onChange={(e) => handleLimitChange(Number(e.target.value))}
+                    className="border border-gray/50 px-3 py-1.5 rounded text-sm outline-none focus:ring-2 focus:ring-blue/60"
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                  <span className="text-sm text-gray">
+                    registros ({pagination.totalItems} total)
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <CustomButton
+                    onClick={() => handlePageChange(savedPagination.page - 1)}
+                    disabled={savedPagination.page === 1}
+                    className="flex-1 text-sm"
+                  >
+                    Anterior
+                  </CustomButton>
+                  <span className="text-sm text-gray text-center">
+                    Página {savedPagination.page} de {pagination.totalPages}
+                  </span>
+                  <CustomButton
+                    onClick={() => handlePageChange(savedPagination.page + 1)}
+                    disabled={savedPagination.page === pagination.totalPages}
+                    className="flex-1 text-sm"
                   >
                     Siguiente
                   </CustomButton>
                 </div>
-                <span className="text-sm text-gray text-center">
-                  Página {savedPagination.page} de {pagination.totalPages}
-                </span>
               </div>
             </div>
           )}
@@ -363,8 +432,8 @@ export function CustomTable({
           </table>
       </div>
 
-  
-      <table className="w-full table-fixed border-collapse">
+ 
+      <table className="w-full table-fixed border-collapse mt-4">
         <tbody>
            {loading ? (
             <tr>
