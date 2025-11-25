@@ -30,8 +30,20 @@ export const useAuthRedirect = (allowedRoles?: Role[]) => {
   useEffect(() => {
     if (!hydrated) return;
 
-    // 1) No autenticado, sin token o token expirado: solo redirigir
-    if (!isAuthenticated || !token || isTokenExpired(token)) {
+    // 1) No autenticado o sin token: solo redirigir, sin disparar logout de nuevo
+    if (!isAuthenticated || !token) {
+      if (isPopup) {
+        window.opener?.postMessage({ unauthorized: true }, window.location.origin);
+        window.close();
+        return;
+      }
+
+      router.replace('/');
+      return;
+    }
+
+    // 2) Token expirado: cerrar sesion y redirigir
+    if (isTokenExpired(token)) {
       logout();
       if (isPopup) {
         window.opener?.postMessage({ unauthorized: true }, window.location.origin);
@@ -43,7 +55,7 @@ export const useAuthRedirect = (allowedRoles?: Role[]) => {
       return;
     }
 
-    // 2) Validación de roles
+    // 3) Validacion de roles
     if (allowedRoles?.length && token) {
       const decoded = jwtDecode<JwtPayload>(token);
       const role = decoded.role;
