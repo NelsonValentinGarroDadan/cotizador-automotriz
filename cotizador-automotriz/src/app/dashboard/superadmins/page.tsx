@@ -11,13 +11,11 @@ import { useDispatch } from 'react-redux';
 import { Role } from '@/app/types';
 import { useGetAllUsersQuery, userApi } from '@/app/api/userApi';
 import { useGetAllCompaniesQuery } from '@/app/api/companyApi';
-import { useAuthRedirect } from '@/app/hooks/useAuthRedirect';
-import { useAuthStore } from '@/app/store/useAuthStore';
+import { useAuthRedirect } from '@/app/hooks/useAuthRedirect'; 
 
 export default function Page() {
   // Solo SUPER_ADMIN puede acceder a esta vista
-  useAuthRedirect([Role.SUPER_ADMIN]);
-  const { user } = useAuthStore();
+  useAuthRedirect([Role.SUPER_ADMIN]); 
   const dispatch = useDispatch();
   const useSuperAdminsTableStore = useMemo(() => createTableStore('superadmins'), []);
   const { data: companies } = useGetAllCompaniesQuery({ limit: 50 });
@@ -65,8 +63,7 @@ export default function Page() {
   });
 
   const filtersConfig = adminsFilters({
-    companies: companies?.data || [],
-    role: user?.role
+    companies: companies?.data || [] 
   });
 
   return (

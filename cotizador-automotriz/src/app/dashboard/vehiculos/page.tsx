@@ -159,7 +159,7 @@ export default function VehiculesPage() {
         onFilter={handleFilter}
         onPageChange={handlePageChange}
         title="Gestion de Vehiculos"
-        description="Podris ver y administrar las versiones de vehiculos disponibles para tus compaÃ±ias."
+        description="Podris ver y administrar las versiones de vehiculos disponibles para tus compañias."
         buttons={
           (user.role === Role.ADMIN || user.role === Role.SUPER_ADMIN) && (
             <WindowFormButton

@@ -48,8 +48,7 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
   const [error, setError] = useState<string | null>(null);
 
   const companyIds = watch("companyIds");
-  const brandId = watch("brandId");
-  const lineId = watch("lineId");
+  const brandId = watch("brandId"); 
 
   useEffect(() => {
     if (entity && companiesData?.data) {
@@ -154,7 +153,7 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
           control={control}
           render={({ field }) => (
             <div>
-              <label className="block text-sm font-medium text-black mb-1">Companias</label>
+              <label className="block text-sm font-medium text-black mb-1">Compañias</label>
               <MultiSelect
                 options={companyOptions}
                 value={field.value as string[]}
@@ -163,7 +162,7 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
                   setValue("brandId", undefined as any);
                   setValue("lineId", undefined as any);
                 }}
-                placeholder="Seleccionar companias..."
+                placeholder="Seleccionar compañias..."
                 disabled={isView}
               />
               {errors.companyIds && <p className="text-red-500 text-xs mt-1">{String(errors.companyIds.message)}</p>}

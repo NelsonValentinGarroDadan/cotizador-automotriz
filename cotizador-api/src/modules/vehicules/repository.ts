@@ -9,6 +9,7 @@ interface BrandFilters {
 
 interface LineFilters extends BrandFilters {
   brandId?: number;
+  lineId?: number;
 }
 
 interface VersionFilters extends LineFilters {}
@@ -32,7 +33,7 @@ export const getBrands = async (page: number, limit: number, sortBy: string, sor
 
   if (filters?.search) where.descrip = { contains: filters.search };
   if (!filters?.isSuperAdmin && filters?.companyIds?.length) {
-    where.versiones = { some: { company: { id: { in: filters.companyIds } } } };
+    where.lineas = { some: { versiones: { some: { company: { id: { in: filters.companyIds } } } } } };
   }
 
   const [items, total] = await Promise.all([

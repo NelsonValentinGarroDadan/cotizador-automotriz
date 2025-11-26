@@ -46,6 +46,8 @@ export function CustomTable({
     setPagination,
     setSort,
     resetFilters,
+    setShowFilters:setShowDesktopFilters,
+    showFilters:showDesktopFilters
   } = store();
 
   const isManualReset = useRef(false);
@@ -69,8 +71,7 @@ export function CustomTable({
     onFilter?.({});
   };
 
-  const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
-  const [showDesktopFilters, setShowDesktopFilters] = useState(true);
+  const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false); 
 
   const mobileHandleSubmit = handleSubmit((data: Record<string, any>) => {
     handleFilterSubmit(data);
@@ -359,7 +360,9 @@ export function CustomTable({
                   <CustomButton
                     type="button"
                     className="text-sm px-4 py-2 bg-transparent! text-black/80! hover:text-black! underline "
-                    onClick={() => setShowDesktopFilters((prev) => !prev)}
+                    onClick={() =>
+                      setShowDesktopFilters?.(showDesktopFilters === undefined ? false : !showDesktopFilters)
+                    }
                   >
                     {showDesktopFilters ? 'Ocultar filtros' : 'Mostrar filtros'}
                   </CustomButton>

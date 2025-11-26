@@ -45,11 +45,11 @@ export default function vehiculeColumns({
   if (showCompanyColumn) {
     columns.push({
       key: "company",
-      label: "Companias",
+      label: "Compañias",
       sortable: false,
       render: (_: string, row: VehiculeVersion) => {
         const companies = row.company || [];
-        if (companies.length === 0) return <span className="text-gray-400 italic">Sin companias asignadas</span>;
+        if (companies.length === 0) return <span className="text-gray-400 italic">Sin compañias asignadas</span>;
         if (companies.length === 1) return <span className="font-medium">{companies[0].name}</span>;
         return (
           <div className="flex flex-col gap-1">

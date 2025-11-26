@@ -12,6 +12,7 @@ interface TableState {
     sortBy: string;
     sortOrder: 'asc' | 'desc';
   };
+  showFilters?: boolean;
 }
 
 interface TableActions {
@@ -19,6 +20,7 @@ interface TableActions {
   setPagination: (page: number, limit: number) => void;
   setSort: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
   resetFilters: () => void;
+  setShowFilters?: (show: boolean) => void;
 }
 
 // Factory para crear stores independientes por tabla
@@ -35,7 +37,7 @@ export const createTableStore = (tableId: string, defaultLimit: number = 50, def
           sortBy: defaultSortBy,
           sortOrder: 'asc',
         },
-
+        showFilters:true,
         setFilters: (filters) => set({ filters }),
         
         setPagination: (page, limit) =>
@@ -50,6 +52,7 @@ export const createTableStore = (tableId: string, defaultLimit: number = 50, def
           pagination: { page: 1, limit: 50 },
           sort: { sortBy: "createdAt", sortOrder: "desc" }
         }),
+        setShowFilters: (show) => set({ showFilters: show }),
 
       }),
       {

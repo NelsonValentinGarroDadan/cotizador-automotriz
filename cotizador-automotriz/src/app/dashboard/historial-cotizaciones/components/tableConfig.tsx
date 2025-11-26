@@ -19,7 +19,7 @@ export default function quotationColumns({
     },
     {
       key: "company",
-      label: "Compa����a / Usuario",
+      label: "Compañia / Usuario",
       sortable: false,
       className: "hidden md:table-cell",
       render: (_, row: Quotation) => {
@@ -34,7 +34,7 @@ export default function quotationColumns({
     },
     {
       key: "planVersion",
-      label: "Plan / Versi��n",
+      label: "Plan / Version",
       sortable: false,
       className: "hidden md:table-cell",
       render: (_, row) =>
@@ -49,7 +49,7 @@ export default function quotationColumns({
     },
     {
       key: "createdAt",
-      label: "Fecha de creaci��n",
+      label: "Fecha de creacion",
       sortable: true,
       className: "hidden md:table-cell",
       render: (value: string) =>

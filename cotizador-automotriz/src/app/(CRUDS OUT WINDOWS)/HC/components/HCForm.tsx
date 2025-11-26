@@ -35,7 +35,7 @@ export default function QuotationForm({
     planVersionId: string;
     plazo: number;
   } | null>(null);
-  const [showSoloAplicables, setShowSoloAplicables] = useState<boolean>(false);
+  const [showSoloAplicables, setShowSoloAplicables] = useState<boolean>(true);
 
   const { data: companiesData } = useGetAllCompaniesQuery({ page: 1, limit: 1000 });
   const { data: plansData } = useGetAllPlansQuery({ page: 1, limit: 1000 , sortOrder: 'asc'});
@@ -51,7 +51,7 @@ export default function QuotationForm({
     watch,
     formState: { errors },
   } = useForm<CreateInput>({
-    resolver: zodResolver(createSchema),
+    resolver: zodResolver(createSchema) as any,
     defaultValues: {
       clientName: '',
       clientDni: '',
@@ -258,7 +258,7 @@ export default function QuotationForm({
               setSelectedPlan(null);
               setValue('vehicleVersionId', undefined as unknown as number);
             }}
-            placeholder="Seleccionar compaÃ±ia..."
+            placeholder="Seleccionar compañia..."
             disabled={isView}
           />
 
@@ -275,7 +275,7 @@ export default function QuotationForm({
             onChange={(val) =>
               setValue(
                 'vehicleVersionId',
-                val ? Number(val) : undefined,
+                val ? Number(val) : (undefined as any),
               )
             }
             loadOptions={async (search: string): Promise<SelectSearchOption[]> => {
@@ -329,6 +329,7 @@ export default function QuotationForm({
             disabled={isView}
             onChange={(e) => {
               setMonto(Number(e.target.value));
+              setValue('totalValue', Number(e.target.value));
               setSelectedPlan(null);
             }}
           />

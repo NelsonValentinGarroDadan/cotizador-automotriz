@@ -1,13 +1,10 @@
-import { Role } from "@/app/types";
 import { Company } from "@/app/types/compay";
 import { FilterConfig } from "@/app/types/table";
 
 export const adminsFilters = ({
-  companies,
-  role = Role.ADMIN,
+  companies, 
 }: {
-  companies: Company[];
-  role?: Role;
+  companies: Company[]; 
 }): FilterConfig[] => {
   const array: FilterConfig[] = [
     {
@@ -17,13 +14,12 @@ export const adminsFilters = ({
       placeholder: "Ej: Juan Perez o admin@example.com",
     },
   ];
-
-  if (role === Role.ADMIN) {
+  if (companies.length > 1) {
     array.push({
       name: "companyIds",
-      label: "Filtrar por companias",
+      label: "Filtrar por compañnias",
       type: "multiselect",
-      placeholder: "Selecciona una o varias companias",
+      placeholder: "Selecciona una o varias compañias",
       options: companies.map((company) => ({
         value: company.id,
         label: company.name,

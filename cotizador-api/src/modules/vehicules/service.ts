@@ -36,12 +36,23 @@ export const createBrand = async (user: UserToken, data: CreateBrandInput) => {
 export const updateBrand = async (user: UserToken, idmarca: number, data: UpdateBrandInput) => {
   if (user.role === Role.USER) throw new AppError("No tienes permisos para editar marcas", 403);
 
-  const existing = await prisma.autosMarca.findUnique({ where: { idmarca }, include: { versiones: { include: { company: true } } } });
+  const existing = await prisma.autosMarca.findUnique({
+    where: { idmarca },
+    include: {
+      lineas: {
+        include: {
+          versiones: { include: { company: true } },
+        },
+      },
+    },
+  });
   if (!existing) throw new AppError("Marca no encontrada", 404);
 
   if (user.role === Role.ADMIN) {
     const adminCompanyIds = await getAdminCompanyIds(user.id);
-    const versionCompanyIds = new Set(existing.versiones.flatMap((v) => v.company.map((c) => c.id)));
+    const versionCompanyIds = new Set(
+      existing.lineas.flatMap((linea) => linea.versiones.flatMap((v) => v.company.map((c) => c.id))),
+    );
     const hasCompany = [...versionCompanyIds].some((id) => adminCompanyIds.includes(id));
     if (!hasCompany) throw new AppError("No tienes permisos para editar esta marca", 403);
   }
@@ -52,12 +63,23 @@ export const updateBrand = async (user: UserToken, idmarca: number, data: Update
 export const deleteBrand = async (user: UserToken, idmarca: number) => {
   if (user.role === Role.USER) throw new AppError("No tienes permisos para eliminar marcas", 403);
 
-  const existing = await prisma.autosMarca.findUnique({ where: { idmarca }, include: { versiones: { include: { company: true } } } });
+  const existing = await prisma.autosMarca.findUnique({
+    where: { idmarca },
+    include: {
+      lineas: {
+        include: {
+          versiones: { include: { company: true } },
+        },
+      },
+    },
+  });
   if (!existing) throw new AppError("Marca no encontrada", 404);
 
   if (user.role === Role.ADMIN) {
     const adminCompanyIds = await getAdminCompanyIds(user.id);
-    const versionCompanyIds = new Set(existing.versiones.flatMap((v) => v.company.map((c) => c.id)));
+    const versionCompanyIds = new Set(
+      existing.lineas.flatMap((linea) => linea.versiones.flatMap((v) => v.company.map((c) => c.id))),
+    );
     const hasCompany = [...versionCompanyIds].some((id) => adminCompanyIds.includes(id));
     if (!hasCompany) throw new AppError("No tienes permisos para eliminar esta marca", 403);
   }
@@ -146,7 +168,7 @@ export const createVersion = async (user: UserToken, data: CreateVehicleVersionI
   const adminCompanyIds = !isSuperAdmin ? await getAdminCompanyIds(user.id) : undefined;
   if (!isSuperAdmin) {
     const invalidCompanies = data.companyIds.filter((id) => !adminCompanyIds?.includes(id));
-    if (invalidCompanies.length > 0) throw new AppError("Intentas asociar vehiculos a companias que no estan a tu cargo", 403);
+    if (invalidCompanies.length > 0) throw new AppError("Intentas asociar vehiculos a compañias que no estan a tu cargo", 403);
   }
 
   const hasExisting = !!data.brandId && !!data.lineId;
@@ -193,7 +215,7 @@ export const updateVersion = async (user: UserToken, idversion: number, data: Up
     if (!currentCompanyIds.some((id) => adminCompanyIds.includes(id))) throw new AppError("No tienes permisos para editar esta version de vehiculo", 403);
     if (data.companyIds) {
       const invalidCompanies = data.companyIds.filter((id) => !adminCompanyIds.includes(id));
-      if (invalidCompanies.length > 0) throw new AppError("Intentas asociar vehiculos a companias que no estan a tu cargo", 403);
+      if (invalidCompanies.length > 0) throw new AppError("Intentas asociar vehiculos a compañias que no estan a tu cargo", 403);
     }
   }
 
