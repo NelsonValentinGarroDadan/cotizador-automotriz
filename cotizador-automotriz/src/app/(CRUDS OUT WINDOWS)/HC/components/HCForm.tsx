@@ -65,6 +65,8 @@ export default function QuotationForm({
 
   const companies = companiesData?.data || [];
   const vehicleVersionId = watch('vehicleVersionId') as number | undefined;
+  const quotationPlanVersion = entity?.planVersion;
+  const isHistoricalVersion = !!(quotationPlanVersion && quotationPlanVersion.isLatest === false);
 
   const plans = useMemo(() => {
     if (!plansData?.data) return [];
@@ -72,6 +74,15 @@ export default function QuotationForm({
       p.companies?.some((c) => c.id === selectedCompanyId),
     );
   }, [plansData, selectedCompanyId]);
+
+  const showPlansTable =
+    !!selectedCompanyId &&
+    monto > 0 &&
+    !!vehicleVersionId;
+
+  const planSectionTitle = isView
+    ? (isHistoricalVersion ? "Plan" : "Planes Disponibles")
+    : "Seleccione un plan";
 
   const isMontoWithinVersionRange = (
     version: NonNullable<PlanWithDetails['versions']>[number],
@@ -144,7 +155,17 @@ export default function QuotationForm({
     }
   }, [entity, plansData, setValue]);
 
-  // Preseleccionar compania si solo hay una
+  useEffect(() => {
+    if (!entity || selectedPlan) return;
+    const pv = entity.planVersion;
+    if (pv?.id && pv.plan?.id) { 
+      // No preseleccionar en la UI, pero prellenar el form para conservar la version actual
+      setValue('planId', pv.plan.id);
+      setValue('planVersionId', pv.id); 
+    }
+  }, [entity, selectedPlan, setValue]);
+
+  // Preseleccionar compañia si solo hay una
   useEffect(() => {
     if (!selectedCompanyId && companies.length === 1) {
       const onlyCompany = companies[0];
@@ -154,7 +175,17 @@ export default function QuotationForm({
   }, [companies, selectedCompanyId, setValue]);
 
   const onSubmit = async (data: CreateInput) => {
-    if (!selectedPlan) {
+    const currentPlan =
+      selectedPlan ||
+      (entity?.planVersion?.plan?.id && entity.planVersion?.id
+        ? {
+            planId: entity.planVersion.plan.id,
+            planVersionId: entity.planVersion.id,
+            plazo: entity.planVersion.coefficients?.[0]?.plazo ?? 0,
+          }
+        : null);
+
+    if (!currentPlan) {
       alert('Debes seleccionar un plan.');
       return;
     }
@@ -162,9 +193,9 @@ export default function QuotationForm({
     const payload = {
       ...data,
       totalValue: monto,
-      planId: selectedPlan.planId,
-      planVersionId: selectedPlan.planVersionId,
-      plazo: selectedPlan.plazo,
+      planId: currentPlan.planId,
+      planVersionId: currentPlan.planVersionId,
+      plazo: currentPlan.plazo,
     };
 
     try {
@@ -244,9 +275,11 @@ export default function QuotationForm({
           </div>
         </div>
 
-        {/* 2. Compania */}
+        {/* 2. compañia */}
         <div className="bg-white p-4 rounded border">
-          <h2 className="text-lg font-semibold mb-3 text-black">Seleccionar Compania</h2>
+          <h2 className="text-lg font-semibold mb-3 text-black">
+            {isView ? "compañia" : "Seleccionar compañia"}
+          </h2>
 
           <MultiSelect
             options={companies.map((c) => ({ value: c.id, label: c.name }))}
@@ -268,7 +301,9 @@ export default function QuotationForm({
         </div>
 
         <div className="bg-white p-4 rounded border">
-          <h2 className="text-lg font-semibold mb-3 text-black">Seleccionar Vehiculo</h2>
+          <h2 className="text-lg font-semibold mb-3 text-black">
+            {isView ? "Vehiculo" : "Seleccionar Vehiculo"}
+          </h2>
 
           <SelectSearch
             value={vehicleVersionId ? String(vehicleVersionId) : undefined}
@@ -305,7 +340,7 @@ export default function QuotationForm({
             placeholder={
               selectedCompanyId
                 ? 'Seleccionar vehiculo...'
-                : 'Selecciona primero una compania'
+                : 'Selecciona primero una compañia'
             }
             disabled={isView || !selectedCompanyId}
           />
@@ -319,7 +354,9 @@ export default function QuotationForm({
 
         {/* 4. Monto */}
         <div className="bg-white p-4 rounded border">
-          <h2 className="text-lg font-semibold mb-3 text-black">Monto a Financiar</h2>
+          <h2 className="text-lg font-semibold mb-3 text-black">
+            {isView ? "Monto" : "Monto a Financiar"}
+          </h2>
 
           <input
             type="number"
@@ -336,26 +373,71 @@ export default function QuotationForm({
         </div>
 
         {/* 5. Tabla de Planes */}
-        {selectedCompanyId && monto > 0 && !!vehicleVersionId && (
+        {showPlansTable && (
           <div className="bg-white p-4 rounded border">
-            <h2 className="text-lg font-semibold mb-4 text-black">Planes Disponibles</h2>
+            <h2 className="text-lg font-semibold mb-4 text-black">{planSectionTitle}</h2>
 
-            <div className="flex items-center justify-between mb-2 text-xs text-gray-700">
-              <span>
-                Monto ingresado: <strong>{formatMoney(monto)}</strong>
-              </span>
-              <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={showSoloAplicables}
-                  onChange={(e) => setShowSoloAplicables(e.target.checked)}
-                  className="accent-gray"
-                  disabled={isView}
-                />
-                Mostrar solo planes aplicables
-              </label>
-            </div>
+            {isHistoricalVersion && quotationPlanVersion && (
+              <div className="bg-amber-50 border border-amber-300 text-amber-800 p-4 rounded mb-4">
+                <div className="font-semibold">
+                  Esta cotizacion usa una version antigua del plan{" "}
+                  {quotationPlanVersion.plan?.name || "—"} (version{" "}
+                  {quotationPlanVersion.version ?? quotationPlanVersion.versionNumber ?? "—"}).
+                </div>
+                <div className="text-sm mt-1">
+                  Si queres actualizarla, selecciona un plan vigente desde la tabla de abajo.
+                </div>
 
+                <div className="mt-3 overflow-auto">
+                  <table className="w-full text-sm border-collapse min-w-[480px]">
+                    <thead>
+                      <tr className="bg-amber-100 text-amber-900">
+                        <th className="border border-amber-200 px-3 py-2 text-left">Plazo</th>
+                        <th className="border border-amber-200 px-3 py-2 text-left">TNA</th>
+                        <th className="border border-amber-200 px-3 py-2 text-left">Coeficiente</th>
+                        <th className="border border-amber-200 px-3 py-2 text-left">Cuota estimada</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(quotationPlanVersion.coefficients || []).map((c) => {
+                        const coefNum = Number(c.coeficiente);
+                        const cuota = monto * (coefNum / 10000);
+                        return (
+                          <tr key={c.id}>
+                            <td className="border border-amber-200 px-3 py-2">{c.plazo} cuotas</td>
+                            <td className="border border-amber-200 px-3 py-2">{Math.ceil(Number(c.tna))}%</td>
+                            <td className="border border-amber-200 px-3 py-2">{coefNum}</td>
+                            <td className="border border-amber-200 px-3 py-2">
+                              {cuota > 0 ? cuota.toLocaleString("es-AR", { style: "currency", currency: "ARS", minimumFractionDigits: 0 }) : "-"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {!isView && (
+              <div className="flex items-center justify-between mb-2 text-xs text-gray-700">
+                <span>
+                  Monto ingresado: <strong>{formatMoney(monto)}</strong>
+                </span>
+                <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={showSoloAplicables}
+                    onChange={(e) => setShowSoloAplicables(e.target.checked)}
+                    className="accent-gray"
+                    disabled={isView}
+                  />
+                  Mostrar solo planes aplicables
+                </label>
+              </div>
+            )}
+
+            {(!isHistoricalVersion || !isView) && (
             <div className="overflow-auto max-h-[60vh] relative">
               <table className="relative w-full border-collapse text-sm min-w-[720px]">
                 <thead className='sticky top-0 z-10 bg-gray '>
@@ -557,6 +639,7 @@ export default function QuotationForm({
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         )}
 

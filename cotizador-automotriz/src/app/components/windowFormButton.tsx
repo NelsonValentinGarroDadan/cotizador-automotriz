@@ -31,7 +31,11 @@ export default function WindowFormButton ({
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
       if (event.data.created) {
-        onCreated?.();
+        try {
+          onCreated?.();
+        } catch (err) {
+          console.warn('[WindowFormButton] onCreated handler failed', err);
+        }
         window.removeEventListener('message', handleMessage);
         newWindow.close();
       }

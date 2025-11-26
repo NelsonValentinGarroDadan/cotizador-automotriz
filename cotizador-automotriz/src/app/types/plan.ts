@@ -26,6 +26,7 @@ export interface PlanVersion {
   version: number;
   isLatest: boolean;
   createdAt: string;
+  versionNumber?: number;
   desdeMonto?: number | null;
   hastaMonto?: number | null;
   desdeCuota?: number | null;

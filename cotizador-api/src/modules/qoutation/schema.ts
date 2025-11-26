@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const createQuotationSchema = z.object({
   planVersionId: z.uuid("ID de version del plan invalido"),
-  companyId: z.string().uuid("ID de compania invalido"),
+  companyId: z.string().uuid("ID de compañia invalido"),
   clientName: z
     .string()
     .min(2, "El nombre del cliente debe tener al menos 2 caracteres")
@@ -28,7 +28,7 @@ export const updateQuotationSchema = z.object({
     .optional(),
   companyId: z
     .string()
-    .uuid("ID de compania invalido")
+    .uuid("ID de compañia invalido")
     .optional(),
   clientName: z
     .string()
