@@ -1,61 +1,40 @@
-import z from "zod";
-import { Company } from "./compay";
-import { PlanVersion } from "./plan";
-import { User } from "./user";
+﻿import { z } from "zod";
+import { Role } from ".";
 
-export interface Quotation {
+export interface QuotationFull {
   id: string;
+  planVersionId: string;
+  companyId: string;
+  userId: string;
   clientName: string;
   clientDni: string;
-  totalValue?: number;
+  vehicleVersionId: number;
+  totalValue: number;
   createdAt: string;
-  company: Company;
-  planVersionId: string;
-  user: User;
-  planVersion: PlanVersion;
+  planVersion: {
+    id: string;
+    plan?: { id: string; name: string };
+    version: number;
+    coefficients: { id: string; plazo: number; tna: string; coeficiente: string; cuotaBalon: string | null; cuotaPromedio: string | null }[];
+  };
+  company: { id: string; name: string };
+  user: { id: string; firstName: string; lastName: string; role: Role };
   vehicleVersion?: {
     idversion: number;
     descrip: string;
-    nueva_descrip: string;
     codigo: string;
-    marca?: { idmarca: number; descrip: string };
-    modelo?: { idmodelo: number; descrip: string };
+    marca?: { idmarca: number; descrip: string } | null;
+    linea?: { idlinea: number; descrip: string } | null;
   };
 }
 
-export const numberFromString = z
-  .union([z.string(), z.number()])
-  .transform((v) => {
-    if (v === "" || v === null || v === undefined) return undefined;
-    const n = Number(v);
-    return Number.isNaN(n) ? undefined : n;
-  })
-  .optional();
-
-export const createSchema = z.object({
-  companyId: z.uuid("Compañia invalida"),
-  planId: z.uuid("Plan invalido"),
-  planVersionId: z.uuid("Version invalida"),
+export const quotationSchema = z.object({
+  planVersionId: z.string().uuid("El plan es obligatorio"),
+  companyId: z.string().uuid("La compania es obligatoria"),
   clientName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  clientDni: z.string().min(7, "Minimo 7 caracteres"),
-  vehicleVersionId: z.coerce
-    .number()
-    .int("ID de vehiculo invalido")
-    .positive("ID de vehiculo invalido"),
-  totalValue: numberFromString,
+  clientDni: z.string().regex(/^\d+$/, "El DNI debe contener solo numeros").min(7, "El DNI debe tener al menos 7 digitos").max(10, "El DNI no puede exceder los 10 digitos"),
+  vehicleVersionId: z.coerce.number().int("ID de vehiculo invalido").positive("ID de vehiculo invalido"),
+  totalValue: z.coerce.number().min(0, "El valor total debe ser mayor o igual a 0"),
 });
 
-export const updateSchema = createSchema.partial();
-export type updateSchema = z.infer<typeof updateSchema>;
-
-export type CreateInput = {
-  companyId: string;
-  planId: string;
-  planVersionId: string;
-  clientName: string;
-  clientDni: string;
-  vehicleVersionId: unknown;
-  totalValue?: string | number | undefined;
-};
-
-export type UpdateInput = Partial<CreateInput>;
+export type QuotationInput = z.infer<typeof quotationSchema>;

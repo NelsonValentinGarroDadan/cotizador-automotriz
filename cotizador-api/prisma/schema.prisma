@@ -27,7 +27,7 @@ model User {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  // Relación con compañías
+  // Relaci??n con compa????as
   companies      UserCompany[]
 
   // Planes creados
@@ -48,7 +48,7 @@ model Company {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  // Relación con usuarios
+  // Relaci??n con usuarios
   userCompanies UserCompany[]
 
   plans      Plan[]        @relation("PlanCompanies")
@@ -181,21 +181,14 @@ model Quotation {
 }
 
 // ===============================
-// AUTOS (CATÁLOGO EXTERNO)
+// AUTOS (CAT??LOGO EXTERNO)
 // ===============================
 
 model AutosMarca {
   idmarca        Int            @id
   descrip        String         @db.VarChar(50)
-  logo           String         @db.VarChar(100)
-  orden          Int
-  codigo         String         @db.VarChar(20)
-  repuestos      Int
-  predeterminada Int
 
   lineas    AutosLinea[]
-  modelos   AutosModelo[]
-  versiones AutosVersion[]
 
   @@map("autos_marcas")
 }
@@ -204,108 +197,24 @@ model AutosLinea {
   idlinea              Int      @id
   idmarca              Int
   descrip              String   @db.VarChar(50)
-  ajuste               Decimal  @db.Decimal(7, 2)
-  dias_nadcon          Int
-  leyenda_nadcon       String   @db.VarChar(50)
-  seguro               Decimal  @db.Decimal(10, 2)
-  gestion              Decimal  @db.Decimal(10, 2)
-  flete                Decimal  @db.Decimal(10, 2)
-  idpais_fabricacion   Int
-  compra_vence         Int
-  costo_ad_pm          Decimal  @db.Decimal(15, 2)
-  costo_ad_pm_costo    Decimal  @db.Decimal(15, 2)
-  inactivo             Int
-  idgrupo_servicio     Int
-  valor_hora_servicio  Decimal  @db.Decimal(10, 2)
-  precio_backup        Decimal  @db.Decimal(15, 2)
-  valor_dia_chapa      Decimal  @db.Decimal(15, 2)
-  valor_panio_pintura  Decimal  @db.Decimal(15, 2)
-  adicional_pl_valor   Int
-  adicional_pl_porcentaje Int
-  precios_en_dolares   Int
-  comercial            Int
-  cantidad_mo          Int
-  costo_entrega        Int
-  codigo_salesforce    String   @db.VarChar(30)
-  impuesto_interno     Decimal  @db.Decimal(15, 2)
-  idtasa               Int
-  idiva                Int
-  idtipocpu            Int
 
-  marca   AutosMarca  @relation(fields: [idmarca], references: [idmarca])
-  modelos AutosModelo[]
-
-  @@map("autos_lineas")
-}
-
-model AutosModelo {
-  idmodelo                Int      @id
-  descrip                 String   @db.VarChar(50)
-  idmarca                 Int
-  idlinea                 Int
-  codigo                  String   @db.VarChar(20)
-  codigo_viejo            String   @db.VarChar(10)
-  idtipo                  Int
-  idmotor                 Int
-  idcombustible           Int
-  idgrupo                 Int
-  iva                     Decimal  @db.Decimal(10, 2)
-  idimpuesto              Int
-  iibb                    Decimal  @db.Decimal(10, 2)
-  costo_ad_pm             Decimal  @db.Decimal(10, 2)
-  costo_ad_pvp            Decimal  @db.Decimal(10, 2)
-  adicional               Decimal  @db.Decimal(10, 2)
-  adicional_pl_valor      Int
-  adicional_pl_porcentaje Int
-
-  marca    AutosMarca  @relation(fields: [idmarca], references: [idmarca])
-  linea    AutosLinea  @relation(fields: [idlinea], references: [idlinea])
+  marca     AutosMarca  @relation(fields: [idmarca], references: [idmarca])
   versiones AutosVersion[]
 
-  @@map("autos_modelos")
+  @@map("autos_lineas")
 }
 
 model AutosVersion {
   idversion              Int      @id
   descrip                String   @db.VarChar(150)
-  descrip_nadin          String   @db.VarChar(150)
-  descrip_otra           String   @db.VarChar(150)
-  idmarca                Int
-  idmodelo               Int
+  idlinea                Int
   codigo                 String   @db.VarChar(20)
-  inactivo               Int
-  cod_ph                 String   @db.VarChar(10)
-  codigo_viejo           String   @db.VarChar(20)
-  codigo_acara           String   @db.VarChar(20)
-  nueva_descrip          String   @db.VarChar(100)
-  paquetes               String   @db.Text
-  paquetes2              String   @db.Text
-  paquetes3              String   @db.Text
-  ajuste                 Decimal  @db.Decimal(7, 2)
-  incentivo_tactico      Int
-  incentivo_tactico_ph   Int
-  adicional_pl_valor     Int
-  adicional_pl_porcentaje Int
-  no_tomar_usado         Int
-  txt_otro_sistema       String   @db.VarChar(150)
-  iibb_cordoba_origen    String   @db.VarChar(10)
-  iibb_cordoba_marca     String   @db.VarChar(10)
-  iibb_cordoba_tipo      String   @db.VarChar(10)
-  iibb_cordoba_modelo    String   @db.VarChar(10)
-  iva                    Int
-  equipamiento           String   @db.Text
-  sfx_ventas             String   @db.VarChar(3)
-  sfx_produccion         String   @db.VarChar(3)
-  idtasa                 Int
-  gear_box_type          String   @db.VarChar(3)
-  connected_car          Int
-  servicios_conectados   Int
-  precio_especial        Int 
 
-  marca     AutosMarca  @relation(fields: [idmarca], references: [idmarca])
-  modelo    AutosModelo @relation(fields: [idmodelo], references: [idmodelo])
-  company   Company[]    @relation("CompanyVehicles")
+  linea     AutosLinea  @relation(fields: [idlinea], references: [idlinea])
+  company   Company[]   @relation("CompanyVehicles")
   quotations Quotation[]
 
   @@map("autos_versiones")
 }
+
+

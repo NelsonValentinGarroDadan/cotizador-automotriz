@@ -37,22 +37,16 @@ export const getAllCompanies = async (
           select: {
             idversion: true,
             descrip: true,
-            nueva_descrip: true,
             codigo: true,
-            marca: {
+            linea: {
               select: {
-                idmarca: true,
+                idlinea: true,
                 descrip: true,
-              },
-            },
-            modelo: {
-              select: {
-                idmodelo: true,
-                descrip: true,
+                marca: { select: { idmarca: true, descrip: true } },
               },
             },
           },
-        }
+        },
       },
     }),
     prisma.company.count({ where }),
@@ -84,18 +78,12 @@ export const getCompanyById = async (id: string) => {
         select: {
           idversion: true,
           descrip: true,
-          nueva_descrip: true,
           codigo: true,
-          marca: {
+          linea: {
             select: {
-              idmarca: true,
+              idlinea: true,
               descrip: true,
-            },
-          },
-          modelo: {
-            select: {
-              idmodelo: true,
-              descrip: true,
+              marca: { select: { idmarca: true, descrip: true } },
             },
           },
         },

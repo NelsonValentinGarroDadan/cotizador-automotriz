@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */ 
+﻿/* eslint-disable react-hooks/exhaustive-deps */ 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
@@ -258,7 +258,7 @@ export default function QuotationForm({
               setSelectedPlan(null);
               setValue('vehicleVersionId', undefined as unknown as number);
             }}
-            placeholder="Seleccionar compañia..."
+            placeholder="Seleccionar compaÃ±ia..."
             disabled={isView}
           />
 
@@ -290,7 +290,7 @@ export default function QuotationForm({
 
               return (result.data || []).map((v: any) => {
                 const parts = [
-                  v.nueva_descrip || v.descrip,
+                  v.descrip,
                   v.marca?.descrip,
                   v.modelo?.linea?.descrip,
                   v.modelo?.descrip,
@@ -581,3 +581,5 @@ export default function QuotationForm({
     </div>
   );
 }
+
+

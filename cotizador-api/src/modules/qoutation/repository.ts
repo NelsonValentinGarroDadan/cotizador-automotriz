@@ -1,4 +1,4 @@
-// backend/src/modules/quotation/repository.ts
+﻿// backend/src/modules/quotation/repository.ts
 import prisma from "../../config/prisma";
 import { CreateQuotation, UpdateQuotation } from "./schema";
 import { Prisma } from "@prisma/client";
@@ -27,11 +27,7 @@ export const getAllQuotations = async (
 
   if (!filters?.isSuperAdmin) {
     if (filters?.isAdmin) {
-      where.company = {
-        userCompanies: {
-          some: { userId },
-        },
-      };
+      where.company = { userCompanies: { some: { userId } } };
     } else {
       where.userId = userId;
     }
@@ -44,7 +40,7 @@ export const getAllQuotations = async (
     ];
   }
 
-  if (filters?.companyIds && filters.companyIds.length > 0) {
+  if (filters?.companyIds?.length) {
     where.companyId = { in: filters.companyIds };
   }
 
@@ -54,12 +50,8 @@ export const getAllQuotations = async (
 
   if (filters?.createdAtFrom || filters?.createdAtTo) {
     where.createdAt = {};
-    if (filters.createdAtFrom) {
-      where.createdAt.gte = new Date(filters.createdAtFrom);
-    }
-    if (filters.createdAtTo) {
-      where.createdAt.lte = new Date(filters.createdAtTo);
-    }
+    if (filters.createdAtFrom) where.createdAt.gte = new Date(filters.createdAtFrom);
+    if (filters.createdAtTo) where.createdAt.lte = new Date(filters.createdAtTo);
   }
 
   const [quotations, total] = await Promise.all([
@@ -69,51 +61,26 @@ export const getAllQuotations = async (
       take: limit,
       orderBy: { [sortBy]: sortOrder },
       include: {
-        company: {
-          select: {
-            id: true,
-            name: true,
-            logo: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
+        company: { select: { id: true, name: true, logo: true } },
+        user: { select: { id: true, firstName: true, lastName: true, email: true } },
         planVersion: {
           select: {
             id: true,
             version: true,
             isLatest: true,
-            plan: {
-              select: {
-                id: true,
-                name: true,
-                logo: true,
-              },
-            },
+            plan: { select: { id: true, name: true, logo: true } },
           },
         },
         vehicleVersion: {
           select: {
             idversion: true,
             descrip: true,
-            nueva_descrip: true,
             codigo: true,
-            marca: {
+            linea: {
               select: {
-                idmarca: true,
+                idlinea: true,
                 descrip: true,
-              },
-            },
-            modelo: {
-              select: {
-                idmodelo: true,
-                descrip: true,
+                marca: { select: { idmarca: true, descrip: true } },
               },
             },
           },
@@ -139,21 +106,10 @@ export const getQuotationById = async (
           id: true,
           name: true,
           logo: true,
-          userCompanies: isSuperAdmin
-            ? true
-            : {
-                where: { userId },
-              },
+          userCompanies: isSuperAdmin ? true : { where: { userId } },
         },
       },
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-        },
-      },
+      user: { select: { id: true, firstName: true, lastName: true, email: true } },
       planVersion: {
         select: {
           id: true,
@@ -163,21 +119,10 @@ export const getQuotationById = async (
           hastaMonto: true,
           desdeCuota: true,
           hastaCuota: true,
-          plan: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              logo: true,
-            },
-          },
+          plan: { select: { id: true, name: true, description: true, logo: true } },
           coefficients: {
             orderBy: { plazo: "asc" },
-            include: {
-              cuotaBalonMonths: {
-                orderBy: { month: "asc" },
-              },
-            },
+            include: { cuotaBalonMonths: { orderBy: { month: "asc" } } },
           },
         },
       },
@@ -185,18 +130,12 @@ export const getQuotationById = async (
         select: {
           idversion: true,
           descrip: true,
-          nueva_descrip: true,
           codigo: true,
-          marca: {
+          linea: {
             select: {
-              idmarca: true,
+              idlinea: true,
               descrip: true,
-            },
-          },
-          modelo: {
-            select: {
-              idmodelo: true,
-              descrip: true,
+              marca: { select: { idmarca: true, descrip: true } },
             },
           },
         },
@@ -219,38 +158,10 @@ export const createQuotation = async (
       totalValue: data.totalValue,
     },
     include: {
-      company: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-        },
-      },
-      planVersion: {
-        select: {
-          id: true,
-          version: true,
-          plan: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-      vehicleVersion: {
-        select: {
-          idversion: true,
-          descrip: true,
-          nueva_descrip: true,
-        },
-      },
+      company: { select: { id: true, name: true } },
+      user: { select: { id: true, firstName: true, lastName: true } },
+      planVersion: { select: { id: true, version: true, plan: { select: { id: true, name: true } } } },
+      vehicleVersion: { select: { idversion: true, descrip: true, codigo: true } },
     },
   });
 };
@@ -264,46 +175,19 @@ export const updateQuotation = async (
     data: {
       ...(data.clientName !== undefined && { clientName: data.clientName }),
       ...(data.clientDni !== undefined && { clientDni: data.clientDni }),
-      ...(data.vehicleVersionId !== undefined && {
-        vehicleVersionId: data.vehicleVersionId,
-      }),
+      ...(data.vehicleVersionId !== undefined && { vehicleVersionId: data.vehicleVersionId }),
       ...(data.totalValue !== undefined && { totalValue: data.totalValue }),
       ...(data.companyId !== undefined && { companyId: data.companyId }),
-      ...(data.planVersionId !== undefined && {
-        planVersionId: data.planVersionId,
-      }),
+      ...(data.planVersionId !== undefined && { planVersionId: data.planVersionId }),
     },
     include: {
-      company: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      planVersion: {
-        select: {
-          id: true,
-          version: true,
-          plan: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
-      vehicleVersion: {
-        select: {
-          idversion: true,
-          descrip: true,
-          nueva_descrip: true,
-        },
-      },
+      company: { select: { id: true, name: true } },
+      planVersion: { select: { id: true, version: true, plan: { select: { name: true } } } },
+      vehicleVersion: { select: { idversion: true, descrip: true, codigo: true } },
     },
   });
 };
 
 export const deleteQuotation = async (id: string) => {
-  return prisma.quotation.delete({
-    where: { id },
-  });
+  return prisma.quotation.delete({ where: { id } });
 };

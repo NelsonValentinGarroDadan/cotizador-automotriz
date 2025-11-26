@@ -1,4 +1,4 @@
-import TableActions from "@/app/components/ui/tableAction";
+﻿import TableActions from "@/app/components/ui/tableAction";
 import { TableColumn } from "@/app/types/table";
 import { Role } from "@/app/types";
 import { VehiculeVersion } from "@/app/types/vehiculos";
@@ -17,55 +17,44 @@ export default function vehiculeColumns({
       key: "descrip",
       label: "Version",
       sortable: true,
-      render: (value: string, row: VehiculeVersion) =>
-        row.nueva_descrip || row.descrip,
+      render: (_value: string, row: VehiculeVersion) => row.descrip,
     },
     {
       key: "idmarca",
       label: "Marca",
       sortable: true,
       className: "hidden md:table-cell",
-      render: (_, row: VehiculeVersion) => row.marca?.descrip ?? "-",
-    },
-    {
-      key: "idmodelo",
-      label: "Modelo",
-      sortable: true,
-      className: "hidden md:table-cell",
-      render: (_, row: VehiculeVersion) => row.modelo?.descrip ?? "-",
+      render: (_: string, row: VehiculeVersion) => row.marca?.descrip ?? "-",
     },
     {
       key: "idlinea",
       label: "Linea",
       sortable: true,
       className: "hidden md:table-cell",
-      render: (_, row: VehiculeVersion) => row.modelo?.linea?.descrip ?? "-",
+      render: (_: string, row: VehiculeVersion) => row.linea?.descrip ?? "-",
+    },
+    {
+      key: "codigo",
+      label: "Codigo",
+      sortable: true,
+      className: "hidden md:table-cell",
+      render: (_: string, row: VehiculeVersion) => row.codigo ?? "-",
     },
   ];
 
   if (showCompanyColumn) {
     columns.push({
       key: "company",
-      label: "Compañias",
+      label: "Companias",
       sortable: false,
-      render: (_, row: VehiculeVersion) => {
+      render: (_: string, row: VehiculeVersion) => {
         const companies = row.company || [];
-        if (companies.length === 0) {
-          return (
-            <span className="text-gray-400 italic">
-              Sin compañias asignadas
-            </span>
-          );
-        }
-        if (companies.length === 1) {
-          return <span className="font-medium">{companies[0].name}</span>;
-        }
+        if (companies.length === 0) return <span className="text-gray-400 italic">Sin companias asignadas</span>;
+        if (companies.length === 1) return <span className="font-medium">{companies[0].name}</span>;
         return (
           <div className="flex flex-col gap-1">
             <span className="font-medium">{companies[0].name}</span>
-            <span className="text-sm text-gray-500">
-              +{companies.length - 1} mas
-            </span>
+            <span className="text-sm text-gray-500">+{companies.length - 1} mas</span>
           </div>
         );
       },

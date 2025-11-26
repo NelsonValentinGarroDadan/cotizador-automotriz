@@ -1,4 +1,4 @@
-import { FilterConfig } from '@/app/types/table';
+﻿import { FilterConfig } from '@/app/types/table';
 
 interface VehiculeFilterOptions {
   companyOptions: { value: string; label: string }[];
@@ -48,10 +48,10 @@ export const getVehiculeFilters = ({
   if (showCompanyFilter) {
     filters.push({
       name: 'companyId',
-      label: 'Compañia',
+      label: 'CompaÃ±ia',
       type: 'select',
       options: [
-        { value: '', label: 'Todas las compañias' },
+        { value: '', label: 'Todas las compaÃ±ias' },
         ...companyOptions,
       ],
     });
@@ -59,4 +59,5 @@ export const getVehiculeFilters = ({
 
   return filters;
 };
+
 

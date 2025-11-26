@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useEffect, useMemo } from 'react';
@@ -159,7 +159,7 @@ export default function VehiculesPage() {
         onFilter={handleFilter}
         onPageChange={handlePageChange}
         title="Gestion de Vehiculos"
-        description="Podris ver y administrar las versiones de vehiculos disponibles para tus compañias."
+        description="Podris ver y administrar las versiones de vehiculos disponibles para tus compaÃ±ias."
         buttons={
           (user.role === Role.ADMIN || user.role === Role.SUPER_ADMIN) && (
             <WindowFormButton
@@ -179,3 +179,4 @@ export default function VehiculesPage() {
     </section>
   );
 }
+
