@@ -7,8 +7,7 @@ import { useGetQuotationByIdQuery } from "@/app/api/quotationApi";
 import { generateQuotationPdfDoc, urlToBase64 } from "@/app/utils/generateQuotationPdf";
 import { useEffect, useRef, useState } from "react";
 import { useAuthRedirect } from "@/app/hooks/useAuthRedirect";
-import { Role } from "@/app/types";
-import { da } from "zod/v4/locales";
+import { Role } from "@/app/types"; 
 
 const loadScript = (src: string) =>
   new Promise<void>((resolve, reject) => {
