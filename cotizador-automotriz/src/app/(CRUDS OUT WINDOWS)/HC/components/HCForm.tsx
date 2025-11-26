@@ -661,6 +661,18 @@ export default function QuotationForm({
             </CustomButton>
           </div>
         )}
+
+        {isView && (
+          <div className="flex justify-end gap-4 mt-4">
+            <CustomButton
+              type="button"
+              onClick={() => window.close()}
+              className="w-full bg-blue hover:bg-blue/80 text-white"
+            >
+              Cerrar
+            </CustomButton>
+          </div>
+        )}
       </form>
     </div>
   );

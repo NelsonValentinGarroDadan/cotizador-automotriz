@@ -634,6 +634,16 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
             </CustomButton>
           </div>
         )}
+
+        {isView && (
+          <CustomButton
+            type="button"
+            onClick={() => window.close()}
+            className="w-full bg-blue hover:bg-blue/80 text-white mt-4"
+          >
+            Cerrar
+          </CustomButton>
+        )}
       </form>
     </div>
   );

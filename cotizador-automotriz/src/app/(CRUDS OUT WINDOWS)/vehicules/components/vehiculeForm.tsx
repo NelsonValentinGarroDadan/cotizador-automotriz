@@ -315,6 +315,16 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
             </CustomButton>
           </div>
         )}
+
+        {isView && (
+          <CustomButton
+            type="button"
+            onClick={() => window.close()}
+            className="w-full bg-blue hover:bg-blue/80 text-white mt-4"
+          >
+            Cerrar
+          </CustomButton>
+        )}
       </form>
     </div>
   );
