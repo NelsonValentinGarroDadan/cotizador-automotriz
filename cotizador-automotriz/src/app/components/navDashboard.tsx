@@ -74,7 +74,7 @@ export default function NavDashboard({ navsLinks }: { navsLinks: NavItem[] }) {
       <div className="flex items-center justify-end md:justify-between w-full">
         <div className="flex items-center py-5 md:py-0">
           <button
-            className="md:hidden text-white"
+            className="md:hidden text-white  cursor-pointer"
             aria-label="Abrir menú"
             onClick={() => setIsMenuOpen(true)}
             type="button"
@@ -103,7 +103,7 @@ export default function NavDashboard({ navsLinks }: { navsLinks: NavItem[] }) {
             <button
               type="button"
               onClick={() => setIsMenuOpen(false)}
-              className="text-white"
+              className="text-white cursor-pointer"
               aria-label="Cerrar menú"
             >
               <X size={28} />
