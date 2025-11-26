@@ -138,35 +138,7 @@ export const vehiculeApi = api.injectEndpoints({
         };
       },
     }),
-
-    getVehiculeModels: builder.query<
-      PaginatedResponse<VehiculeVersion>,
-      GetVehiculeModelParams
-    >({
-      query: (params) => {
-        const searchParams = new URLSearchParams();
-        if (params?.limit) {
-          searchParams.append("limit", params.limit.toString());
-        }
-        if (params?.search) {
-          searchParams.append("search", params.search);
-        }
-        if (params?.brandId) {
-          searchParams.append("brandId", params.brandId.toString());
-        }
-        if (params?.lineId) {
-          searchParams.append("lineId", params.lineId.toString());
-        }
-        if (params?.companyId) {
-          searchParams.append("companyId", params.companyId);
-        }
-
-        return {
-          url: `/vehicules/models?${searchParams.toString()}`,
-          method: "GET",
-        };
-      },
-    }),
+ 
 
     getVehiculeVersionById: builder.query<VehiculeVersion, { idversion: number }>({
       query: ({ idversion }) => ({
@@ -221,8 +193,7 @@ export const vehiculeApi = api.injectEndpoints({
 export const {
   useGetAllVehiculeVersionsQuery,
   useGetVehiculeBrandsQuery,
-  useGetVehiculeLinesQuery,
-  useGetVehiculeModelsQuery,
+  useGetVehiculeLinesQuery, 
   useGetVehiculeVersionByIdQuery,
   useCreateVehiculeVersionMutation,
   useUpdateVehiculeVersionMutation,

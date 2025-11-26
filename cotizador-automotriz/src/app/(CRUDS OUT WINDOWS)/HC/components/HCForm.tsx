@@ -326,9 +326,8 @@ export default function QuotationForm({
               return (result.data || []).map((v: any) => {
                 const parts = [
                   v.descrip,
-                  v.marca?.descrip,
-                  v.modelo?.linea?.descrip,
-                  v.modelo?.descrip,
+                  v.linea?.marca?.descrip,
+                  v.linea?.descrip, 
                 ].filter(Boolean);
 
                 return {

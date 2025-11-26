@@ -92,20 +92,7 @@ export default function VehiculesPage() {
       label: l.descrip,
     }));
   };
-
-  const loadModelOptions = async (search: string) => {
-    const result = await (dispatch as any)(
-      vehiculeApi.endpoints.getVehiculeModels.initiate({
-        limit: 50,
-        search: search || undefined,
-      })
-    ).unwrap();
-
-    return (result.data || []).map((m: any) => ({
-      value: String(m.idmodelo),
-      label: m.descrip,
-    }));
-  };
+ 
 
   const companyOptions =
     companiesData?.data.map((c) => ({
@@ -139,8 +126,7 @@ export default function VehiculesPage() {
     companyOptions,
     showCompanyFilter,
     loadBrandOptions,
-    loadLineOptions,
-    loadModelOptions,
+    loadLineOptions, 
   });
 
   return (

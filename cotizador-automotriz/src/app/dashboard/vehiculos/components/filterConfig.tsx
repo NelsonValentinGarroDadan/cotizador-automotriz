@@ -4,16 +4,14 @@ interface VehiculeFilterOptions {
   companyOptions: { value: string; label: string }[];
   showCompanyFilter: boolean;
   loadBrandOptions: (search: string) => Promise<{ value: string; label: string }[]>;
-  loadLineOptions: (search: string) => Promise<{ value: string; label: string }[]>;
-  loadModelOptions: (search: string) => Promise<{ value: string; label: string }[]>;
+  loadLineOptions: (search: string) => Promise<{ value: string; label: string }[]>; 
 }
 
 export const getVehiculeFilters = ({
   companyOptions,
   showCompanyFilter,
   loadBrandOptions,
-  loadLineOptions,
-  loadModelOptions,
+  loadLineOptions, 
 }: VehiculeFilterOptions): FilterConfig[] => {
   const filters: FilterConfig[] = [
     {
@@ -35,14 +33,7 @@ export const getVehiculeFilters = ({
       type: 'selectSearch',
       placeholder: 'Todas las lineas',
       loadOptions: loadLineOptions,
-    },
-    {
-      name: 'modelId',
-      label: 'Modelo',
-      type: 'selectSearch',
-      placeholder: 'Todos los modelos',
-      loadOptions: loadModelOptions,
-    },
+    }, 
   ];
 
   if (showCompanyFilter) {
