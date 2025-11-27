@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { ReduxProvider } from '@/app/store/provider';
 import { useAuthRedirect } from '@/app/hooks/useAuthRedirect';
 import CustomButton from '@/app/components/ui/customButton';
@@ -8,7 +9,7 @@ import { Role } from '../types';
 interface Column<T> {
   key: keyof T;
   label: string;
-  value?: string | number;
+  value?: ReactNode;
 }
 
 interface CrudPageFactoryProps<T> {
