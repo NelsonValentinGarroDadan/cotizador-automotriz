@@ -21,7 +21,8 @@ interface CrudPageFactoryProps<T> {
   deleteMutation?: () => Promise<void>;
   columns?: Column<T>[];
   allowedRoles?: Role[];
-  entityName: string; 
+  entityName: string;
+  title?: string;
 }
 
 export function CrudPageFactory<T>({
@@ -33,7 +34,8 @@ export function CrudPageFactory<T>({
   deleteMutation,
   columns,
   allowedRoles = [Role.SUPER_ADMIN],
-  entityName, 
+  entityName,
+  title,
 }: CrudPageFactoryProps<T>) {
   useAuthRedirect(allowedRoles);
   
@@ -68,7 +70,7 @@ export function CrudPageFactory<T>({
         <section className="flex flex-col items-center justify-center h-screen w-screen bg-blue-light-ligth">
           <div className="w-[90%] max-w-2xl border rounded shadow bg-white p-1 md:p-4">
             <h1 className="text-xl font-bold mb-6 text-black text-center">
-              ¿Seguro que querés eliminar este {entityName.toLowerCase()}?
+              {title ?? `¿Seguro que querés eliminar este ${entityName.toLowerCase()}?`}
             </h1>
 
             <table className="w-full border-collapse text-sm">

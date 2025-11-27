@@ -73,7 +73,7 @@ export default function TableActions({
               className="w-5 h-5 text-red-600 cursor-pointer hover:scale-110 transition"
               />
             }
-          title="Eliminar"
+          title="Eliminar/Desactivar"
          className={classNameWFB}
           width={width}
         />

@@ -22,17 +22,20 @@ export default function DeletePlanPage({ params }: { params: Promise<{ id: strin
         await deletePlan({ id: plan.id }).unwrap();
       }}
       columns={[
-        { key: 'name', label: 'Nombre' },
+        { key: 'name', label: 'Nombre', value: plan?.name },
         { 
           key: 'companies', 
           label: 'Compañías',
+          value: plan?.companies?.map((c) => c.name).join(', ') || '-',
         },
         { 
           key: 'active', 
           label: 'Estado',
+          value: plan?.active ? 'Activo' : 'Inactivo',
         },
       ]}
       entityName="Plan"
+      title="¿Seguro que querés desactivar este plan?"
       allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN]}
     />
   );
