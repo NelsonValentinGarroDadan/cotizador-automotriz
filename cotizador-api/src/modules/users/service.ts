@@ -31,7 +31,8 @@ export const getAllUsers = async (
       sortBy,
       sortOrder,
       filters,
-      filters?.includeInactive
+      filters?.includeInactive,
+      true
     );
     return createPaginatedResponse(users, total, page, limit);
   }
@@ -70,7 +71,8 @@ export const getAllUsers = async (
         role: "USER",
         companyIds: effectiveCompanyIds,
       },
-      true // admins ven activos e inactivos dentro de sus compañías
+      true,
+      false
     );
 
     return createPaginatedResponse(users, total, page, limit);

@@ -23,6 +23,14 @@ export const createUserSchema = z.object({
   }),
   companyIds: z.array(z.uuid()).optional(),
   allowedPlanIds: z.array(z.uuid()).optional(),
+}).superRefine((data, ctx) => {
+  if (data.role === "USER" && (!data.companyIds || data.companyIds.length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Debe asignar al menos una compañía",
+      path: ["companyIds"],
+    });
+  }
 });
 
 export const updateUserSchema = z

@@ -32,20 +32,22 @@ export const getBrands = async (page: number, limit: number, sortBy: string, sor
   const where: any = {};
 
   if (filters?.search) where.descrip = { contains: filters.search };
-  if (!filters?.isSuperAdmin && filters?.companyIds?.length) {
+  if (filters?.companyIds?.length) {
     where.lineas = {
       some: {
         versiones: {
           some: {
             company: {
-              some: { id: { in: filters.companyIds } },
+              some: {
+                id: { in: filters.companyIds },
+                ...(filters.isSuperAdmin ? {} : { active: true }),
+              },
             },
           },
         },
       },
     };
-  }
-  if (!filters?.isSuperAdmin) {
+  } else if (!filters?.isSuperAdmin) {
     where.lineas = {
       some: {
         versiones: {
@@ -84,16 +86,18 @@ export const getLines = async (page: number, limit: number, sortBy: string, sort
 
   if (filters?.search) where.descrip = { contains: filters.search };
   if (filters?.brandId) where.idmarca = filters.brandId;
-  if (!filters?.isSuperAdmin && filters?.companyIds?.length) {
+  if (filters?.companyIds?.length) {
     where.versiones = {
       some: {
         company: {
-          some: { id: { in: filters.companyIds } },
+          some: {
+            id: { in: filters.companyIds },
+            ...(filters.isSuperAdmin ? {} : { active: true }),
+          },
         },
       },
     };
-  }
-  if (!filters?.isSuperAdmin) {
+  } else if (!filters?.isSuperAdmin) {
     where.versiones = {
       some: {
         company: {
@@ -137,8 +141,13 @@ export const getVersions = async (page: number, limit: number, sortBy: string, s
   if (filters?.brandId) {
     where.linea = { ...(where.linea || {}), idmarca: filters.brandId };
   }
-  if (!filters?.isSuperAdmin && filters?.companyIds?.length) {
-    where.company = { some: { id: { in: filters.companyIds }, active: true } };
+  if (filters?.companyIds?.length) {
+    where.company = {
+      some: {
+        id: { in: filters.companyIds },
+        ...(filters.isSuperAdmin ? {} : { active: true }),
+      },
+    };
   } else if (!filters?.isSuperAdmin) {
     where.company = { some: { active: true } };
   }

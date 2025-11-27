@@ -1,4 +1,4 @@
-﻿import { AppError } from "../../core/errors/appError";
+import { AppError } from "../../core/errors/appError";
 import { createPaginatedResponse, PaginatedResponse } from "../../utils/pagination";
 import { UserToken } from "../../core/types/userToken";
 import { Role } from "../../core/types/role";
@@ -168,8 +168,13 @@ export const createVersion = async (user: UserToken, data: CreateVehicleVersionI
   const adminCompanyIds = !isSuperAdmin ? await getAdminCompanyIds(user.id) : undefined;
   if (!isSuperAdmin) {
     const invalidCompanies = data.companyIds.filter((id) => !adminCompanyIds?.includes(id));
-    if (invalidCompanies.length > 0) throw new AppError("Intentas asociar vehiculos a compañias que no estan a tu cargo", 403);
+    if (invalidCompanies.length > 0) throw new AppError("Intentas asociar vehiculos a compa¤ias que no estan a tu cargo", 403);
   }
+
+  // Validar compañías activas
+  const companies = await prisma.company.findMany({ where: { id: { in: data.companyIds } }, select: { id: true, active: true } });
+  const inactive = companies.filter((c) => c.active === false).map((c) => c.id);
+  if (inactive.length > 0) throw new AppError("No puedes asociar vehiculos a compañías inactivas", 400);
 
   const hasExisting = !!data.brandId && !!data.lineId;
   if (hasExisting) {
@@ -215,8 +220,15 @@ export const updateVersion = async (user: UserToken, idversion: number, data: Up
     if (!currentCompanyIds.some((id) => adminCompanyIds.includes(id))) throw new AppError("No tienes permisos para editar esta version de vehiculo", 403);
     if (data.companyIds) {
       const invalidCompanies = data.companyIds.filter((id) => !adminCompanyIds.includes(id));
-      if (invalidCompanies.length > 0) throw new AppError("Intentas asociar vehiculos a compañias que no estan a tu cargo", 403);
+      if (invalidCompanies.length > 0) throw new AppError("Intentas asociar vehiculos a compa¤ias que no estan a tu cargo", 403);
     }
+  }
+
+  // Validar compañías activas si se modifican
+  if (data.companyIds) {
+    const companies = await prisma.company.findMany({ where: { id: { in: data.companyIds } }, select: { id: true, active: true } });
+    const inactive = companies.filter((c) => c.active === false).map((c) => c.id);
+    if (inactive.length > 0) throw new AppError("No puedes asociar vehiculos a compañías inactivas", 400);
   }
 
   let lineIdToUse = data.lineId ?? existing.idlinea;

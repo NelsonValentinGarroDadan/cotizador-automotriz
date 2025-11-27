@@ -45,12 +45,9 @@ export const getAllPlans = async (
   }
 
   if (filters?.companyIds && filters.companyIds.length > 0) {
-    where.companies = {
-      some: {
-        id: { in: filters.companyIds },
-        ...(isSuperAdmin ? {} : { active: true }),
-      },
-    };
+    where.companies = isSuperAdmin
+      ? { some: { id: { in: filters.companyIds } } }
+      : { some: { id: { in: filters.companyIds }, active: true } };
   }
 
   const [plans, total] = await Promise.all([

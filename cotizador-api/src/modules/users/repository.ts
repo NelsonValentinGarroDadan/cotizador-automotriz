@@ -26,6 +26,7 @@ const userSelect = {
           id: true,
           name: true,
           logo: true,
+          active: true,
         },
       },
     },
@@ -36,11 +37,10 @@ const userSelect = {
       name: true,
       logo: true,
       companies: {
-        select: { id: true, name: true }
-      }
-    }
-  }
-
+        select: { id: true, name: true },
+      },
+    },
+  },
 } as const;
 
 export const getAllUsers = async (
@@ -49,13 +49,13 @@ export const getAllUsers = async (
   sortBy: string,
   sortOrder: "asc" | "desc",
   filters?: UserFilters,
-  includeInactive?: boolean
+  includeInactive?: boolean,
+  isSuperAdmin?: boolean
 ) => {
   const { skip, take } = calculatePagination(page, limit);
 
   const where: Prisma.UserWhereInput = {};
 
-  // 🔍 Filtro por búsqueda
   if (filters?.search) {
     where.OR = [
       { firstName: { contains: filters.search } },
@@ -64,27 +64,25 @@ export const getAllUsers = async (
     ];
   }
 
-  // 🎭 Filtro por rol
   if (filters?.role) {
     where.role = filters.role as any;
   }
 
-  // 📅 Filtro por fecha de creación
   if (filters?.fechaCreacion) {
     where.createdAt = {
       gte: new Date(filters.fechaCreacion),
     };
   }
 
-  // 🏢 Filtro por compañías asociadas
   if (filters?.companyIds && filters.companyIds.length > 0) {
     where.companies = {
       some: {
         companyId: { in: filters.companyIds },
-        company: { active: true },
+        ...(isSuperAdmin ? {} : { company: { active: true } }),
       },
     };
-  } else {
+  } else if (!isSuperAdmin) {
+    // para no-superadmin exigir al menos una compañía activa
     where.companies = { some: { company: { active: true } } };
   }
 
@@ -116,7 +114,7 @@ export const getUserByEmail = async (email: string) =>
   prisma.user.findUnique({ where: { email } });
 
 export const createUser = async (data: CreateUser & { companyIds?: string[] }) => {
-  const { companyIds,allowedPlanIds, ...rest } = data;
+  const { companyIds, allowedPlanIds, ...rest } = data;
 
   return prisma.user.create({
     data: {
@@ -129,16 +127,15 @@ export const createUser = async (data: CreateUser & { companyIds?: string[] }) =
           }
         : undefined,
       allowedPlans: {
-        connect: allowedPlanIds?.map(id => ({ id })) ?? []
-      }
-
+        connect: allowedPlanIds?.map((id) => ({ id })) ?? [],
+      },
     },
     select: userSelect,
   });
 };
 
 export const updateUser = async (id: string, data: UpdateUser & { companyIds?: string[] }) => {
-  const { companyIds,allowedPlanIds, ...rest } = data;
+  const { companyIds, allowedPlanIds, ...rest } = data;
 
   return prisma.user.update({
     where: { id },
@@ -155,11 +152,10 @@ export const updateUser = async (id: string, data: UpdateUser & { companyIds?: s
           }
         : {}),
       ...(allowedPlanIds && {
-          allowedPlans: {
-              set: allowedPlanIds.map(id => ({ id }))
-          }
-      })
-
+        allowedPlans: {
+          set: allowedPlanIds.map((id) => ({ id })),
+        },
+      }),
     },
     select: userSelect,
   });
