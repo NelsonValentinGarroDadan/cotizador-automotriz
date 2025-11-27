@@ -219,7 +219,24 @@ export const updateVersion = async (user: UserToken, idversion: number, data: Up
     }
   }
 
-  return repository.updateVersion(idversion, data);
+  let lineIdToUse = data.lineId ?? existing.idlinea;
+
+  // Permitir crear nueva marca/linea al editar (flujo similar a createVersion)
+  if (data.newBrandDescrip && data.newLineDescrip) {
+    await prisma.$transaction(async (tx) => {
+      const lastBrand = await tx.autosMarca.findFirst({ orderBy: { idmarca: "desc" }, select: { idmarca: true } });
+      const newBrandId = (lastBrand?.idmarca ?? 0) + 1;
+      await tx.autosMarca.create({ data: { idmarca: newBrandId, descrip: data.newBrandDescrip! } });
+
+      const lastLine = await tx.autosLinea.findFirst({ orderBy: { idlinea: "desc" }, select: { idlinea: true } });
+      const newLineId = (lastLine?.idlinea ?? 0) + 1;
+      await tx.autosLinea.create({ data: { idlinea: newLineId, idmarca: newBrandId, descrip: data.newLineDescrip! } });
+
+      lineIdToUse = newLineId;
+    });
+  }
+
+  return repository.updateVersion(idversion, { ...data, lineId: lineIdToUse });
 };
 
 export const deleteVersion = async (user: UserToken, idversion: number) => {
@@ -235,5 +252,21 @@ export const deleteVersion = async (user: UserToken, idversion: number) => {
     if (!currentCompanyIds.some((id) => adminCompanyIds.includes(id))) throw new AppError("No tienes permisos para eliminar esta version de vehiculo", 403);
   }
 
-  await repository.deleteVersion(idversion);
+  await prisma.$transaction(async (tx) => {
+    await tx.autosVersion.delete({ where: { idversion } });
+
+    // Si la linea queda sin versiones, eliminar linea y potencialmente la marca
+    const remainingVersionsForLine = await tx.autosVersion.count({ where: { idlinea: existing.idlinea } });
+    if (remainingVersionsForLine === 0) {
+      const brandId = existing.linea?.idmarca;
+      await tx.autosLinea.delete({ where: { idlinea: existing.idlinea } });
+
+      if (brandId !== undefined) {
+        const remainingLinesForBrand = await tx.autosLinea.count({ where: { idmarca: brandId } });
+        if (remainingLinesForBrand === 0) {
+          await tx.autosMarca.delete({ where: { idmarca: brandId } });
+        }
+      }
+    }
+  });
 };

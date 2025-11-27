@@ -26,6 +26,8 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
   const isView = Boolean(entity) && readOnly;
 
   const dispatch = useDispatch();
+  const [lastBrandId, setLastBrandId] = useState<number | undefined>(undefined);
+  const [lastLineId, setLastLineId] = useState<number | undefined>(undefined);
 
   const {
     register,
@@ -41,6 +43,7 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
     },
   });
 
+  const newBrandDescrip = watch("newBrandDescrip");
   const { data: companiesData } = useGetAllCompaniesQuery({ page: 1, limit: 1000 });
 
   const [loadingBrand, setLoadingBrand] = useState(false);
@@ -63,14 +66,16 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
         brandId: entity.marca?.idmarca,
         lineId: entity.linea?.idlinea,
       });
+      setLastBrandId(entity.marca?.idmarca);
+      setLastLineId(entity.linea?.idlinea);
     }
   }, [entity, companiesData, reset]);
 
   useEffect(() => {
-    if (entity?.marca?.idmarca && !brandId) {
+    if (entity?.marca?.idmarca && !brandId && !newBrandDescrip) {
       setValue("brandId", entity.marca.idmarca);
     }
-  }, [entity, brandId, setValue]);
+  }, [entity, brandId, newBrandDescrip, setValue]);
 
   useEffect(() => {
     const availableCompanies = companiesData?.data || [];
@@ -198,9 +203,9 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
                       onChange={(val) => {
                         const num = val ? Number(val) : undefined;
                         field.onChange(num);
+                        setLastBrandId(num);
                         if (num) {
                           setValue("newBrandDescrip", "");
-                          setValue("lineId", undefined as any);
                           setValue("newLineDescrip", "");
                         }
                       }}
@@ -213,7 +218,7 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
                 )}
               />
 
-              {!isEdit && (
+              {!isView && (
                 <CustomInput
                   label="Nueva marca (opcional)"
                   {...register("newBrandDescrip", {
@@ -221,7 +226,13 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
                       const val = e.target.value;
                       setValue("newBrandDescrip", val);
                       if (val) {
-                        setValue("brandId", undefined as any);
+                        setValue("brandId", null as any);
+                        setValue("lineId", null as any);
+                        setLastBrandId((prev) => prev); // conservar referencia para restaurar
+                        setLastLineId((prev) => prev);
+                      } else {
+                        if (lastBrandId !== undefined) setValue("brandId", lastBrandId as any);
+                        if (lastLineId !== undefined) setValue("lineId", lastLineId as any);
                       }
                     },
                   })}
@@ -246,6 +257,7 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
                       onChange={(val) => {
                         const num = val ? Number(val) : undefined;
                         field.onChange(num);
+                        setLastLineId(num);
                         if (num) {
                           setValue("newLineDescrip", "");
                         }
@@ -260,7 +272,7 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
                 )}
               />
 
-              {!isEdit && (
+              {!isView && (
                 <CustomInput
                   label="Nueva linea (opcional)"
                   {...register("newLineDescrip", {
@@ -269,6 +281,8 @@ export default function VehiculeForm({ entity, readOnly = false }: VehiculeFormP
                       setValue("newLineDescrip", val);
                       if (val) {
                         setValue("lineId", undefined as any);
+                      } else if (lastLineId !== undefined) {
+                        setValue("lineId", lastLineId as any);
                       }
                     },
                   })}

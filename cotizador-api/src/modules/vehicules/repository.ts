@@ -33,7 +33,17 @@ export const getBrands = async (page: number, limit: number, sortBy: string, sor
 
   if (filters?.search) where.descrip = { contains: filters.search };
   if (!filters?.isSuperAdmin && filters?.companyIds?.length) {
-    where.lineas = { some: { versiones: { some: { company: { id: { in: filters.companyIds } } } } } };
+    where.lineas = {
+      some: {
+        versiones: {
+          some: {
+            company: {
+              some: { id: { in: filters.companyIds } },
+            },
+          },
+        },
+      },
+    };
   }
 
   const [items, total] = await Promise.all([
@@ -62,7 +72,13 @@ export const getLines = async (page: number, limit: number, sortBy: string, sort
   if (filters?.search) where.descrip = { contains: filters.search };
   if (filters?.brandId) where.idmarca = filters.brandId;
   if (!filters?.isSuperAdmin && filters?.companyIds?.length) {
-    where.versiones = { some: { company: { id: { in: filters.companyIds } } } };
+    where.versiones = {
+      some: {
+        company: {
+          some: { id: { in: filters.companyIds } },
+        },
+      },
+    };
   }
 
   const [items, total] = await Promise.all([

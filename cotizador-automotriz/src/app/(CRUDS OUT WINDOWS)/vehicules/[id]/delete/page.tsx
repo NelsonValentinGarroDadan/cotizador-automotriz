@@ -24,6 +24,21 @@ export default function DeleteVehiculePage() {
     await deleteVehicule({ idversion }).unwrap();
   };
 
+  const columns =
+    data
+      ? [
+          { key: "descrip" as keyof VehiculeVersion, label: "Descripción", value: data.descrip },
+          { key: "codigo" as keyof VehiculeVersion, label: "Código", value: data.codigo },
+          { key: "marca" as keyof VehiculeVersion, label: "Marca", value: data.marca?.descrip ?? "-" },
+          { key: "linea" as keyof VehiculeVersion, label: "Línea", value: data.linea?.descrip ?? "-" },
+          {
+            key: "company" as keyof VehiculeVersion,
+            label: "Compañías",
+            value: Array.isArray(data.company) && data.company.length > 0 ? data.company.map((c) => c.name).join(", ") : "-",
+          },
+        ]
+      : undefined;
+
   return (
     <CrudPageFactory<VehiculeVersion>
       action="delete"
@@ -32,6 +47,7 @@ export default function DeleteVehiculePage() {
       error={error}
       deleteMutation={deleteMutation}
       entityName="Vehículo"
+      columns={columns}
       allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN]}
     />
   );
