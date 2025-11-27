@@ -42,6 +42,7 @@ export default function AdminForm({ entity, readOnly = false }: AdminFormProps) 
     { skip: !entity?.id || Boolean(entity.companies) } // Skip si ya tenemos los datos completos
   ); 
   const adminData = entity?.companies ? entity : fetchedAdmin;
+  const isSuperAdminEntity = adminData?.role === Role.SUPER_ADMIN || isSuperAdminContext;
   
   // Obtener todas las compañías para el selector
   const { data: companiesData } = useGetAllCompaniesQuery({
@@ -54,11 +55,14 @@ export default function AdminForm({ entity, readOnly = false }: AdminFormProps) 
     handleSubmit,  
     control,
     reset, // ✅ Agregar reset
-    formState: { errors } 
+    formState: { errors },
+    watch,
+    setValue,
   } = useForm<CreateAdminInput | UpdateAdminInput>({
     resolver: zodResolver(isEdit || isView ? updateAdminSchema : createAdminSchema),
     defaultValues: {
       companyIds: [],
+      active: true,
     }
   });
 
@@ -77,6 +81,7 @@ export default function AdminForm({ entity, readOnly = false }: AdminFormProps) 
       lastName: adminData.lastName,
       companyIds: assignedCompanies,
       password: '',
+      active: adminData.active !== false,
     });
   }
 }, [adminData, companiesData, reset]);
@@ -93,7 +98,7 @@ export default function AdminForm({ entity, readOnly = false }: AdminFormProps) 
         ? data.companyIds.map((c: any) => (typeof c === "string" ? c : c.value))
         : [], // aseguramos que sea array de strings
       ...(isEdit && !data.password && { password: undefined }),
-        ...(isEdit && !data.password && { password: undefined }),
+      ...(isEdit && { active: (data as UpdateAdminInput).active }),
       };
 
       if (isEdit && entity?.id) {
@@ -146,11 +151,33 @@ export default function AdminForm({ entity, readOnly = false }: AdminFormProps) 
   return (
     <div className="p-1 md:p-0 w-full h-full md:w-[90%] md:h-[90%] border rounded shadow bg-blue-light-ligth overflow-y-auto">
       <h1 className="text-xl font-bold mb-4 text-white bg-gray py-2 px-4">
-        {isView ? 'Ver Administrador' : isEdit ? 'Editar Administrador' : 'Crear Administrador'}
+        {isView
+          ? `Ver ${isSuperAdminEntity ? 'Superadministrador' : 'Administrador'}`
+          : isEdit
+            ? `Editar ${isSuperAdminEntity ? 'Superadministrador' : 'Administrador'}`
+            : `Crear ${isSuperAdminEntity ? 'Superadministrador' : 'Administrador'}`}
       </h1>
       
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {isEdit && !isView && (
+          <div className="flex items-center justify-between bg-white border rounded p-3">
+            <label className="text-black font-medium">Estado del usuario</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="admin-active-toggle"
+                // eslint-disable-next-line react-hooks/incompatible-library
+                checked={watch("active") as boolean}
+                onChange={(e) => setValue("active", e.target.checked)}
+                className="w-5 h-5 accent-blue cursor-pointer"
+              />
+              <label htmlFor="admin-active-toggle" className="text-sm text-gray-700 cursor-pointer">
+                {watch("active") ? "Activo" : "Inactivo"}
+              </label>
+            </div>
+          </div>
+        )}
           <CustomInput
             label="Nombre"
             {...register('firstName')}
@@ -171,6 +198,8 @@ export default function AdminForm({ entity, readOnly = false }: AdminFormProps) 
             disabled={isView}
           />
         </div>
+
+        
 
         <CustomInput
           label="Email"

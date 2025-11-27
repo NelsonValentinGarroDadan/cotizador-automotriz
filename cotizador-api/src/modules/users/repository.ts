@@ -16,6 +16,7 @@ const userSelect = {
   firstName: true,
   lastName: true,
   role: true,
+  active: true,
   createdAt: true,
   updatedAt: true,
   companies: {
@@ -47,7 +48,8 @@ export const getAllUsers = async (
   limit: number,
   sortBy: string,
   sortOrder: "asc" | "desc",
-  filters?: UserFilters
+  filters?: UserFilters,
+  includeInactive?: boolean
 ) => {
   const { skip, take } = calculatePagination(page, limit);
 
@@ -81,6 +83,10 @@ export const getAllUsers = async (
         companyId: { in: filters.companyIds },
       },
     };
+  }
+
+  if (!includeInactive) {
+    where.active = true;
   }
 
   const [users, total] = await Promise.all([
@@ -156,4 +162,8 @@ export const updateUser = async (id: string, data: UpdateUser & { companyIds?: s
   });
 };
 
-export const deleteUser = async (id: string) => prisma.user.delete({ where: { id } });
+export const deleteUser = async (id: string) =>
+  prisma.user.update({
+    where: { id },
+    data: { active: false },
+  });

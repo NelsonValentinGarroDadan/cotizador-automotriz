@@ -39,6 +39,7 @@ export default function UserForm({ entity, readOnly = false }: UserFormProps) {
     { skip: !entity?.id || Boolean(entity.companies) } // Skip si ya tenemos los datos completos
   ); 
   const UserData = entity?.companies ? entity : fetchedAdmin;
+  const isActiveFromEntity = UserData?.active !== false;
   
   // Obtener todas las compañías para el selector
   const { data: companiesData } = useGetAllCompaniesQuery({
@@ -59,6 +60,7 @@ export default function UserForm({ entity, readOnly = false }: UserFormProps) {
     defaultValues: {
       companyIds: [],
       allowedPlanIds: [],
+      active: true,
     }
   });
 
@@ -88,9 +90,10 @@ export default function UserForm({ entity, readOnly = false }: UserFormProps) {
         companyIds: assignedCompanies,
         allowedPlanIds: userAllowedPlanIds.map(p => p.id), // ✅ Agregar planes permitidos
         password: '',
+        active: isActiveFromEntity,
       });
     }
-  }, [UserData, companiesData, reset]);
+  }, [UserData, companiesData, reset, isActiveFromEntity]);
 
   const onSubmit = async (data: CreateAdminInput | UpdateAdminInput) => {
     try {
@@ -104,6 +107,7 @@ export default function UserForm({ entity, readOnly = false }: UserFormProps) {
         allowedPlanIds: Array.isArray(data.allowedPlanIds)
         ? data.allowedPlanIds.map((p:any) => (typeof p === "string" ? p : p.value))
         : [],
+        ...(isEdit && { active: (data as UpdateAdminInput).active }),
       };
 
       if (isEdit && entity?.id) {
@@ -174,6 +178,24 @@ export default function UserForm({ entity, readOnly = false }: UserFormProps) {
       
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {isEdit && !isView && (
+          <div className="flex items-center justify-between bg-white border rounded p-3">
+            <label className="text-black font-medium">Estado del usuario</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="user-active-toggle"
+                checked={watch("active") as boolean}
+                onChange={(e) => setValue("active", e.target.checked)}
+                className="w-5 h-5 accent-blue cursor-pointer"
+              />
+              <label htmlFor="user-active-toggle" className="text-sm text-gray-700 cursor-pointer">
+                {watch("active") ? "Activo" : "Inactivo"}
+              </label>
+            </div>
+          </div>
+        )}
+        
           <CustomInput
             label="Nombre"
             {...register('firstName')}
@@ -194,6 +216,8 @@ export default function UserForm({ entity, readOnly = false }: UserFormProps) {
             disabled={isView}
           />
         </div>
+
+        
 
         <CustomInput
           label="Email"

@@ -26,6 +26,7 @@ export default function DeleteCompanyPage() {
         { key: 'email', label: 'Email' },
       ]}
       entityName="Administrador"
+      title="¿Seguro que querés desactivar este administrador?"
     />
   );
 }

@@ -11,9 +11,11 @@ import { Role } from '@/app/types';
 import { useGetAllUsersQuery, userApi } from '@/app/api/userApi';
 import { useGetAllCompaniesQuery } from '@/app/api/companyApi';
 import { useAuthRedirect } from '@/app/hooks/useAuthRedirect';
+import { useAuthStore } from '@/app/store/useAuthStore';
 
 export default function Page() {
   useAuthRedirect([Role.SUPER_ADMIN]);
+  const { user } = useAuthStore();
   const dispatch = useDispatch();
   const useAdminsTableStore = useMemo(() => createTableStore('admins'), []);
   const { data:companies } = useGetAllCompaniesQuery({ limit: 50 })
@@ -23,7 +25,8 @@ export default function Page() {
     ...pagination,
     ...sort, 
     ...filters, 
-    role: Role.ADMIN
+    role: Role.ADMIN,
+    includeInactive: user?.role === Role.SUPER_ADMIN,
     },{
       refetchOnMountOrArgChange: true,  
     }

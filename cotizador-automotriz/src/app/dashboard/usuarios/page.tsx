@@ -11,9 +11,11 @@ import { useGetAllCompaniesQuery } from '@/app/api/companyApi';
 import usersColumns from './components/tableConfig';
 import { usersFilters } from './components/filterConfig';
 import { useAuthRedirect } from '@/app/hooks/useAuthRedirect';
+import { useAuthStore } from '@/app/store/useAuthStore';
 
 export default function Page() {
   useAuthRedirect([Role.ADMIN, Role.SUPER_ADMIN]);
+  const { user } = useAuthStore();
   const dispatch = useDispatch();
   const useUsersTableStore = useMemo(() => createTableStore('users'), []);
   const { data: companies } = useGetAllCompaniesQuery({ limit: 50 });
@@ -23,7 +25,8 @@ export default function Page() {
     ...pagination,
     ...sort, 
     ...filters, 
-    role: Role.USER
+    role: Role.USER,
+    includeInactive: user?.role === Role.SUPER_ADMIN || user?.role === Role.ADMIN
     },{
       refetchOnMountOrArgChange: true,  
     }

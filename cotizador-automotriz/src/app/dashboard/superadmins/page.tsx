@@ -16,6 +16,7 @@ import { useAuthRedirect } from '@/app/hooks/useAuthRedirect';
 export default function Page() {
   // Solo SUPER_ADMIN puede acceder a esta vista
   useAuthRedirect([Role.SUPER_ADMIN]); 
+  const includeInactive = true;
   const dispatch = useDispatch();
   const useSuperAdminsTableStore = useMemo(() => createTableStore('superadmins'), []);
   const { data: companies } = useGetAllCompaniesQuery({ limit: 50 });
@@ -27,6 +28,7 @@ export default function Page() {
       ...sort,
       ...filters,
       role: Role.SUPER_ADMIN,
+      includeInactive,
     },
     {
       refetchOnMountOrArgChange: true,

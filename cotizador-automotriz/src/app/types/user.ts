@@ -10,6 +10,7 @@ export interface User {
   firstName: string;
   lastName: string;
   role: Role;
+  active?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -49,6 +50,7 @@ export const updateAdminSchema = z.object({
   lastName: z.string().min(2, 'El apellido debe tener al menos 2 caracteres').optional(),
   companyIds: z.array(z.string()).optional(),
   allowedPlanIds: z.array(z.string()).optional(),
+  active: z.boolean().optional(),
 });
 
 

@@ -10,6 +10,7 @@ interface GetUserParams {
   search?: string; 
   companyIds?:string[];
   role:Role;
+  includeInactive?: boolean;
 }
 
 export const userApi = api.injectEndpoints({
@@ -24,6 +25,7 @@ export const userApi = api.injectEndpoints({
         if (params?.search) searchParams.append('search', params.search); 
         if (params?.companyIds) searchParams.append('companyIds', params.companyIds.join(',')); 
         searchParams.append('role',params.role);
+        if (params?.includeInactive) searchParams.append('includeInactive','true');
         return { url: `/users?${searchParams.toString()}`, method: 'GET' };
       },
       providesTags: (result) =>

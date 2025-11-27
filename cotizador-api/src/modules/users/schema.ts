@@ -48,6 +48,7 @@ export const updateUserSchema = z
     companyIds: z.array(z.uuid()).optional(),
     allowedPlanIds: z.array(z.uuid()).optional(),
     role: z.enum(["SUPER_ADMIN", "ADMIN", "USER"]).optional(),
+    active: z.boolean().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "Debe enviarse al menos un campo para actualizar",
@@ -55,4 +56,3 @@ export const updateUserSchema = z
 
 export type CreateUser = z.infer<typeof createUserSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;
-

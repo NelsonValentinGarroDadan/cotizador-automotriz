@@ -28,6 +28,7 @@ export default function DeleteCompanyPage() {
       ]}
       entityName="Usuario"
       allowedRoles={[Role.ADMIN, Role.SUPER_ADMIN]}
+      title="¿Seguro que querés desactivar este usuario?"
     />
   );
 }

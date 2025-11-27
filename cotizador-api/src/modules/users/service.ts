@@ -12,6 +12,7 @@ interface UserFilters {
   role?: string;
   companyIds?: string[];
   fechaCreacion?: string;
+  includeInactive?: boolean;
 }
 
 export const getAllUsers = async (
@@ -29,7 +30,8 @@ export const getAllUsers = async (
       limit,
       sortBy,
       sortOrder,
-      filters
+      filters,
+      filters?.includeInactive
     );
     return createPaginatedResponse(users, total, page, limit);
   }
@@ -57,12 +59,19 @@ export const getAllUsers = async (
       return createPaginatedResponse([], 0, page, limit);
     }
 
-    const { users, total } = await repository.getAllUsers(page, limit, sortBy, sortOrder, {
-      ...filters,
-      // Un ADMIN solo ve usuarios de rol USER
-      role: "USER",
-      companyIds: effectiveCompanyIds,
-    });
+    const { users, total } = await repository.getAllUsers(
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+      {
+        ...filters,
+        // Un ADMIN solo ve usuarios de rol USER
+        role: "USER",
+        companyIds: effectiveCompanyIds,
+      },
+      true // admins ven activos e inactivos dentro de sus compañías
+    );
 
     return createPaginatedResponse(users, total, page, limit);
   }
@@ -73,6 +82,10 @@ export const getAllUsers = async (
 export const getUserById = async (id: string, currentUser: UserToken) => {
   const user = await repository.getUserById(id);
   if (!user) throw new AppError("Usuario no encontrado", 404);
+
+  if (user.active === false && ![Role.SUPER_ADMIN, Role.ADMIN].includes(currentUser.role)) {
+    throw new AppError("Usuario no encontrado", 404);
+  }
 
   // Un ADMIN no puede ver datos de otros ADMIN o SUPER_ADMIN
   if (
@@ -166,6 +179,8 @@ export const updateUser = async (
 export const deleteUser = async (id: string, currentUser: UserToken) => {
   const existingUser = await repository.getUserById(id);
   if (!existingUser) throw new AppError("Usuario no encontrado", 404);
+
+  if (existingUser.active === false) return;
 
   // ADMIN solo puede eliminar usuarios de rol USER
   if (

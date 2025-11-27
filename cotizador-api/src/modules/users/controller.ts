@@ -18,6 +18,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
   const role = req.query.role as Role | undefined;
   const companies = req.query.companyIds as string | undefined;
   const fechaCreacion = req.query.fechaCreacion as string | undefined;
+  const includeInactive = req.query.includeInactive === "true";
   let companyIds: string[] | undefined;
   if (companies) {
     companyIds = companies.split(",").filter(Boolean);
@@ -29,7 +30,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
     limit,
     sortBy,
     sortOrder,
-    { search, role, companyIds, fechaCreacion }
+    { search, role, companyIds, fechaCreacion, includeInactive }
   );
 
   res.json(result);

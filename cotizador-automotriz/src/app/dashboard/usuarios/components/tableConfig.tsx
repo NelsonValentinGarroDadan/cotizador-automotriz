@@ -3,6 +3,7 @@
 import TableActions from "@/app/components/ui/tableAction";
 import { TableColumn } from "@/app/types/table";
 import { UserWithCompanies } from "@/app/types/user";
+import { CheckCircle, XCircle } from "lucide-react";
 
 export default function userColumns({
   onCreated
@@ -63,6 +64,22 @@ export default function userColumns({
       },
     }, 
     {
+      key: "status",
+      label: "Estado",
+      sortable: false,
+      className: "hidden md:table-cell",
+      render: (_: unknown, row: UserWithCompanies) =>
+        row.active === false ? (
+          <span className="flex items-center justify-start gap-2 text-red-600 font-semibold">
+            <XCircle className="w-4 h-4" /> Inactivo
+          </span>
+        ) : (
+          <span className="flex items-center justify-start gap-2 text-green-600 font-semibold">
+            <CheckCircle className="w-4 h-4" /> Activo
+          </span>
+        ),
+    },
+    {
       key: "id",
       label: "Acciones",
       sortable: false,
@@ -70,7 +87,7 @@ export default function userColumns({
         <TableActions 
           baseUrl="/users"
           id={value}
-          showDelete={row.companies  ? row.companies.length == 0  : true}
+          showDelete={row.active !== false}
           onActionComplete={onCreated}
         />
       ),

@@ -11,6 +11,8 @@ export const login = async ({ email, password }: LoginUser) => {
   const user = await getUserByEmail(email);
   if (!user) throw new AppError("Email o contraseña incorrecta", 401);
 
+  if (user.active === false) throw new AppError("Usuario inactivo", 401);
+
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) throw new AppError("Email o contraseña incorrecta", 401);
 
