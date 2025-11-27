@@ -81,6 +81,7 @@ export default function CompanyForm({ entity }: CompanyFormProps) {
               <input
                 type="checkbox"
                 id="company-active-toggle"
+                // eslint-disable-next-line react-hooks/incompatible-library
                 checked={watch("active") as boolean}
                 onChange={(e) => setValue("active", e.target.checked)}
                 className="w-5 h-5 accent-blue cursor-pointer"
