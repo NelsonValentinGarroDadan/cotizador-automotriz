@@ -81,8 +81,11 @@ export const getAllUsers = async (
     where.companies = {
       some: {
         companyId: { in: filters.companyIds },
+        company: { active: true },
       },
     };
+  } else {
+    where.companies = { some: { company: { active: true } } };
   }
 
   if (!includeInactive) {

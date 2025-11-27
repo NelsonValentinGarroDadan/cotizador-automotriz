@@ -24,16 +24,17 @@ export const getAllPlans = async (
   const where: Prisma.PlanWhereInput = {};
 
   if (!isSuperAdmin) {
+    where.companies = {
+      some: {
+        active: true,
+        ...(isAdmin
+          ? { userCompanies: { some: { userId } } }
+          : {}),
+      },
+    };
     if (!isAdmin) {
       // USER: solo planes permitidos explicitamente
       where.allowedUsers = { some: { id: userId } };
-    } else {
-      // ADMIN: planes de compañias asociadas
-      where.companies = {
-        some: {
-          userCompanies: { some: { userId } },
-        },
-      };
     }
   }
 
@@ -47,6 +48,7 @@ export const getAllPlans = async (
     where.companies = {
       some: {
         id: { in: filters.companyIds },
+        ...(isSuperAdmin ? {} : { active: true }),
       },
     };
   }
@@ -290,4 +292,3 @@ export const getLastVersionNumber = async (planId: string) => {
   });
   return last?.version || 0;
 };
-

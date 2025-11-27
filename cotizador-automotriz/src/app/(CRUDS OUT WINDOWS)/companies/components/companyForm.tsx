@@ -17,8 +17,9 @@ interface CompanyFormProps {
 export default function CompanyForm({ entity }: CompanyFormProps) {
   const company = entity; 
   const isEdit = Boolean(company);
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<CreateCompanyInput>({
+  const { register, handleSubmit, setValue, formState: { errors }, watch } = useForm<CreateCompanyInput>({
     resolver: zodResolver(createCompanySchema),
+    defaultValues: { active: true },
   });
 
   const [createCompany, { isLoading: isCreating }] = useCreateCompanyMutation();
@@ -27,13 +28,17 @@ export default function CompanyForm({ entity }: CompanyFormProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (company) setValue('name', company.name);
+    if (company) {
+      setValue('name', company.name);
+      setValue('active', company.active ?? true);
+    }
   }, [company, setValue]);
 
   const onSubmit = async (data: CreateCompanyInput) => {
     try {
       const formData = new FormData();
       formData.append('name', data.name);
+      if (typeof data.active === "boolean") formData.append('active', String(data.active));
       
       // 👇 Agrega el archivo si existe
       if (file) {
@@ -69,6 +74,23 @@ export default function CompanyForm({ entity }: CompanyFormProps) {
         {isEdit ? 'Editar Compañía' : 'Crear Compañía'}
       </h1>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 p-4">
+        {isEdit && (
+          <div className="flex items-center justify-between bg-white border rounded p-3">
+            <label className="text-black font-medium">Estado de la compañía</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="company-active-toggle"
+                checked={watch("active") as boolean}
+                onChange={(e) => setValue("active", e.target.checked)}
+                className="w-5 h-5 accent-blue cursor-pointer"
+              />
+              <label htmlFor="company-active-toggle" className="text-sm text-gray-700 cursor-pointer">
+                {watch("active") ? "Activa" : "Inactiva"}
+              </label>
+            </div>
+          </div>
+        )}
         <CustomInput
           label="Nombre de la Compañía"
           {...register('name')}

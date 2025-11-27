@@ -6,6 +6,7 @@ import { z } from 'zod';
 export const createCompanySchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   logo: z.string().optional(),
+  active: z.boolean().optional(),
 });
 
 export type CreateCompanyInput = z.infer<typeof createCompanySchema>;
@@ -22,6 +23,7 @@ export interface Company {
   id: string;
   name: string;
   logo: string | null;  
+  active?: boolean;
   createdAt: string;
   updatedAt: string;
 }

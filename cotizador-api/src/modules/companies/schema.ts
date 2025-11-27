@@ -4,14 +4,16 @@ export const createCompanyValidation = z.object({
   name: z
     .string({ error: "El nombre de la compañía es obligatorio" })
     .min(2, "El nombre debe tener al menos 2 caracteres")
-    .max(255, "El nombre no puede superar los 255 caracteres"), 
+    .max(255, "El nombre no puede superar los 255 caracteres"),
+  active: z.boolean().optional(),
 });
 
 export const createCompanySchema = z.object({
   name: z
     .string({ error: "El nombre de la compañía es obligatorio" })
     .min(2, "El nombre debe tener al menos 2 caracteres")
-    .max(255, "El nombre no puede superar los 255 caracteres"), 
+    .max(255, "El nombre no puede superar los 255 caracteres"),
+  active: z.boolean().optional(),
 });
 
 export const updateCompanySchema = z
@@ -21,6 +23,7 @@ export const updateCompanySchema = z
       .min(2, "El nombre debe tener al menos 2 caracteres")
       .max(255, "El nombre no puede superar los 255 caracteres")
       .optional(),
+    active: z.boolean().optional(),
   })
 
 export type CreateCompany = z.infer<typeof createCompanySchema>;

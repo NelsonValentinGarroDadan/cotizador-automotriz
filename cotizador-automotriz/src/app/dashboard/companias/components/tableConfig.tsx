@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import TableActions from "@/app/components/ui/tableAction"; 
 import { Role } from "@/app/types";
 import { TableColumn } from "@/app/types/table"; 
+import { CheckCircle, XCircle } from "lucide-react";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL_IMG;  
 export  default function  companyColumns(
@@ -40,20 +42,34 @@ export  default function  companyColumns(
     render: (value: string) => new Date(value).toLocaleDateString("es-AR"),
   },
   {
+    key: "active",
+    label: "Estado",
+    sortable: false,
+    render: (_: any, row: any) =>
+      row.active ? (
+        <span className="flex items-center justify-start gap-2 text-green-600 font-semibold">
+          <CheckCircle className="w-4 h-4" /> Activa
+        </span>
+      ) : (
+        <span className="flex items-center justify-start gap-2 text-red-600 font-semibold">
+          <XCircle className="w-4 h-4" /> Inactiva
+        </span>
+      ),
+  },
+  {
     key: "id",
     label: "Acciones",
     sortable: false,
-    render: (value ) =>{ 
-      return(<TableActions
+    render: (value, row: any) => (
+      <TableActions
         showView={false}
         baseUrl="/companies"
         id={value}
-        showDelete={role == Role.ADMIN|| role == Role.SUPER_ADMIN}
-        showEdit={role == Role.ADMIN|| role == Role.SUPER_ADMIN}
+        showDelete={role === Role.SUPER_ADMIN && row.active}
+        showEdit={role === Role.SUPER_ADMIN}
         onActionComplete={onCreated}
-      /> )
-    }  
-      
+      />
+    ),
   },
 ]; 
 

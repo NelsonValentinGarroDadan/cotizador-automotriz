@@ -23,7 +23,8 @@ export default function Page() {
   const { data, refetch, isLoading, isFetching } = useGetAllCompaniesQuery({
     ...pagination,
     ...sort, 
-    ...filters, 
+    ...filters,
+    includeInactive: user?.role === Role.SUPER_ADMIN,
     },{
       refetchOnMountOrArgChange: true,  
     }

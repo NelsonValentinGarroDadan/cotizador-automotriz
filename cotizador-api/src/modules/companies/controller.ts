@@ -17,11 +17,12 @@ export const getAllCompanies = async (req: Request, res: Response) => {
     "name"
   );
 
-  const filters: { name?: string; createdAtFrom?: Date } = {};
+  const filters: { name?: string; createdAtFrom?: Date; includeInactive?: boolean } = {};
   if (req.query.search) filters.name = String(req.query.search);
   if (req.query.fechaCreacion) {  
     filters.createdAtFrom = new Date(String(req.query.fechaCreacion));
   }
+  if (req.query.includeInactive === "true") filters.includeInactive = true;
 
   const result = await service.getAllCompanies(req.user, page, limit, sortBy, sortOrder, filters);
   res.json(result);
@@ -60,6 +61,12 @@ export const updateCompany = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
   const { id } = req.params;
   const { name } = req.body;
+  const active =
+    typeof req.body.active === "string"
+      ? req.body.active === "true"
+      : req.body.active === undefined
+        ? undefined
+        : Boolean(req.body.active);
   let logo: string | undefined;
 
   if (req.file) {
@@ -74,7 +81,7 @@ export const updateCompany = async (req: Request, res: Response) => {
     logo = `/uploads/companies/${fileName}`;
   }
 
-  const updated = await service.updateCompany(id, { name, logo }, req.user);
+  const updated = await service.updateCompany(id, { name, logo, active }, req.user);
   res.json(updated);
 };
 

@@ -45,6 +45,19 @@ export const getBrands = async (page: number, limit: number, sortBy: string, sor
       },
     };
   }
+  if (!filters?.isSuperAdmin) {
+    where.lineas = {
+      some: {
+        versiones: {
+          some: {
+            company: {
+              some: { active: true },
+            },
+          },
+        },
+      },
+    };
+  }
 
   const [items, total] = await Promise.all([
     prisma.autosMarca.findMany({ where, skip, take, orderBy: { [sortBy]: sortOrder } }),
@@ -76,6 +89,15 @@ export const getLines = async (page: number, limit: number, sortBy: string, sort
       some: {
         company: {
           some: { id: { in: filters.companyIds } },
+        },
+      },
+    };
+  }
+  if (!filters?.isSuperAdmin) {
+    where.versiones = {
+      some: {
+        company: {
+          some: { active: true },
         },
       },
     };
@@ -116,7 +138,9 @@ export const getVersions = async (page: number, limit: number, sortBy: string, s
     where.linea = { ...(where.linea || {}), idmarca: filters.brandId };
   }
   if (!filters?.isSuperAdmin && filters?.companyIds?.length) {
-    where.company = { some: { id: { in: filters.companyIds } } };
+    where.company = { some: { id: { in: filters.companyIds }, active: true } };
+  } else if (!filters?.isSuperAdmin) {
+    where.company = { some: { active: true } };
   }
 
   const [versions, total] = await Promise.all([

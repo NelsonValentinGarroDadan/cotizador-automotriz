@@ -9,6 +9,7 @@ interface GetCompanyParams {
   sortOrder?: 'asc' | 'desc';
   search?: string;
   fechaCreacion?: string;
+  includeInactive?: boolean;
 }
 
 export const companyApi = api.injectEndpoints({
@@ -22,6 +23,7 @@ export const companyApi = api.injectEndpoints({
         if (params?.sortOrder) searchParams.append('sortOrder', params.sortOrder);
         if (params?.search) searchParams.append('search', params.search);
         if (params?.fechaCreacion) searchParams.append('fechaCreacion', params.fechaCreacion);
+        if (params?.includeInactive) searchParams.append('includeInactive', 'true');
         return { url: `/companies?${searchParams.toString()}`, method: 'GET' };
       },
       providesTags: (result) =>

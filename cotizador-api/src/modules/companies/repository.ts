@@ -8,7 +8,8 @@ export const getAllCompanies = async (
   sortBy: string,
   sortOrder: "asc" | "desc",
   filters?: { name?: string; createdAtFrom?: Date },
-  isSuperAdmin?: boolean
+  isSuperAdmin?: boolean,
+  includeInactive?: boolean
 ) => {
   const skip = (page - 1) * limit;
 
@@ -21,6 +22,9 @@ export const getAllCompanies = async (
   if (filters?.name) where.name = { contains: filters.name };
   if (filters?.createdAtFrom) {
     where.createdAt = { gte: new Date(filters.createdAtFrom) };
+  }
+  if (!includeInactive) {
+    where.active = true;
   }
 
   const [companies, total] = await Promise.all([
@@ -111,14 +115,21 @@ export const createCompany = async (
 
 export const updateCompany = async (
   id: string,
-  data: Omit<UpdateCompany, "id"> & { logo?: string }
+  data: Omit<UpdateCompany, "id"> & { logo?: string; active?: boolean }
 ) => {
   return prisma.company.update({
     where: { id },
-    data,
+    data: {
+      ...(data.name !== undefined && { name: data.name }),
+      ...(data.logo !== undefined && { logo: data.logo }),
+      ...(data.active !== undefined && { active: data.active }),
+    },
   });
 };
 
 export const deleteCompany = async (id: string) => {
-  return prisma.company.delete({ where: { id } });
+  return prisma.company.update({
+    where: { id },
+    data: { active: false },
+  });
 };

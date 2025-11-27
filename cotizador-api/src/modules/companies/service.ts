@@ -11,7 +11,7 @@ export const getAllCompanies = async (
   limit: number,
   sortBy: string,
   sortOrder: "asc" | "desc",
-  filters?: { name?: string; createdAtFrom?: Date }
+  filters?: { name?: string; createdAtFrom?: Date; includeInactive?: boolean }
 ): Promise<PaginatedResponse<any> & { roleStats: Record<string, number> }> => {
   const { companies, total, roleStats } = await repository.getAllCompanies(
     user.id,
@@ -20,7 +20,8 @@ export const getAllCompanies = async (
     sortBy,
     sortOrder,
     filters,
-    user.role === Role.SUPER_ADMIN
+    user.role === Role.SUPER_ADMIN,
+    user.role === Role.SUPER_ADMIN ? filters?.includeInactive : false
   );
   return { ...createPaginatedResponse(companies, total, page, limit), roleStats };
 };
@@ -30,6 +31,7 @@ export const getCompanyById = async (id: string, user: UserToken | undefined) =>
 
   const company = await repository.getCompanyById(id);
   if (!company) throw new AppError("Compaña no encontrada", 404);
+  if (company.active === false && user.role !== Role.SUPER_ADMIN) throw new AppError("Compaña no encontrada", 404);
 
   return company;
 };
