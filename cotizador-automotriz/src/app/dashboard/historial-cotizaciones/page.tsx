@@ -82,7 +82,8 @@ export default function Page() {
               </p>
             }
             onCreated={refetch}
-            width={1600}
+            width={2000}
+            height={1000}
           />
         }
       />
