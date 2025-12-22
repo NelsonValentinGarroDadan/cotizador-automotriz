@@ -1,18 +1,5 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `cuotaBalon12M` on the `plancoefficient` table. All the data in the column will be lost.
-  - You are about to drop the column `cuotaBalon18M` on the `plancoefficient` table. All the data in the column will be lost.
-  - You are about to drop the column `cuotaBalon24M` on the `plancoefficient` table. All the data in the column will be lost.
-  - You are about to drop the column `cuotaBalon30M` on the `plancoefficient` table. All the data in the column will be lost.
-  - You are about to drop the column `cuotaBalon36M` on the `plancoefficient` table. All the data in the column will be lost.
-  - You are about to drop the column `cuotaBalon42M` on the `plancoefficient` table. All the data in the column will be lost.
-  - You are about to drop the column `cuotaBalon48M` on the `plancoefficient` table. All the data in the column will be lost.
-  - You are about to drop the column `cuotaBalon6M` on the `plancoefficient` table. All the data in the column will be lost.
-
-*/
 -- AlterTable
-ALTER TABLE `plancoefficient` DROP COLUMN `cuotaBalon12M`,
+ALTER TABLE `Plancoefficient` DROP COLUMN `cuotaBalon12M`,
     DROP COLUMN `cuotaBalon18M`,
     DROP COLUMN `cuotaBalon24M`,
     DROP COLUMN `cuotaBalon30M`,
