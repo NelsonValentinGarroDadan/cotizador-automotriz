@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `Plancoefficient` DROP COLUMN `cuotaBalon12M`,
+ALTER TABLE `PlanCoefficient` DROP COLUMN `cuotaBalon12M`,
     DROP COLUMN `cuotaBalon18M`,
     DROP COLUMN `cuotaBalon24M`,
     DROP COLUMN `cuotaBalon30M`,
