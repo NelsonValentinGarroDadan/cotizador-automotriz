@@ -51,11 +51,11 @@ export default function PdfQuotationPage() {
       let planLogo: string | undefined;
 
       if (data.company.logo) {
-        companyLogo = await urlToBase64(`${process.env.NEXT_PUBLIC_BASE_URL_IMG}${data.company.logo}`);
+        companyLogo = await urlToBase64(`${data.company.logo}`);
       }
 
       if (data.planVersion.plan?.logo) {
-        planLogo = await urlToBase64(`${process.env.NEXT_PUBLIC_BASE_URL_IMG}${data.planVersion.plan.logo}`);
+        planLogo = await urlToBase64(`${data.planVersion.plan.logo}`);
       }
       console.log(data.vehicleVersion);
       const docDefinition = generateQuotationPdfDoc({

@@ -4,6 +4,7 @@ import * as service from "./service";
 import { AppError } from "../../core/errors/appError";
 import { getPaginationParams } from "../../utils/pagination";
 import { Role } from "../../core/types/role";
+import { getSignedBlobUrl } from "../../core/storage/blobStorage";
 
 export const getAllQuotations = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
@@ -56,12 +57,78 @@ export const getAllQuotations = async (req: Request, res: Response) => {
     filters
   );
 
-  res.json(result);
+  const quotationsWithSignedLogos = result.data.map((q: any) => {
+    const signedCompanyLogo =
+      q.company && q.company.logo ? getSignedBlobUrl(q.company.logo) : null;
+    const signedPlanLogo =
+      q.planVersion &&
+      q.planVersion.plan &&
+      q.planVersion.plan.logo
+        ? getSignedBlobUrl(q.planVersion.plan.logo)
+        : null;
+
+    return {
+      ...q,
+      company: q.company
+        ? { ...q.company, logo: signedCompanyLogo ?? q.company.logo, logoUrl: signedCompanyLogo }
+        : q.company,
+      planVersion: q.planVersion
+        ? {
+            ...q.planVersion,
+            plan: q.planVersion.plan
+              ? {
+                  ...q.planVersion.plan,
+                  logo: signedPlanLogo ?? q.planVersion.plan.logo,
+                  logoUrl: signedPlanLogo,
+                }
+              : q.planVersion.plan,
+          }
+        : q.planVersion,
+    };
+  });
+
+  res.json({ ...result, data: quotationsWithSignedLogos });
 };
 
 export const getQuotationById = async (req: Request, res: Response) => {
   const quotation = await service.getQuotationById(req.params.id, req.user);
-  res.json(quotation);
+  const signedCompanyLogo =
+    quotation?.company && quotation.company.logo
+      ? getSignedBlobUrl(quotation.company.logo)
+      : null;
+  const signedPlanLogo =
+    quotation?.planVersion &&
+    quotation.planVersion.plan &&
+    quotation.planVersion.plan.logo
+      ? getSignedBlobUrl(quotation.planVersion.plan.logo)
+      : null;
+
+  const quotationWithSignedLogos = quotation
+    ? {
+        ...quotation,
+        company: quotation.company
+          ? {
+              ...quotation.company,
+              logo: signedCompanyLogo ?? quotation.company.logo,
+              logoUrl: signedCompanyLogo,
+            }
+          : quotation.company,
+        planVersion: quotation.planVersion
+          ? {
+              ...quotation.planVersion,
+              plan: quotation.planVersion.plan
+                ? {
+                    ...quotation.planVersion.plan,
+                    logo: signedPlanLogo ?? quotation.planVersion.plan.logo,
+                    logoUrl: signedPlanLogo,
+                  }
+                : quotation.planVersion.plan,
+            }
+          : quotation.planVersion,
+      }
+    : quotation;
+
+  res.json(quotationWithSignedLogos);
 };
 
 export const createQuotation = async (req: Request, res: Response) => {

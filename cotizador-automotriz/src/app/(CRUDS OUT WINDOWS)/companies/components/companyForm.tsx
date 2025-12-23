@@ -6,8 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';  
 import { Company, CreateCompanyInput, createCompanySchema } from '@/app/types/compay';
 import CustomButton from '@/app/components/ui/customButton';
- 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL_IMG; 
+  
 
 interface CompanyFormProps {
   entity?: Company;
@@ -104,7 +103,7 @@ export default function CompanyForm({ entity }: CompanyFormProps) {
           type="file"
           id="logo-upload"
           onFileChange={setFile}
-          defaultImage={company?.logo ? baseUrl+company?.logo : undefined}
+          defaultImage={company?.logo ? company?.logo : undefined}
           inputClassName="!border-yellow-light bg-yellow-light"
           labelClassName="!text-black"
         />

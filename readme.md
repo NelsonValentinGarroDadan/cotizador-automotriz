@@ -140,7 +140,7 @@ Monorepo del simulador de creditos y leasing vehicular basado en el Excel de ref
   - Al editar avisa si la cotizacion usa una version de plan historica; PDF recalcula con la misma logica.
 
 ### 2.6 Configuracion y scripts
-- `.env.example`: `NEXT_PUBLIC_BASE_URL_API` (API REST) y `NEXT_PUBLIC_BASE_URL_IMG` (ruta a `/uploads` del backend).
+- `.env.example`: `NEXT_PUBLIC_BASE_URL_API` (API REST)  
 - Ajustar `NEXT_PUBLIC_BASE_URL_API` si el backend no corre en `3001`; el fallback de `baseQuery` es `http://localhost:3003/api`.
 - Scripts desde `cotizador-automotriz`:
   - Desarrollo: `npm run dev`.

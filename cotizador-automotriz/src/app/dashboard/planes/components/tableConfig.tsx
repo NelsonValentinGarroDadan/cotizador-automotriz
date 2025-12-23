@@ -5,8 +5,7 @@ import { TableColumn } from "@/app/types/table";
 import { Plan } from "@/app/types/plan";
 import { CheckCircle, XCircle } from "lucide-react";
 import { Role } from "@/app/types";
-
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL_IMG;
+ 
 
 export default function planColumns({
   onCreated,
@@ -32,7 +31,7 @@ export default function planColumns({
         value ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={baseUrl + value}
+            src={value}
             alt="Logo"
             className="w-auto h-20 mx-auto rounded"
           />

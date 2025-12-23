@@ -2,11 +2,11 @@
 import { Request, Response } from "express";
 import * as service from "./service";
 import { AppError } from "../../core/errors/appError";
-import path from "path";
-import sharp from "sharp";
 import { getPaginationParams } from "../../utils/pagination";
-
-const uploadDir = path.join(__dirname, "../../../uploads/plans");
+import {
+  uploadImageToBlob,
+  getSignedBlobUrl,
+} from "../../core/storage/blobStorage";
 
 export const getAllPlans = async (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Usuario no autenticado", 403);
@@ -42,12 +42,50 @@ export const getAllPlans = async (req: Request, res: Response) => {
     filters
   );
 
-  res.json(result);
+  const plansWithSignedLogo = result.data.map((plan: any) => {
+    const signedLogo = plan.logo ? getSignedBlobUrl(plan.logo) : null;
+    return {
+      ...plan,
+      logo: signedLogo ?? plan.logo,
+      logoUrl: signedLogo,
+      companies: plan.companies?.map((company: any) => {
+        const signedCompanyLogo = company.logo
+          ? getSignedBlobUrl(company.logo)
+          : null;
+        return {
+          ...company,
+          logo: signedCompanyLogo ?? company.logo,
+          logoUrl: signedCompanyLogo,
+        };
+      }),
+    };
+  });
+
+  res.json({ ...result, data: plansWithSignedLogo });
 };
 
 export const getPlanById = async (req: Request, res: Response) => {
   const plan = await service.getPlanById(req.params.id, req.user);
-  res.json(plan);
+
+  const planWithSignedLogo = plan
+    ? {
+        ...plan,
+        logo: plan.logo ? getSignedBlobUrl(plan.logo) : null,
+        logoUrl: plan.logo ? getSignedBlobUrl(plan.logo) : null,
+        companies: plan.companies?.map((company: any) => {
+          const signedCompanyLogo = company.logo
+            ? getSignedBlobUrl(company.logo)
+            : null;
+          return {
+            ...company,
+            logo: signedCompanyLogo ?? company.logo,
+            logoUrl: signedCompanyLogo,
+          };
+        }),
+      }
+    : plan;
+
+  res.json(planWithSignedLogo);
 };
 
 export const createPlan = async (req: Request, res: Response) => {
@@ -81,15 +119,7 @@ export const createPlan = async (req: Request, res: Response) => {
 
   let logo: string | undefined;
   if (req.file) {
-    const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`;
-    const outputPath = path.join(uploadDir, fileName);
-
-    await sharp(req.file.buffer)
-      .resize(512, 512, { fit: "inside" })
-      .webp({ quality: 80 })
-      .toFile(outputPath);
-
-    logo = `/uploads/plans/${fileName}`;
+    logo = await uploadImageToBlob(req.file.buffer, { folder: "plans" });
   }
 
   const plan = await service.createPlan(
@@ -108,7 +138,16 @@ export const createPlan = async (req: Request, res: Response) => {
     req.user
   );
 
-  res.status(201).json(plan);
+  const signedLogo = plan?.logo ? getSignedBlobUrl(plan.logo) : null;
+  const planWithSignedLogo = plan
+    ? {
+        ...plan,
+        logo: signedLogo ?? plan.logo,
+        logoUrl: signedLogo,
+      }
+    : plan;
+
+  res.status(201).json(planWithSignedLogo);
 };
 
 export const updatePlan = async (req: Request, res: Response) => {
@@ -135,15 +174,10 @@ export const updatePlan = async (req: Request, res: Response) => {
 
   let logo: string | undefined;
   if (req.file) {
-    const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`;
-    const outputPath = path.join(uploadDir, fileName);
-
-    await sharp(req.file.buffer)
-      .resize(512, 512, { fit: "inside" })
-      .webp({ quality: 80 })
-      .toFile(outputPath);
-
-    logo = `/uploads/plans/${fileName}`;
+    logo = await uploadImageToBlob(req.file.buffer, {
+      folder: "plans",
+      identifier: id,
+    });
   }
 
   const parsedAllowedUserIds = allowedUserIds
@@ -170,7 +204,16 @@ export const updatePlan = async (req: Request, res: Response) => {
     req.user
   );
 
-  res.json(updated);
+  const signedLogo = updated?.logo ? getSignedBlobUrl(updated.logo) : null;
+  const updatedWithSignedLogo = updated
+    ? {
+        ...updated,
+        logo: signedLogo ?? updated.logo,
+        logoUrl: signedLogo,
+      }
+    : updated;
+
+  res.json(updatedWithSignedLogo);
 };
 
 export const deletePlan = async (req: Request, res: Response) => {
@@ -178,4 +221,3 @@ export const deletePlan = async (req: Request, res: Response) => {
   await service.deletePlan(req.params.id, req.user);
   res.status(204).send();
 };
-

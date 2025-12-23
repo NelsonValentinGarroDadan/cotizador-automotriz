@@ -4,8 +4,7 @@ import TableActions from "@/app/components/ui/tableAction";
 import { Role } from "@/app/types";
 import { TableColumn } from "@/app/types/table"; 
 import { CheckCircle, XCircle } from "lucide-react";
-
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL_IMG;  
+ 
 export  default function  companyColumns(
   { 
     onCreated,
@@ -29,7 +28,7 @@ export  default function  companyColumns(
     render: (value: string) =>
       // eslint-disable-next-line @next/next/no-img-element
       value ? <img
-      src={baseUrl + value}
+      src={value}
       alt="Logo"
       className="w-auto h-20 mx-auto rounded"
     /> : <span className="h-20 flex items-center justify-center text-lg  w-full h-full font-bold">-</span>,

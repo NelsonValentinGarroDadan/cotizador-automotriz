@@ -8,8 +8,7 @@ import { Company } from '@/app/types/compay';
 export default function DeleteCompanyPage() {
   const { id } = useParams();
   const { data: company, isLoading, error } = useGetCompanyByIdQuery({ id: id as string });
-  const [deleteCompany] = useDeleteCompanyMutation();
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL_IMG || '';
+  const [deleteCompany] = useDeleteCompanyMutation(); 
 
   const columns =
     company
@@ -20,7 +19,7 @@ export default function DeleteCompanyPage() {
             label: 'Logo',
             value: company.logo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={`${baseUrl}${company.logo}`} alt="Logo" className="h-12 object-contain" />
+              <img src={company.logo} alt="Logo" className="h-12 object-contain" />
             ) : (
               '-'
             ),

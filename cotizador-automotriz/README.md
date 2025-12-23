@@ -6,8 +6,7 @@ Aplicacion Next.js (App Router) que expone el simulador de creditos/leasing, el 
 1. Node.js 18+.
 2. Copiar `.env.example` a `.env.local` y ajustar:
    ```env
-   NEXT_PUBLIC_BASE_URL_API="http://localhost:3001/api"
-   NEXT_PUBLIC_BASE_URL_IMG="http://localhost:3001"
+   NEXT_PUBLIC_BASE_URL_API="http://localhost:3001/api" 
    ```
 3. Instalar dependencias:
    ```bash
@@ -78,5 +77,4 @@ Aplicacion Next.js (App Router) que expone el simulador de creditos/leasing, el 
   - Al editar avisa si la cotizacion usa una version de plan historica; PDF recalcula con la misma logica.
 
 ## 7. Notas
-- Ajusta `NEXT_PUBLIC_BASE_URL_API` si el backend no corre en `3001`; el fallback de `baseQuery` es `http://localhost:3003/api`.
-- Usa `NEXT_PUBLIC_BASE_URL_IMG` para apuntar a `/uploads` del backend al renderizar logos.
+- Ajusta `NEXT_PUBLIC_BASE_URL_API` si el backend no corre en `3001`; el fallback de `baseQuery` es `http://localhost:3003/api`. 

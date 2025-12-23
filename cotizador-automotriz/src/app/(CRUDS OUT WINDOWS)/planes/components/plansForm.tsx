@@ -18,12 +18,12 @@ import {
   updatePlanSchema,
   UpdatePlanInput
 } from '@/app/types/plan';
+import { Role } from '@/app/types';
 import CustomButton from '@/app/components/ui/customButton'; 
 import { MultiSelect } from '@/app/components/ui/multiSelect'; 
 import CoefficientsManager from './coefficientsManager';
 import { useGetUsersByCompanyQuery } from '@/app/api/userApi';
- 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL_IMG; 
+  
 
 interface PlanFormProps {
   entity?: PlanWithDetails;
@@ -68,6 +68,12 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
   const { data: usersData } = useGetUsersByCompanyQuery(
     { companyIds },
     { skip: !companyIds || companyIds.length === 0 }
+  );
+  const allowedUserIds = watch('allowedUserIds');
+  const filteredUsers = (usersData?.data || []).filter(
+    (u: any) =>
+      u.role !== Role.SUPER_ADMIN &&
+      !`${u.firstName} ${u.lastName}`.toLowerCase().includes('super')
   );
 
   const [createPlan, { isLoading: isCreating }] = useCreatePlanMutation();
@@ -117,6 +123,26 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
       setValue('companyIds', [availableCompanies[0].id]);
     }
   }, [companiesData, isView, isEdit, companyIds, setValue]);
+
+  // Si cambian las compaヵヴas, limpiar permisos que no correspondan
+  useEffect(() => {
+    const availableUserIds = filteredUsers.map((u: any) => u.id);
+
+    if (!companyIds || companyIds.length === 0) {
+      if (allowedUserIds && allowedUserIds.length > 0) {
+        setValue('allowedUserIds', []);
+      }
+      return;
+    }
+
+    const filtered = (allowedUserIds || []).filter((id) =>
+      availableUserIds.includes(id)
+    );
+
+    if (filtered.length !== (allowedUserIds?.length || 0)) {
+      setValue('allowedUserIds', filtered);
+    }
+  }, [companyIds, filteredUsers, allowedUserIds, setValue]);
 
   const onSubmit = async (data: CreatePlanInput | UpdatePlanInput) => {
     try {
@@ -218,10 +244,13 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
     label: c.name,
   }));
   
-  const userOptions = (usersData?.data || []).map((u: any) => ({
+  const userOptions = filteredUsers.map((u: any) => ({
     value: u.id,
     label: `${u.firstName} ${u.lastName}`,
   }));
+  const allUsersSelected =
+    userOptions.length > 0 &&
+    (allowedUserIds?.length || 0) === userOptions.length;
 
   const selectedUserNames =
     plan?.allowedUsers?.map((u) => `${u.firstName} ${u.lastName}`) || [];
@@ -354,6 +383,7 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                   <div className="flex items-center gap-2 mt-3">
                     <input
                       type="checkbox"
+                      checked={allUsersSelected}
                       onChange={(e) => {
                         if (e.target.checked) {
                           setValue(
@@ -377,7 +407,7 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                 type="file"
                 id="logo-upload"
                 onFileChange={setFile}
-                defaultImage={plan?.logo ? baseUrl + plan.logo : undefined}
+                defaultImage={plan?.logo ? plan.logo : undefined}
                 inputClassName="!border-yellow-light bg-yellow-light"
                 labelClassName="!text-black"
               />
@@ -389,7 +419,7 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
                   Logo
                 </label>
                 <img
-                  src={baseUrl + plan.logo}
+                  src={plan.logo}
                   alt="Logo del plan"
                   className="mx-auto h-40 object-contain border rounded"
                 />
@@ -474,6 +504,11 @@ export default function PlanForm({ entity, readOnly = false }: PlanFormProps) {
               watch={watch}
               disabled={false}
             />
+            {errors.coefficients?.message && (
+              <p className="text-red-500 text-sm mt-2">
+                {errors.coefficients.message as string}
+              </p>
+            )}
           </div>
         )}
 
